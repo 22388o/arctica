@@ -2,8 +2,9 @@
     <div class="container" style="margin-top: 3rem;">
       <h2>Arctica. A secure & private Bitcoin cold storage solution</h2>
       <p>NOTE: A spiritual successor to <a href="https://github.com/JWWeatherman/yeticold">Yeti Cold</a>. This project is currently in alpha and not reccomended to be used for storage of funds until a beta version is released. </p>
-      <p>A comprehensive technial design document can be found <a href="https://docs.google.com/document/d/1_RZysHjRNKTzPG_xDWh8-EvLn57AOlBO3d9J-_0bSRQ/edit?usp=sharing">here</a>
+      <p>A comprehensive technial design document can be found <a href="https://docs.google.com/document/d/1_RZysHjRNKTzPG_xDWh8-EvLn57AOlBO3d9J-_0bSRQ/edit?usp=sharing">here</a> </p>
         <p> WIP: <a href="https://www.figma.com/file/KcE9byRVhSntYcTITn1OvY/Bitcoin-Wallet-UI-Kit-(Arctica)?node-id=3350%3A85090">User Experience Design Documents </a> (Design and UX flow is currently the main focus of development. If you would like to help contribute please send me a message or open an issue and I can make you an editor on the design document. We are currently using Figma and the Free and Open Source Bitcoin UI Kit Assets)</p>
+        <p> WIP: <a href="https://github.com/wild-kard/arctica-front-end">Front End Repo</a></p>
       <p>Arctica is a Free and Open Source wrapper script that installs bitcoin core and then walks the user through setup of a highly secure & private cold storage solution. The software is designed to make Bitcoin more difficult to lose, steal, or extort than any other asset. This protocol contains both a high security and a medium security area and is designed for storage of amounts in excess of $100,000.</p>
       <ul>
           <li>Arctica requires users do what is needed for safe and secure bitcoin storage even when this requires more time and effort - the first task in the Arctica instructions is to setup trustworthy & dedicated Bitcoin laptops.</li>
