@@ -1,0 +1,3 @@
+[submodule "arctica-frontend"]
+	path = arctica-frontend
+	url = https://github.com/wild-kard/arctica-frontend
