@@ -3,4 +3,4 @@
 	url = https://github.com/wild-kard/arctica-frontend
 [submodule "tauri"]
 	path = tauri
-	url = https://github.com/tauri-apps/tauri.git
+	url = https://github.com/willweatherman/tauri.git
