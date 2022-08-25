@@ -31,3 +31,10 @@
         </ul>
     </div>
 </template>
+
+First time submodule install 
+`git submodule update --init --recursive`
+
+returning customer submodule update
+`git submodule update --recursive --remote`
+
