@@ -54,7 +54,12 @@ sudo apt install libwebkit2gtk-4.0-dev \
     libayatana-appindicator3-dev \
     librsvg2-dev`
 
-Compile
+Compile front end first
 
+`cd arctica-frontend`
+`cargo build`
+
+compile backend
+`cd ..`
 `cargo build`
 
