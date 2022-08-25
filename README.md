@@ -57,7 +57,8 @@ sudo apt install libwebkit2gtk-4.0-dev \
 Compile front end first
 
 `cd arctica-frontend`
-`cargo build`
+`npm install`
+`npm run build`
 
 compile backend
 `cd ..`
