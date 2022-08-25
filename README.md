@@ -39,3 +39,17 @@ First time submodule install
 returning customer submodule update
 `git submodule update --recursive --remote`
 
+Install tauri dependencies
+`sudo apt update
+sudo apt install libwebkit2gtk-4.0-dev \
+    build-essential \
+    curl \
+    wget \
+    libssl-dev \
+    libgtk-3-dev \
+    libayatana-appindicator3-dev \
+    librsvg2-dev`
+
+Compile
+`cargo build`
+
