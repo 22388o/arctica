@@ -33,13 +33,17 @@
 </template>
 
 Dev notes:
+
 First time submodule install 
+
 `git submodule update --init --recursive`
 
 returning customer submodule update
+
 `git submodule update --recursive --remote`
 
 Install tauri dependencies
+
 `sudo apt update
 sudo apt install libwebkit2gtk-4.0-dev \
     build-essential \
@@ -51,5 +55,6 @@ sudo apt install libwebkit2gtk-4.0-dev \
     librsvg2-dev`
 
 Compile
+
 `cargo build`
 
