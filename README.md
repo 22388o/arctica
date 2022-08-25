@@ -32,6 +32,7 @@
     </div>
 </template>
 
+Dev notes:
 First time submodule install 
 `git submodule update --init --recursive`
 
