@@ -84,7 +84,7 @@ fn print_rust(data: &str) -> String {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![print_rust, create_bootable_usb])
+  	.invoke_handler(tauri::generate_handler![print_rust, create_bootable_usb, make_bitcoin_dotfile])
   	//.invoke_handler(tauri::generate_handler![])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
