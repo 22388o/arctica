@@ -55,6 +55,21 @@ fn create_bootable_usb() -> String {
 }
 
 #[tauri::command]
+fn make_bitcoin_dotfile() -> String {
+	println!("run a rust command");
+	println!("run a shell command");
+	let output = Command::new("bash")
+			.args(["~/arctica/scripts/makebitcoindotfile.sh"])
+            .output()
+            .expect("failed to execute process");
+    for byte in output.stdout {
+    	print!("{}", byte as char);
+    }
+    println!(";");
+	format!("completed with no problems")
+}
+
+#[tauri::command]
 fn print_rust(data: &str) -> String {
 	println!("run a rust command and accept input");
 	println!("input = {}", data);
@@ -70,7 +85,7 @@ fn print_rust(data: &str) -> String {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![print_rust, create_bootable_usb])
+  	.invoke_handler(tauri::generate_handler![print_rust, create_bootable_usb, make_bitcoin_dotfile])
   	//.invoke_handler(tauri::generate_handler![])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
