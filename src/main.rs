@@ -55,6 +55,20 @@ fn create_bootable_usb() -> String {
 }
 
 #[tauri::command]
+fn make_bitcoin_dotfile() -> String {
+	println!("run a rust command");
+	println!("run a shell command");
+	let output = Command::new("bash ~/arctica/scripts/makebitcoindotfile.sh")
+            .output()
+            .expect("failed to execute process");
+    for byte in output.stdout {
+    	print!("{}", byte as char);
+    }
+    println!(";");
+	format!("completed with no problems")
+}
+
+#[tauri::command]
 fn print_rust(data: &str) -> String {
 	println!("run a rust command and accept input");
 	println!("input = {}", data);
