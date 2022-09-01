@@ -69,7 +69,7 @@ fn create_bootable_usb() -> String {
 
 #[tauri::command]
 fn make_bitcoin_dotfile() -> String {
-	println!("Making Bitcoin dotfile")
+	println!("Making Bitcoin dotfile");
 	let output = Command::new("bash")
 			.args(["./scripts/makebitcoindotfile.sh"])
             .output()
