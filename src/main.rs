@@ -41,7 +41,11 @@ fn create_bootable_usb() -> String {
 	println!("run a rust command");
 	println!("run a shell command");
 	let output = Command::new("bash")
+<<<<<<< HEAD
             .args(["./scripts/makebitcoindotfile.sh"])
+=======
+            .args(["./test.sh"])
+>>>>>>> 751916ef6b7bde8bfa2b3645a6e2c4a6d29c2349
             .output()
             .expect("failed to execute process");
     for byte in output.stdout {
