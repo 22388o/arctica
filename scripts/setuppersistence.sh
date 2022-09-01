@@ -1,6 +1,6 @@
 #this script will run after the tails flash on an SD
 #it will set up the persistent partition on each SD without the user having to boot in and do it manually
-
+echo "running setuppersistence"
 
 
 

@@ -1,6 +1,6 @@
 #this file will automatically create a .bitcoin directory in the users local home directory
 #currently issues with this not creating the sub directories...
-echo "making bitcoin dotfile"
+echo "mrunning makebitcoindotfile
 sudo mkdir -parents /home/$USER/.bitcoin/blocks
 sudo mkdir chainstate /home/$USER/.bitcoin/
 

@@ -38,14 +38,9 @@ fn getblockchain() -> Result<RpcBlockchain, bdk::Error>{
 
 #[tauri::command]
 fn create_bootable_usb() -> String {
-	println!("run a rust command");
-	println!("run a shell command");
+	println!("creating bootable tails device");
 	let output = Command::new("bash")
-<<<<<<< HEAD
-            .args(["./scripts/makebitcoindotfile.sh"])
-=======
-            .args(["./test.sh"])
->>>>>>> 751916ef6b7bde8bfa2b3645a6e2c4a6d29c2349
+            .args(["./scripts/initialflash.sh"])
             .output()
             .expect("failed to execute process");
     for byte in output.stdout {
@@ -60,8 +55,7 @@ fn create_bootable_usb() -> String {
 
 #[tauri::command]
 fn make_bitcoin_dotfile() -> String {
-	println!("run a rust command");
-	println!("run a shell command");
+	println!("Making Bitcoin dotfile")
 	let output = Command::new("bash")
 			.args(["./scripts/makebitcoindotfile.sh"])
             .output()
