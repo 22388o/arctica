@@ -15,6 +15,8 @@ use bdk::blockchain::Blockchain;
 use bdk::blockchain::GetHeight;
 use std::sync::{Arc, Mutex};
 use std::ops::Deref;
+use std::process::Command;
+
 
 struct MyState(Mutex<Result<RpcBlockchain, bdk::Error>>);
 
@@ -33,29 +35,67 @@ fn getblockchain() -> Result<RpcBlockchain, bdk::Error>{
     return blockchain
 }
 
+#[tauri::command]
+fn obtain_tails() -> String {
+	println!("fetching the latest copy of tails");
+	let output = Command::new("bash")
+            .args(["./scripts/obtaintails.sh"])
+            .output()
+            .expect("failed to execute process");
+    for byte in output.stdout {
+    	print!("{}", byte as char);
+    }
+    println!(";");
+	format!("completed with no problems")
+}
 
 
 #[tauri::command]
-fn my_custom_command(invoke_message: String, state: tauri::State<MyState>) {
-	let blockchain = match &state.0.lock().unwrap().deref() {
-		Ok(blockchain) => blockchain,
-		Err(e) => panic!("faild blockcahin: {}", e)
-	};
-	// let height = match blockchain.get_height() {
- //        Ok(height)  => height,
- //        Err(e) => panic!("Error getting height: {}", e)
- //    };
+fn create_bootable_usb() -> String {
+	println!("creating bootable tails device");
+	let output = Command::new("bash")
+            .args(["./scripts/createbootable.sh"])
+            .output()
+            .expect("failed to execute process");
+    for byte in output.stdout {
+    	print!("{}", byte as char);
+    }
+    println!(";");
+	format!("completed with no problems")
+	//"printf '%s\n' n y g y | mksub ~/arctica/resources/ubunntu-22.04-desktop-amd64.iso"
+	//"kvm -m 2048 -hdb /dev/sda -boot d -cdrom ~/arctica/resources/ubuntu-22.04-deskotp-amd64.iso"
   	// println!("I was invoked from JS, with this message: {}, {}", invoke_message, height);
 }
 
-    // println!("Address #0: {}", wallet.get_address(New)?);
-    // println!("Address #1: {}", wallet.get_address(New)?);
-    // println!("Address #2: {}", wallet.get_address(New)?);
+#[tauri::command]
+fn make_bitcoin_dotfile() -> String {
+	println!("Making Bitcoin dotfile")
+	let output = Command::new("bash")
+			.args(["./scripts/makebitcoindotfile.sh"])
+            .output()
+            .expect("failed to execute process");
+    for byte in output.stdout {
+    	print!("{}", byte as char);
+    }
+    println!(";");
+	format!("completed with no problems")
+}
+
+#[tauri::command]
+fn print_rust(data: &str) -> String {
+	println!("run a rust command and accept input");
+	println!("input = {}", data);
+	format!("completed with no problems")
+}
+
+
+
 
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![my_custom_command])
+  	.invoke_handler(tauri::generate_handler![print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_tails])
+  	//.invoke_handler(tauri::generate_handler![])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
