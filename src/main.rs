@@ -35,6 +35,20 @@ fn getblockchain() -> Result<RpcBlockchain, bdk::Error>{
     return blockchain
 }
 
+#[tauri::command]
+fn obtain_tails() -> String {
+	println!("fetching the latest copy of tails");
+	let output = Command::new("bash")
+            .args(["./scripts/obtaintails.sh"])
+            .output()
+            .expect("failed to execute process");
+    for byte in output.stdout {
+    	print!("{}", byte as char);
+    }
+    println!(";");
+	format!("completed with no problems")
+}
+
 
 #[tauri::command]
 fn create_bootable_usb() -> String {
@@ -72,9 +86,6 @@ fn print_rust(data: &str) -> String {
 	println!("run a rust command and accept input");
 	println!("input = {}", data);
 	format!("completed with no problems")
-	//"printf '%s\n' n y g y | mksub ~/arctica/resources/ubunntu-22.04-desktop-amd64.iso"
-	//"kvm -m 2048 -hdb /dev/sda -boot d -cdrom ~/arctica/resources/ubuntu-22.04-deskotp-amd64.iso"
-  	// println!("I was invoked from JS, with this message: {}, {}", invoke_message, height);
 }
 
 
