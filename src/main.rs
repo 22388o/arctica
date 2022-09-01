@@ -40,7 +40,7 @@ fn getblockchain() -> Result<RpcBlockchain, bdk::Error>{
 fn create_bootable_usb() -> String {
 	println!("creating bootable tails device");
 	let output = Command::new("bash")
-            .args(["./scripts/initialflash.sh"])
+            .args(["./scripts/createbootable.sh"])
             .output()
             .expect("failed to execute process");
     for byte in output.stdout {
