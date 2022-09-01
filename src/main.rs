@@ -40,8 +40,8 @@ fn getblockchain() -> Result<RpcBlockchain, bdk::Error>{
 fn create_bootable_usb() -> String {
 	println!("run a rust command");
 	println!("run a shell command");
-	let output = Command::new("ls")
-            .args(["-a"])
+	let output = Command::new("bash")
+            .args(["./scripts/makebitcoindotfile.sh"])
             .output()
             .expect("failed to execute process");
     for byte in output.stdout {
@@ -59,7 +59,7 @@ fn make_bitcoin_dotfile() -> String {
 	println!("run a rust command");
 	println!("run a shell command");
 	let output = Command::new("bash")
-			.args(["~/arctica/scripts/makebitcoindotfile.sh"])
+			.args(["./scripts/makebitcoindotfile.sh"])
             .output()
             .expect("failed to execute process");
     for byte in output.stdout {
