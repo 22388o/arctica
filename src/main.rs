@@ -36,6 +36,20 @@ fn getblockchain() -> Result<RpcBlockchain, bdk::Error>{
 }
 
 #[tauri::command]
+fn test_function() -> String {
+	println!("this is a test");
+	let output = Command::new("echo")
+            .args(["the test worked"])
+            .output()
+            .expect("failed to execute process");
+    for byte in output.stdout {
+    	print!("{}", byte as char);
+    }
+    println!(";");
+	format!("completed with no problems")
+}
+
+#[tauri::command]
 fn obtain_tails() -> String {
 	println!("fetching the latest copy of tails");
 	let output = Command::new("wget")
@@ -94,7 +108,7 @@ fn print_rust(data: &str) -> String {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_tails])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_tails])
   	//.invoke_handler(tauri::generate_handler![])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
