@@ -62,6 +62,7 @@ fn obtain_tails() -> String {
     	print!("{}", byte as char);
     }
     println!(";");
+
 	format!("completed with no problems")
 }
 
