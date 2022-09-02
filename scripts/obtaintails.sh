@@ -3,4 +3,6 @@
 
 echo "grabbing the latest build of tails"
 
-wget --continue http://dl.amnesia.boum.org/tails/stable/tails-amd64-5.3.1/tails-amd64-5.3.1.img
+wget --continue http://dl.amnesia.boum.org/tails/stable/tails-amd64-5.4/tails-amd64-5.4.img 
+
+echo $
