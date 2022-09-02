@@ -71,7 +71,7 @@ fn obtain_tails() -> String {
 fn make_bitcoin_dotfile() -> String {
 	println!("Making Bitcoin dotfile");
 	let output = Command::new("mkdir")
-			.args(["--parents", "/home/$USER/.bitcoin/chainstate", ";", "mkdir", "/home/$USER/.bitcoin/blocks"])
+			.args(["--parents", "~/.bitcoin/chainstate", "~/.bitcoin/blocks"])
             .output()
             .expect("failed to execute process");
     for byte in output.stdout {
