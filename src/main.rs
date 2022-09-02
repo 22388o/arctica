@@ -35,13 +35,26 @@ fn getblockchain() -> Result<RpcBlockchain, bdk::Error>{
     return blockchain
 }
 
+#[tauri::command]
+fn obtain_tails() -> String {
+	println!("fetching the latest copy of tails");
+	let output = Command::new("bash")
+            .args(["./scripts/obtaintails.sh"])
+            .output()
+            .expect("failed to execute process");
+    for byte in output.stdout {
+    	print!("{}", byte as char);
+    }
+    println!(";");
+	format!("completed with no problems")
+}
+
 
 #[tauri::command]
 fn create_bootable_usb() -> String {
-	println!("run a rust test");
-	println!("run a shell command");
+	println!("creating bootable tails device");
 	let output = Command::new("bash")
-            .args(["./scripts/test.sh"])
+            .args(["./scripts/createbootable.sh"])
             .output()
             .expect("failed to execute process");
     for byte in output.stdout {
@@ -56,11 +69,10 @@ fn create_bootable_usb() -> String {
 }
 
 #[tauri::command]
-fn create_bootable_usb_test() -> String {
-	println!("run a rust command");
-	println!("run a shell command");
+fn make_bitcoin_dotfile() -> String {
+	println!("Making Bitcoin dotfile");
 	let output = Command::new("bash")
-            .args(["./scripts/test.sh"])
+			.args(["./scripts/makebitcoindotfile.sh"])
             .output()
             .expect("failed to execute process");
     for byte in output.stdout {
@@ -78,9 +90,6 @@ fn print_rust(data: &str) -> String {
 	println!("run a rust command and accept input");
 	println!("input = {}", data);
 	format!("completed with no problems")
-	//"printf '%s\n' n y g y | mksub ~/arctica/resources/ubunntu-22.04-desktop-amd64.iso"
-	//"kvm -m 2048 -hdb /dev/sda -boot d -cdrom ~/arctica/resources/ubuntu-22.04-deskotp-amd64.iso"
-  	// println!("I was invoked from JS, with this message: {}, {}", invoke_message, height);
 }
 
 
@@ -89,7 +98,8 @@ fn print_rust(data: &str) -> String {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![create_bootable_usb, create_bootable_usb_test])
+  	.invoke_handler(tauri::generate_handler![print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_tails])
+  	//.invoke_handler(tauri::generate_handler![])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
