@@ -38,8 +38,8 @@ fn getblockchain() -> Result<RpcBlockchain, bdk::Error>{
 #[tauri::command]
 fn obtain_tails() -> String {
 	println!("fetching the latest copy of tails");
-	let output = Command::new("bash")
-            .args(["./scripts/obtaintails.sh"])
+	let output = Command::new("wget")
+            .args(["--continue", "http://dl.amnesia.boum.org/tails/stable/tails-amd64-5.3.1/tails-amd64-5.3.1.img"])
             .output()
             .expect("failed to execute process");
     for byte in output.stdout {
