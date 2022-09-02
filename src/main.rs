@@ -68,11 +68,12 @@ fn obtain_tails() -> String {
 
 //front-end: setup 1
 //create the bitcoin dotfile on the local machine internal disk, where block data will be stored 
+//this currently requires the use of sudo, else I can't break into the home dir, not ideal, revise if possible
 #[tauri::command]
 fn make_bitcoin_dotfile() -> String {
 	println!("Making Bitcoin dotfile");
-	let output = Command::new("mkdir")
-			.args(["--parents", "~/.bitcoin/chainstate", "~/.bitcoin/blocks"])
+	let output = Command::new("bash")
+			.args(["./scripts/makebitcoindotfile.sh"])
             .output()
             .expect("failed to execute process");
     for byte in output.stdout {
