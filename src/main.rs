@@ -52,7 +52,7 @@ fn test_function() -> String {
 //front-end: boot
 // runs on the boot screen when user clicks install, downloads latest copy of tails
 #[tauri::command]
-fn obtain_tails() -> String {
+async fn obtain_tails() -> String {
 	println!("fetching the latest copy of tails");
 	let output = Command::new("wget")
             .args(["--continue", "http://dl.amnesia.boum.org/tails/stable/tails-amd64-5.4/tails-amd64-5.4.img"])
@@ -100,6 +100,7 @@ fn create_bootable_usb() -> String {
 	//"kvm -m 2048 -hdb /dev/sda -boot d -cdrom ~/arctica/resources/ubuntu-22.04-deskotp-amd64.iso"
   	// println!("I was invoked from JS, with this message: {}, {}", invoke_message, height);
 }
+
 
 #[tauri::command]
 fn print_rust(data: &str) -> String {
