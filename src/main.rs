@@ -54,13 +54,13 @@ fn test_function() -> String {
 #[tauri::command]
 async fn obtain_tails() -> String {
 	println!("fetching the latest copy of tails");
-	let output = Command::new("wget")
-            .args(["--continue", "http://dl.amnesia.boum.org/tails/stable/tails-amd64-5.4/tails-amd64-5.4.img"])
-            .output()
-            .expect("failed to execute process");
-    for byte in output.stdout {
-    	print!("{}", byte as char);
-    }
+	//let output = Command::new("wget")
+  //          .args(["--continue", "http://dl.amnesia.boum.org/tails/stable/tails-amd64-5.4/tails-amd64-5.4.img"])
+  //          .output()
+  //          .expect("failed to execute process");
+  //  for byte in output.stdout {
+  //  	print!("{}", byte as char);
+  //  }
     println!(";");
 
 	format!("completed with no problems")
