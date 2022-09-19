@@ -52,10 +52,10 @@ fn test_function() -> String {
 //front-end: boot
 // runs on the boot screen when user clicks install, downloads latest copy of tails
 #[tauri::command]
-async fn obtain_tails() -> String {
-	println!("fetching the latest copy of tails");
-	//let output = Command::new("wget")
-  //          .args(["--continue", "http://dl.amnesia.boum.org/tails/stable/tails-amd64-5.4/tails-amd64-5.4.img"])
+async fn obtain_ubuntu() -> String {
+	println!("creating modified ubuntu iso");
+	//let output = Command::new("bash")
+  //          .args(["./scripts/init-iso.sh"])
   //          .output()
   //          .expect("failed to execute process");
   //  for byte in output.stdout {
@@ -86,9 +86,9 @@ fn make_bitcoin_dotfile() -> String {
 
 #[tauri::command]
 fn create_bootable_usb() -> String {
-	println!("creating bootable tails device");
+	println!("creating bootable ubuntu device");
 	let output = Command::new("bash")
-            .args(["./scripts/createbootable.sh"])
+            .args(["./scripts/clone-sd.sh"])
             .output()
             .expect("failed to execute process");
     for byte in output.stdout {
@@ -115,7 +115,7 @@ fn print_rust(data: &str) -> String {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_tails])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu])
   	//.invoke_handler(tauri::generate_handler![])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
