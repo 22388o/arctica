@@ -54,13 +54,13 @@ fn test_function() -> String {
 #[tauri::command]
 async fn obtain_ubuntu() -> String {
 	println!("creating modified ubuntu iso");
-	//let output = Command::new("bash")
-  //          .args(["./scripts/init-iso.sh"])
-  //          .output()
-  //          .expect("failed to execute process");
-  //  for byte in output.stdout {
-  //  	print!("{}", byte as char);
-  //  }
+	let output = Command::new("bash")
+           .args(["./scripts/init-iso.sh"])
+           .output()
+           .expect("failed to execute process");
+   for byte in output.stdout {
+   	print!("{}", byte as char);
+   }
     println!(";");
 
 	format!("completed with no problems")
