@@ -1,3 +1,5 @@
+sudo apt-get -y install qemu-system-x86 qemu-kvm libvirt-clients libvirt-daemon-system bridge-utils
+
 FILE="./ubuntu-22.04.1-desktop-amd64.iso"
 if [ ! -f "$FILE" ]; then 
     wget -O ubuntu-22.04.1-desktop-amd64.iso http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso
