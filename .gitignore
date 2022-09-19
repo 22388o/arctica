@@ -3,6 +3,6 @@
 /target/
 WixTools
 tails-amd64-5.4.img
-ubuntu-22.04.1-desktop-amd64
-persistent-ubuntu
+ubuntu-22.04.1-desktop-amd64.iso
+persistent-ubuntu.iso
 wget-log
