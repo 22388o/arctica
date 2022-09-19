@@ -1,9 +1,9 @@
-FILE="./ubuntu.iso"
+FILE="./ubuntu-22.04.1-desktop-amd64.iso"
 if [ ! -f "$FILE" ]; then 
     wget -O ubuntu-22.04.1-desktop-amd64.iso http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso
 fi
-< ubuntu-22.04.1-desktop-amd64.iso sed 's/maybe-ubiquity/  persistent  /' > persistent-ubuntu.iso
-< persistent-ubuntu.iso sed 's/set timeout=30/set timeout=1 /' > persistent-ubuntu.iso
+< ubuntu-22.04.1-desktop-amd64.iso sed 's/maybe-ubiquity/  persistent  /' > persistent-ubuntu1.iso
+< persistent-ubuntu1.iso sed 's/set timeout=30/set timeout=1 /' > persistent-ubuntu.iso
 fallocate -l 5GiB persistent-ubuntu.iso
 kvm -drive file=persistent-ubuntu.iso -m 8192 -daemonize -pidfile pid.txt
 sleep 100
