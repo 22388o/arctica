@@ -14,8 +14,8 @@ udisksctl loop-setup -f persistent-ubuntu.iso
 sleep 2
 sudo mkdir /media/$USER/writable/upper/home/ubuntu/test
 
-sudo add-apt-repository universe
-sudo add-apt-repository ppa:mkusb/ppa
-sudo apt update
-sudo apt install mkusb
-sudo apt install usb-pack-efi
+sudo add-apt-repository -y universe
+sudo add-apt-repository -y ppa:mkusb/ppa
+sudo apt -y update
+sudo apt install -y mkusb
+sudo apt install -y usb-pack-efi
