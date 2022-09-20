@@ -6,8 +6,8 @@ if [ ! -f "$FILE" ]; then
 fi
 < ubuntu-22.04.1-desktop-amd64.iso sed 's/maybe-ubiquity/  persistent  /' > persistent-ubuntu1.iso
 < persistent-ubuntu1.iso sed 's/set timeout=30/set timeout=1 /' > persistent-ubuntu.iso
-fallocate -l 5GiB persistent-ubuntu.iso
-kvm -m 2048 -cdrom ~/arctica/persistent-ubuntu.iso -daemonize -pidfile pid.txt 
+fallocate -l 1GiB persistent-ubuntu.iso
+kvm -m 2048 -cdrom ~/arctica/persistent-ubuntu.iso -daemonize -pidfile pid.txt
 sleep 100
 kill -9 $(cat ./pid.txt)
 udisksctl loop-setup -f persistent-ubuntu.iso
