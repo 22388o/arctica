@@ -7,15 +7,15 @@ fi
 < ubuntu-22.04.1-desktop-amd64.iso sed 's/maybe-ubiquity/  persistent  /' > persistent-ubuntu1.iso
 < persistent-ubuntu1.iso sed 's/set timeout=30/set timeout=1 /' > persistent-ubuntu.iso
 fallocate -l 5GiB persistent-ubuntu.iso
-kvm -m 2048 -cdrom ~/arctica/persistent-ubuntu.iso -daemonize -pidfile pid.txt -display none
+kvm -m 2048 -cdrom ~/arctica/persistent-ubuntu.iso -daemonize -pidfile pid.txt 
 sleep 100
 kill -9 $(cat ./pid.txt)
 udisksctl loop-setup -f persistent-ubuntu.iso
 sleep 2
 sudo mkdir /media/$USER/writable/upper/home/ubuntu/test
 
-sudo add-apt-repository universe
-sudo add-apt-repository ppa:mkusb/ppa
-sudo apt update
-sudo apt install mkusb
-sudo apt install usb-pack-efi
+sudo add-apt-repository -y universe
+sudo add-apt-repository -y ppa:mkusb/ppa
+sudo apt -y update
+sudo apt install -y mkusb
+sudo apt install -y usb-pack-efi
