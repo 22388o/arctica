@@ -99,6 +99,8 @@ fn make_bitcoin_dotfile() -> String {
 }
 
 
+//this will be the initial flash of all 7 SD cards
+//runs on setup 4-11
 #[tauri::command]
 fn create_bootable_usb() -> String {
 	println!("creating bootable ubuntu device");
@@ -111,9 +113,6 @@ fn create_bootable_usb() -> String {
     }
     println!(";");
 	format!("completed with no problems")
-	//"printf '%s\n' n y g y | mksub ~/arctica/resources/ubunntu-22.04-desktop-amd64.iso"
-	//"kvm -m 2048 -hdb /dev/sda -boot d -cdrom ~/arctica/resources/ubuntu-22.04-deskotp-amd64.iso"
-  	// println!("I was invoked from JS, with this message: {}, {}", invoke_message, height);
 }
 
 
