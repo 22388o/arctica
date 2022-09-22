@@ -23,6 +23,7 @@ use std::io::Write;
 
 struct MyState(Mutex<Result<RpcBlockchain, bdk::Error>>);
 
+#[tauri::command]
 fn write(name: String, value:String) {
 
     let mut written = false;
@@ -89,8 +90,8 @@ fn write(name: String, value:String) {
 
 }
 
-​
 
+#[tauri::command]
 fn read() {
 
     let contents = match fs::read_to_string("/media/$USER/writable/upper/home/ubuntu/config.txt") {
@@ -154,6 +155,7 @@ fn test_function() -> String {
 	format!("completed with no problems")
 }
 
+#[tauri::command]
 fn mount_sd() -> String {
 	println!("mounting the current SD");
 	let output = Command::new("bash")
