@@ -100,7 +100,7 @@ fn make_bitcoin_dotfile() -> String {
 
 
 //this will be the initial flash of all 7 SD cards
-//runs on setup 4-11
+//runs on setup 4-10
 #[tauri::command]
 fn create_bootable_usb() -> String {
 	println!("creating bootable ubuntu device");
