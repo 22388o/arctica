@@ -16,9 +16,117 @@ use bdk::blockchain::GetHeight;
 use std::sync::{Arc, Mutex};
 use std::ops::Deref;
 use std::process::Command;
+use std::fs;
+use std::fs::File;
+use std::io::Write;
 
 
 struct MyState(Mutex<Result<RpcBlockchain, bdk::Error>>);
+
+fn write(name: String, value:String) {
+	.mount_sd()
+
+    let mut written = false;
+
+    let mut newfile = String::new();
+
+    let contents = match fs::read_to_string("/media/$USER/writable/upper/home/ubuntu/config.txt") {
+
+        Ok(ct) => ct,
+
+        Err(_) => {
+
+            File::create("config.txt").expect("Could not Create File");
+
+            fs::read_to_string("/media/$USER/writable/upper/home/ubuntu/config.txt").expect("Could not Create File")
+
+        }
+
+    };
+
+    for line in contents.split("\n") {
+
+        let parts: Vec<&str> = line.split("=").collect();
+
+        if parts.len() == 2 {
+
+           let (n,v) = (parts[0],parts[1]); 
+
+           newfile += n;
+
+           newfile += "=";
+
+           if n == name {
+
+            newfile += &value;
+
+            written = true;
+
+           } else {
+
+            newfile += v;
+
+           }
+
+           newfile += "\n";
+
+        }
+
+    }
+
+    if !written {
+
+        newfile += &name;
+
+        newfile += "=";
+
+        newfile += &value;
+
+    }
+
+    let mut file = File::create("config.txt").expect("Colud not Open file");
+
+    file.write_all(newfile.as_bytes()).expect("Could not rewrite file");
+
+}
+
+​
+
+fn read() {
+	
+	.mount_sd()
+
+    let contents = match fs::read_to_string("/media/$USER/writable/upper/home/ubuntu/config.txt") {
+
+        Ok(ct) => ct,
+
+        Err(_) => {
+
+            File::create("config.txt").expect("Could not Create File");
+
+            fs::read_to_string("/media/$USER/writable/upper/home/ubuntu/config.txt").expect("Could not Create File")
+
+        }
+
+    };
+
+    for line in contents.split("\n") {
+
+        let parts: Vec<&str> = line.split("=").collect();
+
+        if parts.len() == 2 {
+
+            let (n,v) = (parts[0],parts[1]);
+
+            println!("line: {}={}", n, v);
+
+        }
+
+        
+
+    }
+
+}
 
 
 #[tauri::command]
@@ -40,6 +148,19 @@ fn test_function() -> String {
 	println!("this is a test");
 	let output = Command::new("echo")
             .args(["the test worked"])
+            .output()
+            .expect("failed to execute process");
+    for byte in output.stdout {
+    	print!("{}", byte as char);
+    }
+    println!(";");
+	format!("completed with no problems")
+}
+
+fn mount_sd() -> String {
+	println!("mounting the current SD");
+	let output = Command::new("bash")
+            .args(["./scripts/mount_sd.sh"])
             .output()
             .expect("failed to execute process");
     for byte in output.stdout {
