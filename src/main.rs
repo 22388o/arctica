@@ -208,12 +208,12 @@ fn install_kvm() -> String {
 fn make_bitcoin_dotfile() -> String {
 	println!("Making Bitcoin dotfile");
 	let output = Command::new("bash")
-			.args(["./scripts/makebitcoindotfile.sh"])
-            .output()
-            .expect("failed to execute process");
+		.args(["./scripts/makebitcoindotfile.sh"])
+    .output()
+    .expect("failed to execute process");
     for byte in output.stdout {
     	print!("{}", byte as char);
-    }
+    };
     println!(";");
 	format!("completed with no problems")
 }
