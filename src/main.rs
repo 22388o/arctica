@@ -23,7 +23,6 @@ use std::io::Write;
 
 struct MyState(Mutex<Result<RpcBlockchain, bdk::Error>>);
 
-#[tauri::command]
 fn write(name: String, value:String) {
 
     let mut written = false;
@@ -91,7 +90,6 @@ fn write(name: String, value:String) {
 }
 
 
-#[tauri::command]
 fn read() {
 
     let contents = match fs::read_to_string("/media/$USER/writable/upper/home/ubuntu/config.txt") {
@@ -250,7 +248,7 @@ fn print_rust(data: &str) -> String {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm, mount_sd, write, read])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm, mount_sd])
   	//.invoke_handler(tauri::generate_handler![])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
