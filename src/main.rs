@@ -102,17 +102,18 @@ fn make_bitcoin_dotfile() -> String {
 //this will be the initial flash of all 7 SD cards
 //runs on setup 4-11
 #[tauri::command]
-fn create_bootable_usb() -> String {
-	println!("creating bootable ubuntu device");
+async fn create_bootable_usb(number:  &str) -> Result<String, String> {
+	println!("creating bootable ubuntu device = {}", number);
 	let output = Command::new("bash")
-            .args(["./scripts/clone-sd.sh"])
-            .output()
-            .expect("failed to execute process");
+    .args(["./scripts/clone-sd.sh"])
+    .output()
+    .expect("failed to execute process");
     for byte in output.stdout {
     	print!("{}", byte as char);
     }
-    println!(";");
-	format!("completed with no problems")
+  print_rust(number);
+  println!(";");
+	Ok(format!("completed with no problems"))
 }
 
 
