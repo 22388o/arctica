@@ -154,7 +154,7 @@ fn test_function() -> String {
 }
 
 #[tauri::command]
-fn mount_sd() -> String {
+async fn mount_sd() -> String {
 	println!("mounting the current SD");
 	let output = Command::new("bash")
             .args(["./scripts/mount_sd.sh"])
@@ -185,7 +185,7 @@ async fn obtain_ubuntu() -> String {
 }
 
 #[tauri::command]
-fn install_kvm() -> String {
+async fn install_kvm() -> String {
 	println!("installing KVM & dependencies");
 	let output = Command::new("bash")
 		.args(["./scripts/install-kvm.sh"])
@@ -203,7 +203,7 @@ fn install_kvm() -> String {
 //create the bitcoin dotfile on the local machine internal disk, where block data will be stored 
 //this currently requires the use of sudo, else I can't break into the home dir, not ideal, revise if possible
 #[tauri::command]
-fn make_bitcoin_dotfile() -> String {
+async fn make_bitcoin_dotfile() -> String {
 	println!("Making Bitcoin dotfile");
 	let output = Command::new("bash")
 		.args(["./scripts/makebitcoindotfile.sh"])
