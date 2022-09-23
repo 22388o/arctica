@@ -230,8 +230,8 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
     	print!("{}", byte as char);
     }
   print_rust(number);
-  write(number, "true");
-  write(setup, "true");
+  write(number.to_string(), "true".to_string());
+  write(setup.to_string(), "true".to_string());
   println!(";");
 	Ok(format!("completed with no problems"))
 }
