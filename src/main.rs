@@ -153,11 +153,24 @@ fn test_function() -> String {
 	format!("completed with no problems")
 }
 
-#[tauri::command]
-async fn mount_sd() -> String {
+
+fn mount_sd() -> String {
 	println!("mounting the current SD");
 	let output = Command::new("bash")
-            .args(["./scripts/mount_sd.sh"])
+            .args(["./scripts/mount-sd.sh"])
+            .output()
+            .expect("failed to execute process");
+    for byte in output.stdout {
+    	print!("{}", byte as char);
+    }
+    println!(";");
+	format!("completed with no problems")
+}
+
+fn create_config() -> String {
+	println!("creating the config file");
+	let output = Command::new("bash")
+            .args(["./scripts/create-config.sh"])
             .output()
             .expect("failed to execute process");
     for byte in output.stdout {
@@ -230,9 +243,10 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
     	print!("{}", byte as char);
     }
   print_rust(number);
-  mount_sd();
-  write(number.to_string(), "true".to_string());
-  write(setup.to_string(), "true".to_string());
+//   create_config();
+//   mount_sd();
+//   write(number.to_string(), "true".to_string());
+//   write(setup.to_string(), "true".to_string());
   println!(";");
 	Ok(format!("completed with no problems"))
 }
@@ -240,7 +254,6 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
 
 #[tauri::command]
 fn print_rust(data: &str) -> String {
-	println!("run a rust command and accept input");
 	println!("input = {}", data);
 	format!("completed with no problems")
 }
@@ -251,7 +264,7 @@ fn print_rust(data: &str) -> String {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm, mount_sd])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm])
   	//.invoke_handler(tauri::generate_handler![])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
