@@ -230,6 +230,7 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
     	print!("{}", byte as char);
     }
   print_rust(number);
+  mount_sd()
   write(number.to_string(), "true".to_string());
   write(setup.to_string(), "true".to_string());
   println!(";");
