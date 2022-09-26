@@ -29,7 +29,7 @@ fn write(name: String, value:String) {
 
     let mut newfile = String::new();
 
-    let contents = match fs::read_to_string("/media/$USER/writable/upper/home/ubuntu/config.txt") {
+    let contents = match fs::read_to_string("/media/config.txt") {
 
         Ok(ct) => ct,
 
@@ -37,7 +37,7 @@ fn write(name: String, value:String) {
 
             File::create("config.txt").expect("Could not Create File");
 
-            fs::read_to_string("/media/$USER/writable/upper/home/ubuntu/config.txt").expect("Could not Create File")
+            fs::read_to_string("/media/config.txt").expect("Could not Create File")
 
         }
 
@@ -244,9 +244,9 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
     }
   print_rust(number);
 //   create_config();
-//   mount_sd();
-//   write(number.to_string(), "true".to_string());
-//   write(setup.to_string(), "true".to_string());
+  mount_sd();
+  write(number.to_string(), "true".to_string());
+  write(setup.to_string(), "true".to_string());
   println!(";");
 	Ok(format!("completed with no problems"))
 }
