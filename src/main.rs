@@ -24,104 +24,74 @@ use std::io::Write;
 struct MyState(Mutex<Result<RpcBlockchain, bdk::Error>>);
 
 fn write(name: String, value:String) {
-
+		let config_file = "config.txt";
     let mut written = false;
-
     let mut newfile = String::new();
 
+<<<<<<< HEAD
     let contents = match fs::read_to_string("/media/config.txt") {
 
+=======
+    let contents = match fs::read_to_string(&config_file) {
+>>>>>>> efa516be0c21efb549de91f2bb2cbeab19f17253
         Ok(ct) => ct,
-
         Err(_) => {
+<<<<<<< HEAD
 
             File::create("config.txt").expect("Could not Create File");
 
             fs::read_to_string("/media/config.txt").expect("Could not Create File")
 
+=======
+            "".to_string()       
+>>>>>>> efa516be0c21efb549de91f2bb2cbeab19f17253
         }
-
     };
 
     for line in contents.split("\n") {
-
         let parts: Vec<&str> = line.split("=").collect();
-
         if parts.len() == 2 {
-
            let (n,v) = (parts[0],parts[1]); 
-
            newfile += n;
-
            newfile += "=";
-
            if n == name {
-
             newfile += &value;
-
             written = true;
-
            } else {
-
             newfile += v;
-
            }
-
            newfile += "\n";
-
         }
-
     }
 
     if !written {
-
         newfile += &name;
-
         newfile += "=";
-
         newfile += &value;
-
     }
 
-    let mut file = File::create("config.txt").expect("Colud not Open file");
-
+    let mut file = File::create(&config_file).expect("Colud not Open file");
     file.write_all(newfile.as_bytes()).expect("Could not rewrite file");
-
 }
 
 
 fn read() {
+		let config_file = "config.txt";
 
-    let contents = match fs::read_to_string("/media/$USER/writable/upper/home/ubuntu/config.txt") {
-
+    let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
-
         Err(_) => {
-
-            File::create("config.txt").expect("Could not Create File");
-
-            fs::read_to_string("/media/$USER/writable/upper/home/ubuntu/config.txt").expect("Could not Create File")
-
+        	"".to_string()
         }
-
     };
 
     for line in contents.split("\n") {
-
         let parts: Vec<&str> = line.split("=").collect();
-
         if parts.len() == 2 {
-
             let (n,v) = (parts[0],parts[1]);
-
             println!("line: {}={}", n, v);
-
         }
-
-        
-
     }
-
 }
 
 
@@ -235,18 +205,24 @@ async fn make_bitcoin_dotfile() -> String {
 #[tauri::command]
 async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, String> {
 	println!("creating bootable ubuntu device = {} {}", number, setup);
-	let output = Command::new("bash")
-        .args(["./scripts/clone-sd.sh"])
-        .output()
-        .expect("failed to execute process");
-    for byte in output.stdout {
-    	print!("{}", byte as char);
-    }
-  print_rust(number);
+	// let output = Command::new("bash")
+ //        .args(["./scripts/clone-sd.sh"])
+ //        .output()
+ //        .expect("failed to execute process");
+ //    for byte in output.stdout {
+ //    	print!("{}", byte as char);
+ //    }
+  print_rust("testdata");
 //   create_config();
+<<<<<<< HEAD
   mount_sd();
   write(number.to_string(), "true".to_string());
   write(setup.to_string(), "true".to_string());
+=======
+//   mount_sd();
+   write(number.to_string(), "true".to_string());
+//   write(setup.to_string(), "true".to_string());
+>>>>>>> efa516be0c21efb549de91f2bb2cbeab19f17253
   println!(";");
 	Ok(format!("completed with no problems"))
 }
