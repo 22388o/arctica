@@ -24,7 +24,7 @@ use std::io::Write;
 struct MyState(Mutex<Result<RpcBlockchain, bdk::Error>>);
 
 fn write(name: String, value:String) {
-		let config_file = "config.txt";
+		let config_file = "~/config.txt";
     let mut written = false;
     let mut newfile = String::new();
 
@@ -137,6 +137,19 @@ fn copy_config() -> String {
 	format!("completed with no problems")
 }
 
+fn copy_binary() -> String {
+	println!("copying the binary");
+	let output = Command::new("bash")
+            .args(["./scripts/copy-binary.sh"])
+            .output()
+            .expect("failed to execute process");
+    for byte in output.stdout {
+    	print!("{}", byte as char);
+    }
+    println!(";");
+	format!("completed with no problems")
+}
+
 //front-end: boot
 // runs on the boot screen when user clicks install, downloads latest copy of tails
 #[tauri::command]
@@ -192,17 +205,18 @@ async fn make_bitcoin_dotfile() -> String {
 #[tauri::command]
 async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, String> {
 	println!("creating bootable ubuntu device = {} {}", number, setup);
-	let output = Command::new("bash")
-        .args(["./scripts/clone-sd.sh"])
-        .output()
-        .expect("failed to execute process");
-    for byte in output.stdout {
-    	print!("{}", byte as char);
-    }
+	// let output = Command::new("bash")
+    //     .args(["./scripts/clone-sd.sh"])
+    //     .output()
+    //     .expect("failed to execute process");
+    // for byte in output.stdout {
+    // 	print!("{}", byte as char);
+    // }
   print_rust("testdata");
   mount_sd();
   write("sdNumber".to_string(), number.to_string());
   write("setupStep".to_string(), setup.to_string());
+  copy_binary()
   copy_config();
   println!(";");
 	Ok(format!("completed with no problems"))

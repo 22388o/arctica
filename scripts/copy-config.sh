@@ -1,3 +1,3 @@
-cp config.txt /media/$USER/writable/upper/home/ubuntu/
+cp ~/config.txt /media/$USER/writable/upper/home/ubuntu/
 
-rm -f config.txt
+rm -f ~/config.txt
