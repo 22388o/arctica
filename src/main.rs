@@ -61,7 +61,7 @@ fn write(name: String, value:String) {
     file.write_all(newfile.as_bytes()).expect("Could not rewrite file");
 }
 
-
+#[tauri::command]
 fn read() {
 		let config_file = "config.txt";
 
@@ -221,7 +221,7 @@ fn print_rust(data: &str) -> String {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm, read])
   	//.invoke_handler(tauri::generate_handler![])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
