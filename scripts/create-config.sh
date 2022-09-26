@@ -1,1 +1,0 @@
-touch /media/$USER/writable/upper/home/ubuntu/config.txt

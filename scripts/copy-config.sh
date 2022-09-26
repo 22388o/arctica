@@ -1,0 +1,1 @@
+cp config.txt /media/$USER/writable/upper/home/ubuntu/

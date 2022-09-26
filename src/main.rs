@@ -28,23 +28,10 @@ fn write(name: String, value:String) {
     let mut written = false;
     let mut newfile = String::new();
 
-<<<<<<< HEAD
-    let contents = match fs::read_to_string("/media/config.txt") {
-
-=======
     let contents = match fs::read_to_string(&config_file) {
->>>>>>> efa516be0c21efb549de91f2bb2cbeab19f17253
         Ok(ct) => ct,
         Err(_) => {
-<<<<<<< HEAD
-
-            File::create("config.txt").expect("Could not Create File");
-
-            fs::read_to_string("/media/config.txt").expect("Could not Create File")
-
-=======
             "".to_string()       
->>>>>>> efa516be0c21efb549de91f2bb2cbeab19f17253
         }
     };
 
@@ -137,10 +124,10 @@ fn mount_sd() -> String {
 	format!("completed with no problems")
 }
 
-fn create_config() -> String {
-	println!("creating the config file");
+fn copy_config() -> String {
+	println!("copying the config file");
 	let output = Command::new("bash")
-            .args(["./scripts/create-config.sh"])
+            .args(["./scripts/copy-config.sh"])
             .output()
             .expect("failed to execute process");
     for byte in output.stdout {
@@ -214,15 +201,9 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
  //    }
   print_rust("testdata");
 //   create_config();
-<<<<<<< HEAD
   mount_sd();
   write(number.to_string(), "true".to_string());
   write(setup.to_string(), "true".to_string());
-=======
-//   mount_sd();
-   write(number.to_string(), "true".to_string());
-//   write(setup.to_string(), "true".to_string());
->>>>>>> efa516be0c21efb549de91f2bb2cbeab19f17253
   println!(";");
 	Ok(format!("completed with no problems"))
 }
