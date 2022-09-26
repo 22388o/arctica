@@ -217,7 +217,7 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
   write("sdNumber".to_string(), number.to_string());
   write("setupStep".to_string(), setup.to_string());
   //remember to change copy binary filepath for end user, currently creating this locally with cargo build but user will obtain from the web
-  copy_binary()
+  copy_binary();
   copy_config();
   println!(";");
 	Ok(format!("completed with no problems"))
