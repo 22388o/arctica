@@ -205,18 +205,18 @@ async fn make_bitcoin_dotfile() -> String {
 #[tauri::command]
 async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, String> {
 	println!("creating bootable ubuntu device = {} {}", number, setup);
-	// let output = Command::new("bash")
-    //     .args(["./scripts/clone-sd.sh"])
-    //     .output()
-    //     .expect("failed to execute process");
-    // for byte in output.stdout {
-    // 	print!("{}", byte as char);
-    // }
+	let output = Command::new("bash")
+        .args(["./scripts/clone-sd.sh"])
+        .output()
+        .expect("failed to execute process");
+    for byte in output.stdout {
+    	print!("{}", byte as char);
+    }
   print_rust("testdata");
   mount_sd();
   write("sdNumber".to_string(), number.to_string());
   write("setupStep".to_string(), setup.to_string());
-  //remember to change copy binary filepath for end user, currently creating this locally with cargo build but user will obtain from the web
+  //remember to change copy binary filepath for end user, currently manually creating this locally with cargo build but user will obtain from the web
   copy_binary();
   copy_config();
   println!(";");
@@ -229,6 +229,13 @@ fn print_rust(data: &str) -> String {
 	println!("input = {}", data);
 	format!("completed with no problems")
 }
+
+
+// #[tauri::command]
+// async fn debug_output(data: &str) -> String{
+// 	write("debug".to_string(), data.to_string());
+//     format!("completed with no problems")
+// }
 
 
 
