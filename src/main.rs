@@ -24,7 +24,7 @@ use std::io::Write;
 struct MyState(Mutex<Result<RpcBlockchain, bdk::Error>>);
 
 fn write(name: String, value:String) {
-		let config_file = "~/config.txt";
+	let config_file = "/home/$USER/config.txt";
     let mut written = false;
     let mut newfile = String::new();
 
@@ -63,7 +63,7 @@ fn write(name: String, value:String) {
 
 #[tauri::command]
 fn read() {
-		let config_file = "config.txt";
+    let config_file = "/home/$USER/config.txt";
 
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
@@ -205,13 +205,13 @@ async fn make_bitcoin_dotfile() -> String {
 #[tauri::command]
 async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, String> {
 	println!("creating bootable ubuntu device = {} {}", number, setup);
-	let output = Command::new("bash")
-        .args(["./scripts/clone-sd.sh"])
-        .output()
-        .expect("failed to execute process");
-    for byte in output.stdout {
-    	print!("{}", byte as char);
-    }
+	// let output = Command::new("bash")
+    //     .args(["./scripts/clone-sd.sh"])
+    //     .output()
+    //     .expect("failed to execute process");
+    // for byte in output.stdout {
+    // 	print!("{}", byte as char);
+    // }
   print_rust("testdata");
   mount_sd();
   write("sdNumber".to_string(), number.to_string());
@@ -232,9 +232,9 @@ fn print_rust(data: &str) -> String {
 
 
 #[tauri::command]
-async fn debug_output(data: &str) -> String{
+async fn debug_output(data: &str) -> Result<String, String> {
 	write("debug".to_string(), data.to_string());
-    format!("completed with no problems")
+    Ok(format!("completed with no problems"))
 }
 
 
