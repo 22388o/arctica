@@ -231,11 +231,11 @@ fn print_rust(data: &str) -> String {
 }
 
 
-// #[tauri::command]
-// async fn debug_output(data: &str) -> String{
-// 	write("debug".to_string(), data.to_string());
-//     format!("completed with no problems")
-// }
+#[tauri::command]
+async fn debug_output(data: &str) -> Result<String, String> {
+	write("debug".to_string(), data.to_string());
+  Ok(format!("completed with no problems"))
+}
 
 
 
@@ -243,7 +243,7 @@ fn print_rust(data: &str) -> String {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm, read])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm, read, debug_output])
   	//.invoke_handler(tauri::generate_handler![])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
