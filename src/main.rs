@@ -19,12 +19,14 @@ use std::process::Command;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
+use home::home_dir;
 
 
 struct MyState(Mutex<Result<RpcBlockchain, bdk::Error>>);
 
 fn write(name: String, value:String) {
-	let config_file = "/home/$USER/config.txt";
+	let mut config_file = home_dir().expect("could not get home directory");
+    config_file.push("config.txt");
     let mut written = false;
     let mut newfile = String::new();
 
@@ -61,10 +63,9 @@ fn write(name: String, value:String) {
     file.write_all(newfile.as_bytes()).expect("Could not rewrite file");
 }
 
-#[tauri::command]
 fn read() {
-    let config_file = "/home/$USER/config.txt";
-
+    let mut config_file = home_dir().expect("could not get home directory");
+    config_file.push("config.txt");
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
         Err(_) => {
@@ -205,13 +206,13 @@ async fn make_bitcoin_dotfile() -> String {
 #[tauri::command]
 async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, String> {
 	println!("creating bootable ubuntu device = {} {}", number, setup);
-	// let output = Command::new("bash")
-    //     .args(["./scripts/clone-sd.sh"])
-    //     .output()
-    //     .expect("failed to execute process");
-    // for byte in output.stdout {
-    // 	print!("{}", byte as char);
-    // }
+	let output = Command::new("bash")
+        .args(["./scripts/clone-sd.sh"])
+        .output()
+        .expect("failed to execute process");
+    for byte in output.stdout {
+    	print!("{}", byte as char);
+    }
   print_rust("testdata");
   mount_sd();
   write("sdNumber".to_string(), number.to_string());
@@ -243,7 +244,7 @@ async fn debug_output(data: &str) -> Result<String, String> {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm, read, debug_output])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm, debug_output])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
