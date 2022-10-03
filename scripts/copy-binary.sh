@@ -1,1 +1,1 @@
-cp ./target/debug/app /media/$USER/writable/upper/home/ubuntu
+sudo cp ./target/debug/app /media/$USER/writable/upper/home/ubuntu

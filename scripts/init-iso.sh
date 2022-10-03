@@ -12,7 +12,7 @@ sleep 200
 kill -9 $(cat ./pid.txt)
 udisksctl loop-setup -f persistent-ubuntu.iso
 sleep 2
-sudo mkdir /media/$USER/writable/upper/home/ubuntu/test
+sudo chmod 777 /media/$USER/writable/upper/home/ubuntu
 
 sudo add-apt-repository -y universe
 sudo add-apt-repository -y ppa:mkusb/ppa
