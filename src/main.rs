@@ -63,7 +63,8 @@ fn write(name: String, value:String) {
     file.write_all(newfile.as_bytes()).expect("Could not rewrite file");
 }
 
-fn read() {
+#[tauri::command]
+fn read() -> std::string::String {
     let mut config_file = home_dir().expect("could not get home directory");
     config_file.push("config.txt");
     let contents = match fs::read_to_string(&config_file) {
@@ -80,6 +81,7 @@ fn read() {
             println!("line: {}={}", n, v);
         }
     }
+    format!("Completed with no problems")
 }
 
 
@@ -213,7 +215,6 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
     for byte in output.stdout {
     	print!("{}", byte as char);
     }
-  print_rust("testdata");
   mount_sd();
   write("sdNumber".to_string(), number.to_string());
   write("setupStep".to_string(), setup.to_string());
@@ -244,7 +245,7 @@ async fn debug_output(data: &str) -> Result<String, String> {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm, debug_output])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm, read, debug_output])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
