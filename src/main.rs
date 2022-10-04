@@ -114,19 +114,6 @@ fn test_function() -> String {
 }
 
 
-fn mount_sd() -> String {
-	println!("mounting the current SD");
-	let output = Command::new("bash")
-            .args(["./scripts/mount-sd.sh"])
-            .output()
-            .expect("failed to execute process");
-    for byte in output.stdout {
-    	print!("{}", byte as char);
-    }
-    println!(";");
-	format!("completed with no problems")
-}
-
 fn copy_config() -> String {
 	println!("copying the config file");
 	let output = Command::new("bash")
@@ -215,7 +202,6 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
     for byte in output.stdout {
     	print!("{}", byte as char);
     }
-//   mount_sd();
   write("sdNumber".to_string(), number.to_string());
   write("setupStep".to_string(), setup.to_string());
   //remember to change copy binary filepath for end user, currently manually creating this locally with cargo build but user will obtain from the web
