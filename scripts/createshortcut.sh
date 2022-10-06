@@ -1,0 +1,3 @@
+sudo rm /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
+sudo echo [Desktop Entry]\nVersion=1.0\nName=Artica\nExec=/media/$USER/writable/upper/home/ubuntu/arctica\nTerminal=true\nX-MultipleArgs=false\nType=Application\nIcon=/media/$USER/writable/upper/home/ubuntu/arctica.png\nStartupNotify=true >> /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
+sudo chmod +x /media/$USER/writable/upper/usr/share/applications/Arctica.desktop'

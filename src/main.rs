@@ -19,12 +19,14 @@ use std::process::Command;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
+use home::home_dir;
 
 
 struct MyState(Mutex<Result<RpcBlockchain, bdk::Error>>);
 
 fn write(name: String, value:String) {
-		let config_file = "~/config.txt";
+	let mut config_file = home_dir().expect("could not get home directory");
+    config_file.push("config.txt");
     let mut written = false;
     let mut newfile = String::new();
 
@@ -62,9 +64,9 @@ fn write(name: String, value:String) {
 }
 
 #[tauri::command]
-fn read() {
-		let config_file = "config.txt";
-
+fn read() -> std::string::String {
+    let mut config_file = home_dir().expect("could not get home directory");
+    config_file.push("config.txt");
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
         Err(_) => {
@@ -79,6 +81,7 @@ fn read() {
             println!("line: {}={}", n, v);
         }
     }
+    format!("Completed with no problems")
 }
 
 
@@ -110,19 +113,6 @@ fn test_function() -> String {
 	format!("completed with no problems")
 }
 
-
-fn mount_sd() -> String {
-	println!("mounting the current SD");
-	let output = Command::new("bash")
-            .args(["./scripts/mount-sd.sh"])
-            .output()
-            .expect("failed to execute process");
-    for byte in output.stdout {
-    	print!("{}", byte as char);
-    }
-    println!(";");
-	format!("completed with no problems")
-}
 
 fn copy_config() -> String {
 	println!("copying the config file");
@@ -212,8 +202,6 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
     for byte in output.stdout {
     	print!("{}", byte as char);
     }
-  print_rust("testdata");
-  mount_sd();
   write("sdNumber".to_string(), number.to_string());
   write("setupStep".to_string(), setup.to_string());
   //remember to change copy binary filepath for end user, currently manually creating this locally with cargo build but user will obtain from the web
@@ -244,7 +232,6 @@ fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
   	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm, read, debug_output])
-  	//.invoke_handler(tauri::generate_handler![])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

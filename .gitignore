@@ -5,6 +5,7 @@ WixTools
 tails-amd64-5.4.img
 ubuntu-22.04.1-desktop-amd64.iso
 persistent-ubuntu.iso
+scripts/persistent-ubuntu.iso
 persistent-ubuntu1.iso
 wget-log
 pid.txt

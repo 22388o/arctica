@@ -1,1 +1,1 @@
-printf '%s\n' n y g y | mkusb persistent-ubuntu.iso
+printf '%s\n' n y g y | mkusb ~/arctica/persistent-ubuntu.iso
