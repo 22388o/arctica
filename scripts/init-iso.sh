@@ -11,7 +11,7 @@ sudo rm persistent-ubuntu1.iso
 sudo rm persistent-ubuntu1.iso
 echo "test"
 fallocate -l 5GiB persistent-ubuntu.iso
-kvm -m 2048 ~/arctica/persistent-ubuntu.iso -daemonize -pidfile pid.txt -cpu host
+kvm -m 2048 ~/arctica/persistent-ubuntu.iso -daemonize -pidfile pid.txt -cpu host -display none
 sleep 200
 kill -9 $(cat ./pid.txt)
 udisksctl loop-setup -f persistent-ubuntu.iso
