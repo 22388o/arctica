@@ -6,6 +6,7 @@ if [ ! -f "$FILE" ]; then
 fi
 sudo rm persistent-ubuntu.iso
 sudo rm persistent-ubuntu1.iso
+sudo rm pid.txt
 < ubuntu-22.04.1-desktop-amd64.iso sed 's/maybe-ubiquity/  persistent  /' > persistent-ubuntu1.iso
 < persistent-ubuntu1.iso sed 's/set timeout=30/set timeout=1 /' > persistent-ubuntu.iso
 sudo rm persistent-ubuntu1.iso

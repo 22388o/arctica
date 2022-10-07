@@ -114,18 +114,31 @@ fn test_function() -> String {
 }
 
 
-fn copy_config() -> String {
-	println!("copying the config file");
-	let output = Command::new("bash")
-            .args(["./scripts/copy-config.sh"])
-            .output()
-            .expect("failed to execute process");
-    for byte in output.stdout {
-    	print!("{}", byte as char);
-    }
-    println!(";");
-	format!("completed with no problems")
-}
+// fn copy_config() -> String {
+// 	println!("copying the config file");
+// 	let output = Command::new("bash")
+//             .args(["./scripts/copy-config.sh"])
+//             .output()
+//             .expect("failed to execute process");
+//     for byte in output.stdout {
+//     	print!("{}", byte as char);
+//     }
+//     println!(";");
+// 	format!("completed with no problems")
+// }
+
+// fn remove_config() -> String {
+// 	println!("removing stale config file");
+// 	let output = Command::new("bash")
+//             .args(["./scripts/remove-config.sh"])
+//             .output()
+//             .expect("failed to execute process");
+//     for byte in output.stdout {
+//     	print!("{}", byte as char);
+//     }
+//     println!(";");
+// 	format!("completed with no problems")
+// }
 
 //front-end: boot
 // runs on the boot screen when user clicks install, downloads latest copy of tails
@@ -181,6 +194,8 @@ async fn make_bitcoin_dotfile() -> String {
 //runs on setup 4-10
 #[tauri::command]
 async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, String> {
+    write("sdNumber".to_string(), number.to_string());
+    write("setupStep".to_string(), setup.to_string());
 	println!("creating bootable ubuntu device = {} {}", number, setup);
 	let output = Command::new("bash")
         .args(["./scripts/clone-sd.sh"])
@@ -189,9 +204,6 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
     for byte in output.stdout {
     	print!("{}", byte as char);
     }
-  write("sdNumber".to_string(), number.to_string());
-  write("setupStep".to_string(), setup.to_string());
-  copy_config();
   println!(";");
 	Ok(format!("completed with no problems"))
 }
