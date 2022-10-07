@@ -127,19 +127,6 @@ fn copy_config() -> String {
 	format!("completed with no problems")
 }
 
-fn copy_binary() -> String {
-	println!("copying the binary");
-	let output = Command::new("bash")
-            .args(["./scripts/copy-binary.sh"])
-            .output()
-            .expect("failed to execute process");
-    for byte in output.stdout {
-    	print!("{}", byte as char);
-    }
-    println!(";");
-	format!("completed with no problems")
-}
-
 //front-end: boot
 // runs on the boot screen when user clicks install, downloads latest copy of tails
 #[tauri::command]
