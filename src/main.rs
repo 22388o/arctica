@@ -25,6 +25,9 @@ use home::home_dir;
 struct MyState(Mutex<Result<RpcBlockchain, bdk::Error>>);
 
 fn write(name: String, value:String) {
+    let output = home_dir().unwrap();
+
+    println!("{}", output.display());
 	let mut config_file = home_dir().expect("could not get home directory");
     config_file.push("config.txt");
     let mut written = false;
@@ -65,6 +68,10 @@ fn write(name: String, value:String) {
 
 #[tauri::command]
 fn read() -> std::string::String {
+    let output = home_dir().unwrap();
+
+    println!("{}", output.display());
+
     let mut config_file = home_dir().expect("could not get home directory");
     config_file.push("config.txt");
     let contents = match fs::read_to_string(&config_file) {
@@ -78,10 +85,10 @@ fn read() -> std::string::String {
         let parts: Vec<&str> = line.split("=").collect();
         if parts.len() == 2 {
             let (n,v) = (parts[0],parts[1]);
-            println!("line: {}={}", n, v);
+            println!("read line: {}={}", n, v);
         }
     }
-    format!("Completed with no problems")
+    format!("{}", contents)
 }
 
 
