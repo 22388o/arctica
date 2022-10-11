@@ -25,9 +25,6 @@ use home::home_dir;
 struct MyState(Mutex<Result<RpcBlockchain, bdk::Error>>);
 
 fn write(name: String, value:String) {
-    let output = home_dir().unwrap();
-
-    println!("{}", output.display());
 	let mut config_file = home_dir().expect("could not get home directory");
     config_file.push("config.txt");
     let mut written = false;
@@ -66,12 +63,10 @@ fn write(name: String, value:String) {
     file.write_all(newfile.as_bytes()).expect("Could not rewrite file");
 }
 
+
+
 #[tauri::command]
 fn read() -> std::string::String {
-    let output = home_dir().unwrap();
-
-    println!("{}", output.display());
-
     let mut config_file = home_dir().expect("could not get home directory");
     config_file.push("config.txt");
     let contents = match fs::read_to_string(&config_file) {
@@ -120,32 +115,6 @@ fn test_function() -> String {
 	format!("completed with no problems")
 }
 
-
-// fn copy_config() -> String {
-// 	println!("copying the config file");
-// 	let output = Command::new("bash")
-//             .args(["./scripts/copy-config.sh"])
-//             .output()
-//             .expect("failed to execute process");
-//     for byte in output.stdout {
-//     	print!("{}", byte as char);
-//     }
-//     println!(";");
-// 	format!("completed with no problems")
-// }
-
-// fn remove_config() -> String {
-// 	println!("removing stale config file");
-// 	let output = Command::new("bash")
-//             .args(["./scripts/remove-config.sh"])
-//             .output()
-//             .expect("failed to execute process");
-//     for byte in output.stdout {
-//     	print!("{}", byte as char);
-//     }
-//     println!(";");
-// 	format!("completed with no problems")
-// }
 
 //front-end: boot
 // runs on the boot screen when user clicks install, downloads latest copy of tails
@@ -229,13 +198,20 @@ async fn debug_output(data: &str) -> Result<String, String> {
   Ok(format!("completed with no problems"))
 }
 
+#[tauri::command]
+async fn async_write(name: &str, value: &str) -> Result<String, String> {
+    write(name.to_string(), value.to_string());
+    println!("{}", name);
+    Ok(format!("completed with no problems"))
+}
+
 
 
 
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm, read, debug_output])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm, async_write, read, debug_output])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
