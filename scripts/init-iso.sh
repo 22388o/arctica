@@ -36,9 +36,9 @@ sudo mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
 #create device .bitcoin dir
 sudo mkdir /media/$USER/writable/upper/home/ubuntu/.bitcoin
 #symlink chainstate
-sudo ln -s ~/.bitcoin/chainstate /media/ubuntu/$UUID/.bitcoin/chainstate
+sudo ln -s /media/ubuntu/$UUID/.bitcoin/chainstate /media/$USER/writable/upper/home/ubuntu/.bitcoin/chainstate 
 #symlink blockdata
-sudo ln -s ~/.bitcoin/blocks /media/ubuntu/$UUID/.bitcoin/blocks
+sudo ln -s /media/ubuntu/$UUID/.bitcoin/blocks /media/$USER/writable/upper/home/ubuntu/.bitcoin/blocks
 #download mkusb deps
 sudo add-apt-repository -y universe
 sudo add-apt-repository -y ppa:mkusb/ppa
