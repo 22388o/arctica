@@ -148,24 +148,6 @@ async fn install_kvm() -> String {
 	format!("completed with no problems")
 }
 
-//front-end: setup 1
-//create the bitcoin dotfile on the local machine internal disk, where block data will be stored 
-//this currently requires the use of sudo, else I can't break into the home dir, not ideal, revise if possible
-#[tauri::command]
-async fn make_bitcoin_dotfile() -> String {
-	println!("Making Bitcoin dotfile");
-	let output = Command::new("bash")
-		.args(["./scripts/makebitcoindotfile.sh"])
-    .output()
-    .expect("failed to execute process");
-    for byte in output.stdout {
-    	print!("{}", byte as char);
-    };
-    println!(";");
-	format!("completed with no problems")
-}
-
-
 //this will be the initial flash of all 7 SD cards
 //runs on setup 4-10
 #[tauri::command]
@@ -211,7 +193,7 @@ async fn async_write(name: &str, value: &str) -> Result<String, String> {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, make_bitcoin_dotfile, obtain_ubuntu, install_kvm, async_write, read, debug_output])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, obtain_ubuntu, install_kvm, async_write, read, debug_output])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

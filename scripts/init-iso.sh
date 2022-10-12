@@ -1,9 +1,15 @@
 sudo apt-get -y install qemu-system-x86 qemu-kvm libvirt-clients libvirt-daemon-system bridge-utils
 
 FILE="./ubuntu-22.04.1-desktop-amd64.iso"
+FILE1="./bitcoin-23.0-x86_64-linux-gnu.tar.gz"
 if [ ! -f "$FILE" ]; then 
     wget -O ubuntu-22.04.1-desktop-amd64.iso http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso
 fi
+
+if [ ! -f "$FILE1" ]; then
+    wget https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz
+fi
+
 sudo rm persistent-ubuntu.iso
 sudo rm persistent-ubuntu1.iso
 sudo rm pid.txt
@@ -17,10 +23,22 @@ sleep 200
 kill -9 $(cat ./pid.txt)
 udisksctl loop-setup -f persistent-ubuntu.iso
 sleep 2
+#copy over artica binary
 sudo cp ~/arctica/target/debug/app /media/$USER/writable/upper/home/ubuntu/arctica
 sudo cp ~/arctica/icons/arctica.jpeg /media/$USER/writable/upper/home/ubuntu/arctica.jpeg
 sudo cp ~/arctica/shortcut/Arctica.desktop /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
 sudo chmod +x /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
+#extract bitcoin core
+sudo tar -xvzf bitcoin-23.0-x86_64-linux-gnu.tar.gz -C /media/$USER/writable/upper/home/ubuntu
+#make local bitcoin dotfile
+sudo mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
+#create device .bitcoin dir
+sudo mkdir /media/$USER/writable/upper/home/ubuntu/.bitcoin
+#symlink chainstate
+sudo ln -s ~/.bitcoin /media/$USER/writable/upper/home/ubuntu/.bitcoin/chainstate
+#symlink blockdata
+sudo ln -s ~/.bitcoin /media/$USER/writable/upper/home/ubuntu/.bitcoin/blocks
+#download mkusb deps
 sudo add-apt-repository -y universe
 sudo add-apt-repository -y ppa:mkusb/ppa
 sudo apt -y update
