@@ -2,6 +2,8 @@ sudo apt-get -y install qemu-system-x86 qemu-kvm libvirt-clients libvirt-daemon-
 
 FILE="./ubuntu-22.04.1-desktop-amd64.iso"
 FILE1="./bitcoin-23.0-x86_64-linux-gnu.tar.gz"
+#obtain blk id for internal storage for symlinking .bitcoin folders
+UUID=$(echo $(blkid) | cut -d '"' -f 2)
 if [ ! -f "$FILE" ]; then 
     wget -O ubuntu-22.04.1-desktop-amd64.iso http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso
 fi
@@ -34,9 +36,9 @@ sudo mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
 #create device .bitcoin dir
 sudo mkdir /media/$USER/writable/upper/home/ubuntu/.bitcoin
 #symlink chainstate
-sudo ln -s ~/.bitcoin/chainstate /media/$USER/writable/upper/home/ubuntu/.bitcoin/chainstate
+sudo ln -s ~/.bitcoin/chainstate /media/ubuntu/$UUID/.bitcoin/chainstate
 #symlink blockdata
-sudo ln -s ~/.bitcoin/blocks /media/$USER/writable/upper/home/ubuntu/.bitcoin/blocks
+sudo ln -s ~/.bitcoin/blocks /media/ubuntu/$UUID/.bitcoin/blocks
 #download mkusb deps
 sudo add-apt-repository -y universe
 sudo add-apt-repository -y ppa:mkusb/ppa
