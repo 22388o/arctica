@@ -16,7 +16,6 @@ sudo rm pid.txt
 < ubuntu-22.04.1-desktop-amd64.iso sed 's/maybe-ubiquity/  persistent  /' > persistent-ubuntu1.iso
 < persistent-ubuntu1.iso sed 's/set timeout=30/set timeout=1 /' > persistent-ubuntu.iso
 sudo rm persistent-ubuntu1.iso
-echo "test"
 fallocate -l 5GiB persistent-ubuntu.iso
 kvm -m 2048 ~/arctica/persistent-ubuntu.iso -daemonize -pidfile pid.txt -cpu host -display none
 sleep 200
@@ -29,7 +28,7 @@ sudo cp ~/arctica/icons/arctica.jpeg /media/$USER/writable/upper/home/ubuntu/arc
 sudo cp ~/arctica/shortcut/Arctica.desktop /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
 sudo chmod +x /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
 #extract bitcoin core
-sudo tar -xvzf bitcoin-23.0-x86_64-linux-gnu.tar.gz -C /media/$USER/writable/upper/home/ubuntu
+sudo tar -xzf bitcoin-23.0-x86_64-linux-gnu.tar.gz -C /media/$USER/writable/upper/home/ubuntu
 #make local internal bitcoin dotfile
 sudo mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
 #create device .bitcoin dir
