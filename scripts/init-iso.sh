@@ -60,7 +60,7 @@ sudo echo "sudo unlink ~/.bitcoin/chainstate" >> mount_internal.sh
 sudo echo "sudo unlink ~/.bitcoin/chainstate" >> mount_internal.sh
 #create symlinks for chainstate and blockdata
 sudo echo "sudo ln -s /media/ubuntu/home/$USER/.bitcoin/chainstate ~/.bitcoin/chainstate" >> mount_internal.sh
-sudo echo "ln -s /media/ubuntu/home/$USER/.bitcoin/blocks ~/.bitcoin/blocks" >> mount_internal.sh
+sudo echo "sudo ln -s /media/ubuntu/home/$USER/.bitcoin/blocks ~/.bitcoin/blocks" >> mount_internal.sh
 #copy mount_internal to autostart dir
 sudo cp ~/arctica/mount_internal.sh /media/$USER/writable/upper/home/ubuntu/.config/autostart-scripts
 sudo rm ~/arctica/mount_internal.sh
