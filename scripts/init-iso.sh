@@ -55,7 +55,7 @@ sudo mkdir /media/$USER/writable/upper/home/ubuntu/.config/autostart
 #give autostart dir permissions
 sudo chmod 777 /media/$USER/writable/upper/home/ubuntu/.config/autostart 
 #make internal mount autostart file
-sudo echo "[Desktop Entry] X-GNOME-Autostart-enabled=true Exec=sudo mount -U $UUID /media/ubuntu/home/$USER Encoding=UTF-8 Version=1.0 Type=Application Name=autostart Terminal=false" > mount_internal.desktop
+sudo echo "[Desktop Entry] X-GNOME-Autostart-enabled=true Exec=sudo mount -U $UUID /media/ubuntu Encoding=UTF-8 Version=1.0 Type=Application Name=autostart Terminal=false" > mount_internal.desktop
 #copy mount_internal to autostart dir
 sudo cp ~/arctica/mount_internal.desktop /media/$USER/writable/upper/home/ubuntu/.config/autostart 
 sudo rm ~/arctica/mount_internal.desktop
