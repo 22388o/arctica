@@ -48,16 +48,19 @@ sudo mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
 sudo chmod 777 -R /home/$USER/.bitcoin
 #create target device .bitcoin dir
 sudo mkdir /media/$USER/writable/upper/home/ubuntu/.bitcoin
-#symlink chainstate
-sudo ln -s /media/ubuntu/home/$USER/.bitcoin/chainstate /media/$USER/writable/upper/home/ubuntu/.bitcoin/chainstate 
-#symlink blockdata
-sudo ln -s /media/ubuntu/home/$USER/.bitcoin/blocks /media/$USER/writable/upper/home/ubuntu/.bitcoin/blocks
+
 #create autostart dir
 sudo mkdir /media/$USER/writable/upper/home/ubuntu/.config/autostart-scripts
 #give autostart dir permissions
 sudo chmod 777 /media/$USER/writable/upper/home/ubuntu/.config/autostart-scripts
 #make internal mount autostart file
 sudo echo "sudo mount -U $UUID /media/ubuntu" > mount_internal.sh
+#remove stale symlinks
+sudo echo "sudo unlink ~/.bitcoin/chainstate" >> mount_internal.sh
+sudo echo "sudo unlink ~/.bitcoin/chainstate" >> mount_internal.sh
+#create symlinks for chainstate and blockdata
+sudo echo "sudo ln -s /media/ubuntu/home/$USER/.bitcoin/chainstate ~/.bitcoin/chainstate" >> mount_internal.sh
+sudo echo "ln -s /media/ubuntu/home/$USER/.bitcoin/blocks ~/.bitcoin/blocks" >> mount_internal.sh
 #copy mount_internal to autostart dir
 sudo cp ~/arctica/mount_internal.sh /media/$USER/writable/upper/home/ubuntu/.config/autostart-scripts
 sudo rm ~/arctica/mount_internal.sh
