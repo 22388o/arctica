@@ -44,6 +44,8 @@ sudo chmod +x /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
 sudo tar -xzf bitcoin-23.0-x86_64-linux-gnu.tar.gz -C /media/$USER/writable/upper/home/ubuntu
 #make local internal bitcoin dotfile
 sudo mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
+#open up file permissions for bitcoin dotfile
+sudo chmod 777 -R /home/$USER/.bitcoin
 #create target device .bitcoin dir
 sudo mkdir /media/$USER/writable/upper/home/ubuntu/.bitcoin
 #symlink chainstate
@@ -51,16 +53,16 @@ sudo ln -s /media/ubuntu/home/$USER/.bitcoin/chainstate /media/$USER/writable/up
 #symlink blockdata
 sudo ln -s /media/ubuntu/home/$USER/.bitcoin/blocks /media/$USER/writable/upper/home/ubuntu/.bitcoin/blocks
 #create autostart dir
-sudo mkdir /media/$USER/writable/upper/home/ubuntu/.config/autostart 
+sudo mkdir /media/$USER/writable/upper/home/ubuntu/.config/autostart-scripts
 #give autostart dir permissions
-sudo chmod 777 /media/$USER/writable/upper/home/ubuntu/.config/autostart 
+sudo chmod 777 /media/$USER/writable/upper/home/ubuntu/.config/autostart-scripts
 #make internal mount autostart file
-sudo echo "[Desktop Entry] X-GNOME-Autostart-enabled=true Exec=sudo mount -U $UUID /media/ubuntu Encoding=UTF-8 Version=1.0 Type=Application Name=autostart Terminal=false" > mount_internal.desktop
+sudo echo "sudo mount -U $UUID /media/ubuntu" > mount_internal.sh
 #copy mount_internal to autostart dir
-sudo cp ~/arctica/mount_internal.desktop /media/$USER/writable/upper/home/ubuntu/.config/autostart 
-sudo rm ~/arctica/mount_internal.desktop
+sudo cp ~/arctica/mount_internal.sh /media/$USER/writable/upper/home/ubuntu/.config/autostart-scripts
+sudo rm ~/arctica/mount_internal.sh
 #make mount internal an executable
-sudo chmod +x /media/$USER/writable/upper/home/ubuntu/.config/autostart/mount_internal.desktop
+sudo chmod +x /media/$USER/writable/upper/home/ubuntu/.config/autostart-scripts/mount_internal.sh
 
 
 
