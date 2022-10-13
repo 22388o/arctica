@@ -12,6 +12,7 @@ FILE="./ubuntu-22.04.1-desktop-amd64.iso"
 FILE1="./bitcoin-23.0-x86_64-linux-gnu.tar.gz"
 #obtain blk id for internal storage for symlinking .bitcoin folders
 UUID=$(echo $(blkid) | cut -d '"' -f 2)
+DEVICE=$(echo $(blkid)) | cut -d '/' -f 2
 if [ ! -f "$FILE" ]; then 
     wget -O ubuntu-22.04.1-desktop-amd64.iso http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso
 fi
@@ -46,8 +47,20 @@ sudo mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
 #create target device .bitcoin dir
 sudo mkdir /media/$USER/writable/upper/home/ubuntu/.bitcoin
 #symlink chainstate
-sudo ln -s /media/ubuntu/$UUID/home/$USER/.bitcoin/chainstate /media/$USER/writable/upper/home/ubuntu/.bitcoin/chainstate 
+sudo ln -s /media/ubuntu/home/$USER/.bitcoin/chainstate /media/$USER/writable/upper/home/ubuntu/.bitcoin/chainstate 
 #symlink blockdata
-sudo ln -s /media/ubuntu/$UUID/home/$USER/.bitcoin/blocks /media/$USER/writable/upper/home/ubuntu/.bitcoin/blocks
+sudo ln -s /media/ubuntu/home/$USER/.bitcoin/blocks /media/$USER/writable/upper/home/ubuntu/.bitcoin/blocks
+#create autostart dir
+sudo mkdir /media/$USER/writable/upper/home/ubuntu/.config/autostart 
+#give autostart dir permissions
+sudo chmod 777 /media/$USER/writable/upper/home/ubuntu/.config/autostart 
+#make internal mount autostart file
+sudo echo "[Desktop Entry] X-GNOME-Autostart-enabled=true Exec=sudo mount -U $UUID /media/ubuntu/home/$USER Encoding=UTF-8 Version=1.0 Type=Application Name=autostart Terminal=false" > mount_internal.desktop
+#copy mount_internal to autostart dir
+sudo cp ~/arctica/mount_internal.desktop /media/$USER/writable/upper/home/ubuntu/.config/autostart 
+sudo rm ~/arctica/mount_internal.desktop
+#make mount internal an executable
+sudo chmod +x /media/$USER/writable/upper/home/ubuntu/.config/autostart/mount_internal.desktop
+
 
 
