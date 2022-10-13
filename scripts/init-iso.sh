@@ -57,7 +57,7 @@ sudo chmod 777 /media/$USER/writable/upper/home/ubuntu/.config/autostart-scripts
 sudo echo "sudo mount -U $UUID /media/ubuntu" > mount_internal.sh
 #remove stale symlinks
 sudo echo "sudo unlink ~/.bitcoin/chainstate" >> mount_internal.sh
-sudo echo "sudo unlink ~/.bitcoin/chainstate" >> mount_internal.sh
+sudo echo "sudo unlink ~/.bitcoin/blocks" >> mount_internal.sh
 #create symlinks for chainstate and blockdata
 sudo echo "sudo ln -s /media/ubuntu/home/$USER/.bitcoin/chainstate ~/.bitcoin/chainstate" >> mount_internal.sh
 sudo echo "sudo ln -s /media/ubuntu/home/$USER/.bitcoin/blocks ~/.bitcoin/blocks" >> mount_internal.sh
