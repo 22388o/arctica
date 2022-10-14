@@ -187,13 +187,26 @@ async fn async_write(name: &str, value: &str) -> Result<String, String> {
     Ok(format!("completed with no problems"))
 }
 
+#[tauri::command]
+async fn mount_internal() -> String {
+	println!("mounting internal storage and symlinking .bitcoin dirs");
+	let output = Command::new("bash")
+		.args(["./scripts/mount-internal.sh"])
+		.output()
+		.expect("failed to execute process");
+	for byte in output.stdout{
+		print!("{}", byte as char);
+	}
+	println!(";");
 
+	format!("completed with no problems")
+}
 
 
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, obtain_ubuntu, install_kvm, async_write, read, debug_output])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, obtain_ubuntu, install_kvm, async_write, read, debug_output, mount_internal])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
