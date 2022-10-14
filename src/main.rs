@@ -68,7 +68,7 @@ fn write(name: String, value:String) {
 #[tauri::command]
 fn read() -> std::string::String {
     let mut config_file = home_dir().expect("could not get home directory");
-    print_rust(config_file)
+    print_rust(config_file);
     config_file.push("config.txt");
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
