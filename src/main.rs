@@ -59,7 +59,7 @@ fn write(name: String, value:String) {
         newfile += &value;
     }
 
-    let mut file = File::create(&config_file).expect("Colud not Open file");
+    let mut file = File::create(&config_file).expect("Could not Open file");
     file.write_all(newfile.as_bytes()).expect("Could not rewrite file");
 }
 

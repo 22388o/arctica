@@ -8,6 +8,9 @@ sudo apt -y update
 sudo apt install -y mkusb
 sudo apt install -y usb-pack-efi
 
+#download wodim
+sudo apt install wodim
+
 FILE="./ubuntu-22.04.1-desktop-amd64.iso"
 FILE1="./bitcoin-23.0-x86_64-linux-gnu.tar.gz"
 #obtain blk id for internal storage for symlinking .bitcoin folders
