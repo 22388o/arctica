@@ -168,6 +168,7 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
 	Ok(format!("completed with no problems"))
 }
 
+#[tauri::command]
 async fn create_setup_cd() -> String {
     write("type".to_string(), "setupcd".to_string());
 	println!("creating setup CD");
@@ -182,6 +183,27 @@ async fn create_setup_cd() -> String {
 	Ok(format!("completed with no problems"))
 }
 
+#[tauri::command]
+fn read_setup_cd() -> std::string::String {
+    let mut config_file = "/media/$USER/CDROM"
+    println!("{}", config_file.display());
+    config_file.push("config.txt");
+    let contents = match fs::read_to_string(&config_file) {
+        Ok(ct) => ct,
+        Err(_) => {
+        	"".to_string()
+        }
+    };
+
+    for line in contents.split("\n") {
+        let parts: Vec<&str> = line.split("=").collect();
+        if parts.len() == 2 {
+            let (n,v) = (parts[0],parts[1]);
+            println!("read line: {}={}", n, v);
+        }
+    }
+    format!("{}", contents)
+}
 
 #[tauri::command]
 fn print_rust(data: &str) -> String {
@@ -222,7 +244,7 @@ async fn mount_internal() -> String {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, create_setup_cd, obtain_ubuntu, install_kvm, async_write, read, debug_output, mount_internal])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, create_setup_cd, read_setup_cd, obtain_ubuntu, install_kvm, async_write, read, debug_output, mount_internal])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

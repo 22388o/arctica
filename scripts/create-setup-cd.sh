@@ -14,4 +14,4 @@ sudo rm -r setupCD
 sudo rm setupCD.iso
 
 #to mount
-#sudo mount $OUTPUT /media/$USER/CDROM -o loop
+sudo mount $OUTPUT /media/$USER/CDROM -o loop
