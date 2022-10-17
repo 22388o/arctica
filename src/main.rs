@@ -153,11 +153,26 @@ async fn install_kvm() -> String {
 //runs on setup 4-10
 #[tauri::command]
 async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, String> {
+    write("type".to_string(), "sdcard".to_string())
     write("sdNumber".to_string(), number.to_string());
     write("setupStep".to_string(), setup.to_string());
 	println!("creating bootable ubuntu device = {} {}", number, setup);
 	let output = Command::new("bash")
         .args(["./scripts/clone-sd.sh"])
+        .output()
+        .expect("failed to execute process");
+    for byte in output.stdout {
+    	print!("{}", byte as char);
+    }
+  println!(";");
+	Ok(format!("completed with no problems"))
+}
+
+async fn create_setup_cd() -> String {
+    write("type".to_string(), "setupcd".to_string());
+	println!("creating setup CD");
+	let output = Command::new("bash")
+        .args(["./scripts/create-setup-cd.sh"])
         .output()
         .expect("failed to execute process");
     for byte in output.stdout {
@@ -207,7 +222,7 @@ async fn mount_internal() -> String {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, obtain_ubuntu, install_kvm, async_write, read, debug_output, mount_internal])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, create_setup_cd, obtain_ubuntu, install_kvm, async_write, read, debug_output, mount_internal])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
