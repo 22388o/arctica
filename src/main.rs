@@ -153,7 +153,7 @@ async fn install_kvm() -> String {
 //runs on setup 4-10
 #[tauri::command]
 async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, String> {
-    write("type".to_string(), "sdcard".to_string())
+    write("type".to_string(), "sdcard".to_string());
     write("sdNumber".to_string(), number.to_string());
     write("setupStep".to_string(), setup.to_string());
 	println!("creating bootable ubuntu device = {} {}", number, setup);
@@ -180,14 +180,12 @@ async fn create_setup_cd() -> String {
     	print!("{}", byte as char);
     }
   println!(";");
-	Ok(format!("completed with no problems"))
+	format!("completed with no problems")
 }
 
 #[tauri::command]
 fn read_setup_cd() -> std::string::String {
-    let mut config_file = "/media/$USER/CDROM"
-    println!("{}", config_file.display());
-    config_file.push("config.txt");
+    let config_file = "/media/$USER/CDROM/config.txt";
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
         Err(_) => {
