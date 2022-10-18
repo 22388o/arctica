@@ -103,7 +103,7 @@ fn getblockchain() -> Result<RpcBlockchain, bdk::Error>{
 }
 
 #[tauri::command]
-fn test_function() -> String {
+async fn test_function() -> String {
 	println!("this is a test");
 	let output = Command::new("echo")
             .args(["the test worked"])
@@ -113,7 +113,7 @@ fn test_function() -> String {
     	print!("{}", byte as char);
     }
     println!(";");
-	format!("completed with no problems")
+	format!("completed with no problems", output)
 }
 
 
