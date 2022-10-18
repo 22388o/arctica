@@ -158,7 +158,7 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
     write("setupStep".to_string(), setup.to_string());
 	println!("creating bootable ubuntu device = {} {}", number, setup);
 	let output = Command::new("bash")
-        .args(["./scripts/clone-sd.sh"])
+        .args(["~/scripts/clone-sd.sh"])
         .output()
         .expect("failed to execute process");
     for byte in output.stdout {
@@ -173,7 +173,7 @@ async fn create_setup_cd() -> String {
     write("type".to_string(), "setupcd".to_string());
 	println!("creating setup CD");
 	let output = Command::new("bash")
-        .args(["./scripts/create-setup-cd.sh"])
+        .args(["~/scripts/create-setup-cd.sh"])
         .output()
         .expect("failed to execute process");
     // for byte in output.stdout {

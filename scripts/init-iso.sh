@@ -39,6 +39,8 @@ sudo cp ~/arctica/target/debug/app /media/$USER/writable/upper/home/ubuntu/arcti
 sudo cp ~/arctica/icons/arctica.jpeg /media/$USER/writable/upper/home/ubuntu/arctica.jpeg
 sudo cp ~/arctica/shortcut/Arctica.desktop /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
 sudo chmod +x /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
+#copy over scripts library
+sudo cp ~/arctica/scripts /media/$USER/writable/upper/home/ubuntu
 #extract bitcoin core
 sudo tar -xzf bitcoin-23.0-x86_64-linux-gnu.tar.gz -C /media/$USER/writable/upper/home/ubuntu
 #create encrypted directory
