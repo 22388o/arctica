@@ -109,11 +109,11 @@ async fn test_function() -> String {
             .args(["the test worked"])
             .output()
             .expect("failed to execute process");
-    for byte in output.stdout {
-    	print!("{}", byte as char);
-    }
+    // for byte in output.stdout {
+    // 	print!("{}", byte as char);
+    // }
     println!(";");
-	format!("completed with no problems", output)
+	format!("{:?}", output)
 }
 
 
@@ -176,11 +176,11 @@ async fn create_setup_cd() -> String {
         .args(["./scripts/create-setup-cd.sh"])
         .output()
         .expect("failed to execute process");
-    for byte in output.stdout {
-    	print!("{}", byte as char);
-    }
+    // for byte in output.stdout {
+    // 	print!("{}", byte as char);
+    // }
   println!(";");
-	format!("completed with no problems")
+	format!("{:?}", output)
 }
 
 #[tauri::command]
@@ -230,12 +230,12 @@ async fn mount_internal() -> String {
 		.args(["./scripts/mount-internal.sh"])
 		.output()
 		.expect("failed to execute process");
-	for byte in output.stdout{
-		print!("{}", byte as char);
-	}
+	// for byte in output.stdout{
+	// 	print!("{}", byte as char);
+	// }
 	println!(";");
 
-	format!("completed with no problems")
+	format!("{:?}", output)
 }
 
 
