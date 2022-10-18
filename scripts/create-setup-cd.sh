@@ -2,11 +2,11 @@
 OUTPUT=$(echo $(ls /dev/sr?))
 
 mkdir setupCD
-sudo cp ~/config.txt ~/arctica/setupCD
+sudo cp ~/config.txt ~/setupCD
 sudo rm ~/config.txt
 
 #create iso
-genisoimage -r -J -o setupCD.iso ~/arctica/setupCD
+genisoimage -r -J -o setupCD.iso ~/setupCD
 
 #burn disc
 wodim dev=$OUTPUT -v -data setupCD.iso
