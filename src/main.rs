@@ -158,7 +158,7 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
     write("setupStep".to_string(), setup.to_string());
 	println!("creating bootable ubuntu device = {} {}", number, setup);
 	let output = Command::new("bash")
-        .args(["~/scripts/clone-sd.sh"])
+        .args(["./scripts/clone-sd.sh"])
         .output()
         .expect("failed to execute process");
     for byte in output.stdout {
@@ -227,7 +227,7 @@ async fn async_write(name: &str, value: &str) -> Result<String, String> {
 async fn mount_internal() -> String {
 	println!("mounting internal storage and symlinking .bitcoin dirs");
 	let output = Command::new("bash")
-		.args(["./scripts/mount-internal.sh"])
+		.args(["~/scripts/mount-internal.sh"])
 		.output()
 		.expect("failed to execute process");
 	// for byte in output.stdout{
