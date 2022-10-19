@@ -4,10 +4,6 @@ sudo mount /dev/nvme0n1p2 /media/ubuntu
 sudo unlink /home/$USER/.bitcoin/chainstate
 sudo unlink /home/$USER/.bitcoin/blocks
 # #create symlinks for chainstate and blockdata
-
-#these symlinks are currently broken because $USER is dynamic.
-#it is not the $USER var but instead the user on host machine
-#need to figure out how to parse this in for absolute path.
-
+HOST_USER=$(ls /media/$USER/home)
 sudo ln -s /media/$USER/home/$HOST_USER/.bitcoin/chainstate /home/$USER/.bitcoin/chainstate
 sudo ln -s /media/$USER/home/$HOST_USER/.bitcoin/blocks /home/$USER/.bitcoin/blocks

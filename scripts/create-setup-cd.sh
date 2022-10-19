@@ -1,5 +1,5 @@
 #download wodim
-sudo apt install wodim
+sudo apt install -y wodim
 
 #find cd path
 OUTPUT=$(echo $(ls /dev/sr?))
