@@ -161,11 +161,8 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
         .args(["./scripts/clone-sd.sh"])
         .output()
         .expect("failed to execute process");
-    for byte in output.stdout {
-    	print!("{}", byte as char);
-    }
   println!(";");
-	Ok(format!("completed with no problems"))
+	Ok(format!("{:?}", output))
 }
 
 #[tauri::command]
