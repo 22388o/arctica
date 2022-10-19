@@ -9,5 +9,5 @@ sudo unlink /home/$USER/.bitcoin/blocks
 #it is not the $USER var but instead the user on host machine
 #need to figure out how to parse this in for absolute path.
 
-ln -s /media/$USER/home/$HOST_USER/.bitcoin/chainstate /home/$USER/.bitcoin/chainstate
-ln -s /media/$USER/home/$HOST_USER/.bitcoin/blocks /home/$USER/.bitcoin/blocks
+sudo ln -s /media/$USER/home/$HOST_USER/.bitcoin/chainstate /home/$USER/.bitcoin/chainstate
+sudo ln -s /media/$USER/home/$HOST_USER/.bitcoin/blocks /home/$USER/.bitcoin/blocks
