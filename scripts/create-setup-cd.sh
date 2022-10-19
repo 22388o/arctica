@@ -8,14 +8,14 @@ OUTPUT=$(echo $(ls /dev/sr?))
 mkdir setupCD
 
 #copy setupCD config to the directory
-sudo cp ~/config.txt ~/setupCD
-sudo rm ~/config.txt
+sudo cp /home/$USER/config.txt /home/$USER/setupCD
+sudo rm /home/$USER/config.txt
 
 #generate SSH key for encrypting persistent directories and store in setupCD
-ssh-keygen -t rsa -N '' -b 4096 -C "your_email@example.com" -f ~/setupCD/ssh_key
+ssh-keygen -t rsa -N '' -b 4096 -C "your_email@example.com" -f /home/$USER/setupCD/ssh_key
 
 #create iso from setupCD dir
-genisoimage -r -J -o setupCD.iso ~/setupCD
+genisoimage -r -J -o setupCD.iso /home/$USER/setupCD
 
 #burn setupCD iso to the Setup CD
 wodim dev=$OUTPUT -v -data setupCD.iso
