@@ -173,7 +173,7 @@ async fn create_setup_cd() -> String {
     write("type".to_string(), "setupcd".to_string());
 	println!("creating setup CD");
 	let output = Command::new("bash")
-        .args(["/home/$USER/scripts/create-setup-cd.sh"])
+        .args(["/home/ubuntu/scripts/create-setup-cd.sh"])
         .output()
         .expect("failed to execute process");
     // for byte in output.stdout {
@@ -227,7 +227,7 @@ async fn async_write(name: &str, value: &str) -> Result<String, String> {
 async fn mount_internal() -> String {
 	println!("mounting internal storage and symlinking .bitcoin dirs");
 	let output = Command::new("bash")
-		.args(["/home/$USER/scripts/mount-internal.sh"])
+		.args(["/home/ubuntu/scripts/mount-internal.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
