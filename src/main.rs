@@ -182,7 +182,7 @@ async fn create_setup_cd() -> String {
 
 #[tauri::command]
 fn read_setup_cd() -> std::string::String {
-    let config_file = "/media/$USER/CDROM/config.txt";
+    let config_file = "/media/ubuntu/CDROM/config.txt";
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
         Err(_) => {

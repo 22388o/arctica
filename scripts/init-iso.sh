@@ -46,7 +46,7 @@ sudo tar -xzf bitcoin-23.0-x86_64-linux-gnu.tar.gz -C /media/$USER/writable/uppe
 #create encrypted directory
 sudo mkdir /media/$USER/writable/upper/home/ubuntu/encrypted
 #make local internal bitcoin dotfile
-sudo mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
+mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
 #open up file permissions for bitcoin dotfile
 sudo chmod 777 -R /home/$USER/.bitcoin
 #create target device .bitcoin dir
