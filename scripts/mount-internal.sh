@@ -1,9 +1,28 @@
 #mount internal drive
-udisksctl mount /dev/nvme0n1p2 /media/ubuntu
-# #remove stale symlinks
+udisksctl mount /dev/nvme0n1p2
+#remove stale symlinks
 sudo unlink /home/$USER/.bitcoin/chainstate
 sudo unlink /home/$USER/.bitcoin/blocks
-# #create symlinks for chainstate and blockdata
-HOST_USER=$(ls /media/$USER/home)
-sudo ln -s /media/$USER/home/$HOST_USER/.bitcoin/chainstate /home/$USER/.bitcoin/chainstate
-sudo ln -s /media/$USER/home/$HOST_USER/.bitcoin/blocks /home/$USER/.bitcoin/blocks
+
+#obtain Host User and UUID mounted by udisksctl
+PLACEHOLDER=$(ls /media/$USER)
+IFS=' '
+read -a strarr <<< "$PLACEHOLDER"
+
+for val in "${strarr[@]}";
+do
+    if	[ "$val" = "writable" ]
+    then
+            echo pass
+    else
+            echo $val
+            UUID=$val
+    fi
+
+done
+HOST_USER=$(ls /media/$USER/$UUID/home)
+#open file permissions for local host
+sudo chmod 777 /media/ubuntu/$UUID/home/$HOST_USER
+#create symlinks
+ln -s /media/$USER/$UUID/home/$HOST_USER/.bitcoin/chainstate /home/$USER/.bitcoin
+ln -s /media/$USER/$UUID/home/$HOST_USER/.bitcoin/blocks /home/$USER/.bitcoin
