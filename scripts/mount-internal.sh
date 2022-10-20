@@ -1,5 +1,5 @@
 #mount internal drive
-udisksctl mount /dev/nvme0n1p2
+udisksctl mount --block-device /dev/nvme0n1p2
 #remove stale symlinks
 sudo unlink /home/$USER/.bitcoin/chainstate
 sudo unlink /home/$USER/.bitcoin/blocks
