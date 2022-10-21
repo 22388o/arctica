@@ -28,3 +28,6 @@ sudo chmod 777 /media/ubuntu/$UUID/home/$HOST_USER
 #create symlinks
 ln -s /media/$USER/$UUID/home/$HOST_USER/.bitcoin/chainstate /home/$USER/.bitcoin
 ln -s /media/$USER/$UUID/home/$HOST_USER/.bitcoin/blocks /home/$USER/.bitcoin
+
+sudo chmod -R 777 /media/ubuntu/$UUID/home/$HOST_USER/.bitcoin
+
