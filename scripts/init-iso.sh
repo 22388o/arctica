@@ -34,23 +34,23 @@ sleep 200
 kill -9 $(cat ./pid.txt)
 udisksctl loop-setup -f persistent-ubuntu.iso
 sleep 2
+#open file permissions for persistent directory
+sudo chmod 777 /media/$USER/writable/upper/home/ubuntu
 #copy over artica binary
-sudo cp ~/arctica/target/debug/app /media/$USER/writable/upper/home/ubuntu/arctica
-sudo cp ~/arctica/icons/arctica.jpeg /media/$USER/writable/upper/home/ubuntu/arctica.jpeg
+cp ~/arctica/target/debug/app /media/$USER/writable/upper/home/ubuntu/arctica
+cp ~/arctica/icons/arctica.jpeg /media/$USER/writable/upper/home/ubuntu/arctica.jpeg
 sudo cp ~/arctica/shortcut/Arctica.desktop /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
 sudo chmod +x /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
 #copy over scripts library
-sudo cp -R ~/arctica/scripts /media/$USER/writable/upper/home/ubuntu
+cp -R ~/arctica/scripts /media/$USER/writable/upper/home/ubuntu
 #extract bitcoin core
-sudo tar -xzf bitcoin-23.0-x86_64-linux-gnu.tar.gz -C /media/$USER/writable/upper/home/ubuntu
+tar -xzf ~/arctica/bitcoin-23.0-x86_64-linux-gnu.tar.gz -C /media/$USER/writable/upper/home/ubuntu
 #create encrypted directory
-sudo mkdir /media/$USER/writable/upper/home/ubuntu/encrypted
+mkdir /media/$USER/writable/upper/home/ubuntu/encrypted
 #make local internal bitcoin dotfile
 mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
-#open up file permissions for bitcoin dotfile
-sudo chmod 777 -R /home/$USER/.bitcoin
 #create target device .bitcoin dir
-sudo mkdir /media/$USER/writable/upper/home/ubuntu/.bitcoin
+mkdir /media/$USER/writable/upper/home/ubuntu/.bitcoin
 
 
 
