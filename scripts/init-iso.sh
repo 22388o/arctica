@@ -34,6 +34,7 @@ sleep 200
 kill -9 $(cat ./pid.txt)
 udisksctl loop-setup -f persistent-ubuntu.iso
 sleep 2
+#iso mounted at /media/$USER/writable/upper/home/ubuntu
 #open file permissions for persistent directory
 sudo chmod 777 /media/$USER/writable/upper/home/ubuntu
 #copy over artica binary
@@ -51,6 +52,7 @@ mkdir /media/$USER/writable/upper/home/ubuntu/encrypted
 mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
 #create target device .bitcoin dir
 mkdir /media/$USER/writable/upper/home/ubuntu/.bitcoin
+
 
 
 

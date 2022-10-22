@@ -1,3 +1,7 @@
+sudo add-apt-repository -y universe
+
+sudo apt update
+
 #download wodim
 sudo apt install -y wodim
 
