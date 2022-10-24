@@ -15,6 +15,9 @@ do
     if	[ "$val" = "writable" ]
     then
             echo pass
+    elif  [ "$val" = "CDROM" ]
+    then
+            echo pass
     else
             echo $val
             UUID=$val
