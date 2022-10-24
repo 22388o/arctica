@@ -23,8 +23,8 @@ genisoimage -r -J -o setupCD.iso /home/$USER/setupCD
 
 #burn setupCD iso to the Setup CD
 wodim dev=$OUTPUT -v -data setupCD.iso
-sudo rm -r setupCD
-sudo rm setupCD.iso
+# sudo rm -r setupCD
+# sudo rm setupCD.iso
 
 #mount setup CD
-sudo mount $OUTPUT /media/$USER/CDROM -o loop
+sudo mount $OUTPUT -o loop
