@@ -9,22 +9,18 @@ sudo apt install -y wodim
 OUTPUT=$(echo $(ls /dev/sr?))
 
 #make the setup CD dir which holds files to be burned to the setup CD
-mkdir setupCD
+mkdir /mnt/ramdisk/setupCD
 
 #copy setupCD config to the directory
-sudo cp /home/$USER/config.txt /home/$USER/setupCD
+sudo cp /home/$USER/config.txt /mnt/ramdisk/setupCD
 sudo rm /home/$USER/config.txt
 
 #generate SSH key for encrypting persistent directories and store in setupCD
-ssh-keygen -t rsa -N '' -b 4096 -C "your_email@example.com" -f /home/$USER/setupCD/ssh_key
+ssh-keygen -t rsa -N '' -b 4096 -C "your_email@example.com" -f /mnt/ramdisk/setupCD/ssh_key
 
 #create iso from setupCD dir
-genisoimage -r -J -o setupCD.iso /home/$USER/setupCD
+genisoimage -r -J -o /mnt/ramdisk/setupCD.iso /mnt/ramdisk/setupCD
 
 #burn setupCD iso to the Setup CD
-wodim dev=$OUTPUT -v -data setupCD.iso
-# sudo rm -r setupCD
-# sudo rm setupCD.iso
+wodim dev=$OUTPUT -v -data /mnt/ramdisk/setupCD.iso
 
-#mount setup CD
-sudo mount $OUTPUT -o loop

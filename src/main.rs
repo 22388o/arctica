@@ -134,21 +134,6 @@ async fn obtain_ubuntu() -> String {
 	format!("completed with no problems")
 }
 
-#[tauri::command]
-async fn install_kvm() -> String {
-	println!("installing KVM & dependencies");
-	let output = Command::new("bash")
-		.args(["./scripts/install-kvm.sh"])
-		.output()
-		.expect("failed to execute process");
-	for byte in output.stdout{
-		print!("{}", byte as char);
-	}
-	println!(";");
-
-	format!("completed with no problems")
-}
-
 //this will be the initial flash of all 7 SD cards
 //runs on setup 4-10
 #[tauri::command]
@@ -248,7 +233,7 @@ async fn mount_internal() -> String {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, create_setup_cd, read_setup_cd, obtain_ubuntu, install_kvm, async_write, read, debug_output, mount_internal, create_ramdisk])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, create_setup_cd, read_setup_cd, obtain_ubuntu, async_write, read, debug_output, mount_internal, create_ramdisk])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
