@@ -7,8 +7,7 @@ sudo unlink /home/$USER/.bitcoin/blocks
 
 #obtain Host User and UUID mounted by udisksctl
 PLACEHOLDER=$(ls /media/$USER)
-IFS=' '
-read -a strarr <<< "$PLACEHOLDER"
+strarr=($PLACEHOLDER)
 
 for val in "${strarr[@]}";
 do
