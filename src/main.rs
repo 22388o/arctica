@@ -169,6 +169,28 @@ async fn create_setup_cd() -> String {
 }
 
 #[tauri::command]
+async fn packup() -> String {
+	println!("packing up sensitive info");
+	let output = Command::new("bash")
+        .args(["/home/ubuntu/scripts/packup.sh"])
+        .output()
+        .expect("failed to execute process");
+  println!(";");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
+async fn unpack() -> String {
+	println!("unpacking sensitive info");
+	let output = Command::new("bash")
+        .args(["/home/ubuntu/scripts/unpack.sh"])
+        .output()
+        .expect("failed to execute process");
+  println!(";");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
 async fn create_ramdisk() -> String {
 	println!("creating ramdisk");
 	let output = Command::new("bash")
@@ -233,7 +255,7 @@ async fn mount_internal() -> String {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, create_setup_cd, read_setup_cd, obtain_ubuntu, async_write, read, debug_output, mount_internal, create_ramdisk])
+  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, create_setup_cd, read_setup_cd, obtain_ubuntu, async_write, read, debug_output, mount_internal, create_ramdisk, packup, unpack])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
