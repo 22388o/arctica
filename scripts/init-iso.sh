@@ -46,8 +46,6 @@ sudo chmod +x /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
 cp -R ~/arctica/scripts /media/$USER/writable/upper/home/ubuntu
 #extract bitcoin core
 tar -xzf ~/arctica/bitcoin-23.0-x86_64-linux-gnu.tar.gz -C /media/$USER/writable/upper/home/ubuntu
-#create encrypted directory
-mkdir /media/$USER/writable/upper/home/ubuntu/encrypted
 #make local internal bitcoin dotfile
 mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
 #create target device .bitcoin dir
