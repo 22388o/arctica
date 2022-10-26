@@ -31,7 +31,8 @@ X=1
 declare -i X
 for Line in $Lines
 do
-    echo $Line > /mnt/ramdisk/shards/shard$X.txt
+
+    echo $Line | cut -c 4- > /mnt/ramdisk/shards/shard$X.txt
     X+=1
 done
 
