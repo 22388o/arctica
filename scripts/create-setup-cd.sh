@@ -17,10 +17,15 @@ mkdir /mnt/ramdisk/setupCD
 sudo cp /home/$USER/config.txt /mnt/ramdisk/setupCD
 sudo rm /home/$USER/config.txt
 
-#generate SSH key for encrypting persistent directories and store in setupCD
-ssh-keygen -t rsa -N '' -b 4096 -C "your_email@example.com" -f /mnt/ramdisk/setupCD/masterkey
+#generate masterkey for encrypting persistent directories and store in setupCD
+base64 /dev/urandom | head -c 50 > /mnt/ramdisk/setupCD/masterkey
+
 #split masterkey used for encryption into a 5 of 11 scheme
-ssss-split -t 5 -n 11 < /mnt/ramdisk/setupCD/masterkey > /mnt/ramdisk/setupCD/shards.txt
+ssss-split -t 5 -n 11 < /mnt/ramdisk/setupCD/masterkey > /mnt/ramdisk/shards_untrimmed.txt
+
+#trim excess from the output of ssss split
+sed -e '1d' /mnt/ramdisk/shards_untrimmed.txt > /mnt/ramdisk/setupCD/shards.txt
+
 sudo cp /mnt/ramdisk/masterkey /mnt/ramdisk/setupCD
 sudo cp /mnt/ramdisk/shards.txt /mnt/ramdisk/setupCD
 
