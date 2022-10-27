@@ -11,7 +11,7 @@ sudo apt install ssss
 OUTPUT=$(echo $(ls /dev/sr?))
 
 #make the setup CD dir which holds files to be burned to the setup CD
-mkdir /mnt/ramdisk/setupCD
+sudo mkdir /mnt/ramdisk/setupCD
 sudo chmod 777 /mnt/ramdisk/setupCD
 
 #create setupCD config
