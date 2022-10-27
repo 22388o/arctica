@@ -1,6 +1,6 @@
 sudo mkdir /mnt/ramdisk
 
-sudo mount -t ramfs -o size=10M ramfs /mnt/ramdisk
+sudo mount -t ramfs -o size=1G ramfs /mnt/ramdisk
 
 #make target dir for encrypted payload to or from SD cards
 sudo mkdir /mnt/ramdisk/sensitive
