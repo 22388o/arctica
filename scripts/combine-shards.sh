@@ -1,4 +1,4 @@
-#combine the 5 shard files in the shard dir into a single shard file which can be accepted by ssss-combine
+#combine a minimum of 5 numbered shard files in the shards dir into a single shard.txt file which can be accepted by ssss-combine
 #/mnt/ramdisk/shards
 PLACEHOLDER=$(ls /mnt/ramdisk/shards)
 strarr=($PLACEHOLDER)
