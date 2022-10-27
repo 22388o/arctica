@@ -1,4 +1,5 @@
 sudo mkdir /mnt/ramdisk
+sudo chmod 777 /mnt/ramdisk
 
 sudo mount -t ramfs -o size=1G ramfs /mnt/ramdisk
 
