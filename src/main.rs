@@ -229,9 +229,23 @@ fn print_rust(data: &str) -> String {
 
 
 #[tauri::command]
-async fn debug_output(data: &str) -> Result<String, String> {
-	write("debug".to_string(), data.to_string());
-  Ok(format!("completed with no problems"))
+async fn create_wallet() -> String {
+	println!("creating simulated bitcoin wallet");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/create-wallet.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
+async fn combine_shards() -> String {
+	println!("combining shards in /mnt/ramdisk/shards");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/combine-shards.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
 }
 
 #[tauri::command]
@@ -255,7 +269,22 @@ async fn mount_internal() -> String {
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
-  	.invoke_handler(tauri::generate_handler![test_function, print_rust, create_bootable_usb, create_setup_cd, read_setup_cd, obtain_ubuntu, async_write, read, debug_output, mount_internal, create_ramdisk, packup, unpack])
+  	.invoke_handler(tauri::generate_handler![
+        test_function,
+         print_rust,
+          create_wallet,
+           create_bootable_usb,
+            create_setup_cd,
+             read_setup_cd,
+              obtain_ubuntu,
+               async_write,
+                read,
+                 combine_shards,
+                  mount_internal,
+                   create_ramdisk,
+                    packup,
+                     unpack
+                     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
