@@ -12,6 +12,7 @@ OUTPUT=$(echo $(ls /dev/sr?))
 
 #make the setup CD dir which holds files to be burned to the setup CD
 mkdir /mnt/ramdisk/setupCD
+sudo chmod 777 /mnt/ramdisk/setupCD
 
 #create setupCD config
 echo "type=setupcd" > /mnt/ramdisk/setupCD/config.txt
@@ -23,7 +24,8 @@ base64 /dev/urandom | head -c 50 > /mnt/ramdisk/masterkey
 #split masterkey used for encryption into a 5 of 11 scheme
 ssss-split -t 5 -n 11 < /mnt/ramdisk/masterkey > /mnt/ramdisk/shards_untrimmed.txt
 #make target dir for shard files
-mkdir /mnt/ramdisk/shards
+sudo mkdir /mnt/ramdisk/shards
+sudo chmod 777 /mnt/ramdisk/shards
 
 #trim excess from the output of ssss split
 sed -e '1d' /mnt/ramdisk/shards_untrimmed.txt > /mnt/ramdisk/shards.txt
