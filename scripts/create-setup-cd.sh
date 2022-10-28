@@ -54,7 +54,7 @@ sudo rm /mnt/ramdisk/shards_untrimmed.txt
 
 #stage setup CD with masterkey (for decrypting without bps) and shards for distribution to SD cards
 sudo cp /mnt/ramdisk/masterkey /mnt/ramdisk/setupCD
-sudo cp /mnt/ramdisk/shards /mnt/ramdisk/setupCD
+sudo cp -R /mnt/ramdisk/shards /mnt/ramdisk/setupCD
 
 #create iso from setupCD dir
 genisoimage -r -J -o /mnt/ramdisk/setupCD.iso /mnt/ramdisk/setupCD

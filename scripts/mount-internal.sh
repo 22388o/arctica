@@ -33,4 +33,5 @@ ln -s /media/$USER/$UUID/home/$HOST_USER/.bitcoin/blocks /home/$USER/.bitcoin
 
 sudo chmod -R 777 /media/ubuntu/$UUID/home/$HOST_USER/.bitcoin
 #start bitcoind
-/home/$USER/bitcoin-23.0/bin/bitcoind
+# /home/$USER/bitcoin-23.0/bin/bitcoind
+#this is bad for your RAM during initial setup and debugging mkay
