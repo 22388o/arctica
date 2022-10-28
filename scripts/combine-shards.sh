@@ -24,6 +24,7 @@ done
 #combine 5 key shards inside of shards.txt to retrieve masterkey
 ssss-combine -t 5 < /mnt/ramdisk/shards.txt 2> /mnt/ramdisk/masterkey_untrimmed.txt
 FILE=$(cat /mnt/ramdisk/masterkey_untrimmed.txt)
+#trim excess from reconstituted key
 echo $FILE | cut -c 19- > /mnt/ramdisk/masterkey
 rm /mnt/ramdisk/masterkey_untrimmed.txt
 
