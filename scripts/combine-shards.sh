@@ -12,7 +12,8 @@ do
     X+=1
 
 done
-#each line needs to be formatted as follows
+
+#ssss input file needs to be formatted as follows
 #01-key
 #02-key
 #03-key
