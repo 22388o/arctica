@@ -25,4 +25,5 @@ done
 ssss-combine -t 5 < /mnt/ramdisk/shards.txt 2> /mnt/ramdisk/masterkey_untrimmed.txt
 FILE=$(cat /mnt/ramdisk/masterkey_untrimmed.txt)
 echo $FILE | cut -c 19- > /mnt/ramdisk/masterkey
+rm /mnt/ramdisk/masterkey_untrimmed.txt
 
