@@ -7,7 +7,7 @@ declare -i X
 
 for val in "${strarr[@]}";
 do
-    Line=$(cat mnt/ramdisk/shards/$val)
+    Line=$(cat /mnt/ramdisk/shards/$val)
     echo 0$X-$Line >> /mnt/ramdisk/shards.txt
     X+=1
 
