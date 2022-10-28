@@ -2,10 +2,10 @@
 #/mnt/ramdisk/shards
 PLACEHOLDER=$(ls /mnt/ramdisk/shards)
 strarr=($PLACEHOLDER)
-
-for val in "${strarr[@]}";
 X=1
 declare -i X
+
+for val in "${strarr[@]}";
 do
     Line=$(cat mnt/ramdisk/shards/$val)
     echo 0$X-$Line >> /mnt/ramdisk/shards.txt
@@ -22,5 +22,5 @@ done
 
 #once all 5 shards are in a single file (shards.txt) and properly formatted...
 #combine 5 key shards inside of shards.txt to retrieve masterkey
-ssss-combine -t 5 < /mnt/ramdisk/shards.txt 2> /mnt/ramdisk/masterkey.txt
+ssss-combine -t 5 < /mnt/ramdisk/shards.txt 2> /mnt/ramdisk/masterkey
 
