@@ -22,5 +22,7 @@ done
 
 #once all 5 shards are in a single file (shards.txt) and properly formatted...
 #combine 5 key shards inside of shards.txt to retrieve masterkey
-ssss-combine -t 5 < /mnt/ramdisk/shards.txt 2> /mnt/ramdisk/masterkey
+ssss-combine -t 5 < /mnt/ramdisk/shards.txt 2> /mnt/ramdisk/masterkey_untrimmed.txt
+FILE=$(cat /mnt/ramdisk/masterkey_untrimmed.txt)
+echo $FILE | cut -c 19- > /mnt/ramdisk/masterkey
 
