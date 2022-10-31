@@ -4,11 +4,11 @@ rm /mnt/ramdisk/shards.txt
 PLACEHOLDER=$(ls /mnt/ramdisk/shards)
 strarr=($PLACEHOLDER)
 X=1
+Y=6
 declare -i X
-
 for val in "${strarr[@]}";
 do
-    if [X <6]; 
+    if [ $X -ne $Y ]; 
     then
     Line=$(cat /mnt/ramdisk/shards/$val)
     echo 0$X-$Line >> /mnt/ramdisk/shards.txt
