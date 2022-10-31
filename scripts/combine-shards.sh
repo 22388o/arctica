@@ -1,3 +1,4 @@
+rm /mnt/ramdisk/shards.txt
 #combine a minimum of 5 numbered shard files in the shards dir into a single shard.txt file which can be accepted by ssss-combine
 #/mnt/ramdisk/shards
 PLACEHOLDER=$(ls /mnt/ramdisk/shards)
@@ -7,10 +8,14 @@ declare -i X
 
 for val in "${strarr[@]}";
 do
+    if [X <6]; 
+    then
     Line=$(cat /mnt/ramdisk/shards/$val)
     echo 0$X-$Line >> /mnt/ramdisk/shards.txt
     X+=1
-
+    else
+    echo passing 
+    fi
 done
 
 #ssss input file needs to be formatted as follows
