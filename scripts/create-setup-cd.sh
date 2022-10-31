@@ -17,7 +17,7 @@ mkdir /mnt/ramdisk/setupCD
 echo "type=setupcd" > /mnt/ramdisk/setupCD/config.txt
 
 
-#generate masterkey for encrypting persistent directories and store in setupCD
+#generate masterkey for encrypting persistent directories
 base64 /dev/urandom | head -c 50 > /mnt/ramdisk/masterkey
 
 #split masterkey used for encryption into a 5 of 11 scheme
@@ -52,7 +52,7 @@ sudo rm /mnt/ramdisk/shards/shard2.txt
 #remove stale shard file
 sudo rm /mnt/ramdisk/shards_untrimmed.txt
 
-#stage setup CD with masterkey (for decrypting without bps) and shards for distribution to SD cards
+#stage setup CD with masterkey (for decrypting without bps) and shards for distribution to respective SD cards
 sudo cp /mnt/ramdisk/masterkey /mnt/ramdisk/setupCD
 sudo cp -R /mnt/ramdisk/shards /mnt/ramdisk/setupCD
 
