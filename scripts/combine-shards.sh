@@ -11,7 +11,7 @@ do
     if [ $X -ne $Y ]; 
     then
     Line=$(cat /mnt/ramdisk/shards/$val)
-    echo 0$X-$Line >> /mnt/ramdisk/shards.txt
+    echo $Line >> /mnt/ramdisk/shards.txt
     X+=1
     else
     echo passing 

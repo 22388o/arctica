@@ -4,8 +4,10 @@ sudo apt update
 
 #download wodim
 sudo apt install -y wodim
-#download shamir secret sharing
-sudo apt install ssss
+
+#download shamir secret sharing library
+#this needs to be made available on all 7 sd
+sudo apt install -y libgfshare-bin
 
 #find cd path
 OUTPUT=$(echo $(ls /dev/sr?))
@@ -35,7 +37,7 @@ declare -i X
 for Line in $Lines
 do
 
-    echo $Line | cut -c 4- > /mnt/ramdisk/shards/shard$X.txt
+    echo $Line > /mnt/ramdisk/shards/shard$X.txt
     X+=1
 done
 
