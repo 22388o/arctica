@@ -7,13 +7,17 @@ sudo apt install -y wodim
 
 #download shamir secret sharing library
 #this needs to be made available on all 7 sd
-sudo apt install -y libgfshare-bin
+sudo apt install ssss
 
 #find cd path
 OUTPUT=$(echo $(ls /dev/sr?))
 
 #make the setup CD dir which holds files to be burned to the setup CD
 mkdir /mnt/ramdisk/setupCD
+mkdir /mnt/ramdisk/setupCD/xpubs
+
+#copy over xpub from SD 1 to the setupCD
+sudo cp /mnt/ramdisk/sensitive/xpub.txt /mnt/ramdisk/setupCD/xpubs
 
 #create setupCD config
 echo "type=setupcd" > /mnt/ramdisk/setupCD/config.txt
