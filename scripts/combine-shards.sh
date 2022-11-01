@@ -18,14 +18,6 @@ do
     fi
 done
 
-#ssss input file needs to be formatted as follows
-#01-key
-#02-key
-#03-key
-#04-key
-#05-key
-
-
 #once all 5 shards are in a single file (shards.txt) and properly formatted...
 #combine 5 key shards inside of shards.txt to retrieve masterkey
 ssss-combine -t 5 < /mnt/ramdisk/shards.txt 2> /mnt/ramdisk/masterkey_untrimmed.txt
