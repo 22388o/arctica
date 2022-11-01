@@ -1,0 +1,1 @@
+cp /mnt/ramdisk/sensitive/xpub.txt /mnt/ramdisk/setupCD/xpubs

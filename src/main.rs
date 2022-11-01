@@ -169,6 +169,17 @@ async fn create_setup_cd() -> String {
 }
 
 #[tauri::command]
+async fn copy_setup_cd() -> String {
+	println!("copy setup CD to ramdisk");
+	let output = Command::new("bash")
+        .args(["/home/ubuntu/scripts/copy-setup-cd.sh"])
+        .output()
+        .expect("failed to execute process");
+  println!(";");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
 async fn packup() -> String {
 	println!("packing up sensitive info");
 	let output = Command::new("bash")
@@ -265,6 +276,25 @@ async fn mount_internal() -> String {
 	format!("{:?}", output)
 }
 
+#[tauri::command]
+async fn install_sd_deps() -> String {
+	println!("installing deps required by SD card");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/install-sd-deps.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
+async fn distribute_2_shards() -> String {
+	println!("distributing 2 privacy key shards to the current SD card");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/distribute-2-shards.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
 
 fn main() {
   	tauri::Builder::default()
@@ -276,6 +306,7 @@ fn main() {
            create_bootable_usb,
             create_setup_cd,
              read_setup_cd,
+             copy_setup_cd,
               obtain_ubuntu,
                async_write,
                 read,
@@ -283,7 +314,9 @@ fn main() {
                   mount_internal,
                    create_ramdisk,
                     packup,
-                     unpack
+                     unpack,
+                     install_sd_deps,
+                     distribute_2_shards,
                      ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

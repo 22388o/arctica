@@ -14,10 +14,6 @@ OUTPUT=$(echo $(ls /dev/sr?))
 
 #make the setup CD dir which holds files to be burned to the setup CD
 mkdir /mnt/ramdisk/setupCD
-mkdir /mnt/ramdisk/setupCD/xpubs
-
-#copy over xpub from SD 1 to the setupCD
-sudo cp /mnt/ramdisk/sensitive/xpub.txt /mnt/ramdisk/setupCD/xpubs
 
 #create setupCD config
 echo "type=setupcd" > /mnt/ramdisk/setupCD/config.txt
@@ -67,4 +63,7 @@ genisoimage -r -J -o /mnt/ramdisk/setupCD.iso /mnt/ramdisk/setupCD
 
 #burn setupCD iso to the Setup CD
 wodim dev=$OUTPUT -v -data /mnt/ramdisk/setupCD.iso
+
+#eject the disk to refresh the file system
+eject $OUTPUT
 
