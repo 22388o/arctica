@@ -287,6 +287,16 @@ async fn install_sd_deps() -> String {
 }
 
 #[tauri::command]
+async fn refresh_setup_cd() -> String {
+	println!("refreshing setupCD with latest data");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/refresh-setup-cd.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
 async fn distribute_2_shards() -> String {
 	println!("distributing 2 privacy key shards to the current SD card");
 	let output = Command::new("bash")
@@ -316,6 +326,7 @@ fn main() {
                     packup,
                      unpack,
                      install_sd_deps,
+                     refresh_setup_cd,
                      distribute_2_shards,
                      ])
     .run(tauri::generate_context!())
