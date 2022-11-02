@@ -10,7 +10,7 @@ do
     if [ $X -ne $Y ]; 
     then
     cp /mnt/ramdisk/shards/$val /home/$USER
-    rm /mnt/ramdisk/shards/$val
+    sudo rm /mnt/ramdisk/shards/$val
     X+=1
     else
     echo passing 
