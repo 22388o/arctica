@@ -1,5 +1,5 @@
 #timeout for click happy user
-sleep 3
+sleep 4
 
 #remove old config from iso
 sudo rm /media/$USER/writable/upper/home/ubuntu/config.txt
