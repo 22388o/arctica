@@ -50,6 +50,8 @@ tar -xzf ~/arctica/bitcoin-23.0-x86_64-linux-gnu.tar.gz -C /media/$USER/writable
 mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
 #create target device .bitcoin dir
 mkdir /media/$USER/writable/upper/home/ubuntu/.bitcoin
+#create shards dir
+mkdir /media/$USER/writable/upper/home/ubuntu/shards
 
 
 
