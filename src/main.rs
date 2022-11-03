@@ -306,6 +306,16 @@ async fn distribute_2_shards() -> String {
 	format!("{:?}", output)
 }
 
+#[tauri::command]
+async fn create_descriptor() -> String {
+	println!("creating descriptor from 7 xpubs");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/create-descriptor.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
@@ -328,6 +338,7 @@ fn main() {
                      install_sd_deps,
                      refresh_setup_cd,
                      distribute_2_shards,
+                     create_descriptor,
                      ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
