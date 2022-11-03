@@ -316,6 +316,26 @@ async fn create_descriptor() -> String {
 	format!("{:?}", output)
 }
 
+#[tauri::command]
+async fn copy_descriptor() -> String {
+	println!("copying descriptor from setupCD dump to sensitive dir");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/copy-descriptor.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
+async fn extract_masterkey() -> String {
+	println!("extracting masterkey from setupCD dump");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/extract-masterkey.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
@@ -339,6 +359,8 @@ fn main() {
                      refresh_setup_cd,
                      distribute_2_shards,
                      create_descriptor,
+                     copy_descriptor,
+                     extract_masterkey,
                      ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
