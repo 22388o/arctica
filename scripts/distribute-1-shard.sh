@@ -9,7 +9,7 @@ for val in "${strarr[@]}";
 do
     if [ $X -ne $Y ]; 
     then
-    cp /mnt/ramdisk/shards/$val /home/$USER
+    cp /mnt/ramdisk/shards/$val /home/$USER/shards
     sudo rm /mnt/ramdisk/shards/$val
     X+=1
     else
