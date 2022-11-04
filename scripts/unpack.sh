@@ -5,7 +5,7 @@ gpg --batch --passphrase-file /mnt/ramdisk/masterkey --output /mnt/ramdisk/decry
 tar xvf /mnt/ramdisk/decrypted.out -C /mnt/ramdisk/
 
 #copy sensitive dir to ramdisk
-cp /mnt/ramdisk/mnt/ramdisk/sensitive /mnt/ramdisk
+cp -R /mnt/ramdisk/mnt/ramdisk/sensitive /mnt/ramdisk
 
 #remove nested sensitive
 sudo rm -r /mnt/ramdisk/mnt 
