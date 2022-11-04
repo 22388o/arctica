@@ -307,6 +307,16 @@ async fn distribute_2_shards() -> String {
 }
 
 #[tauri::command]
+async fn distribute_1_shard() -> String {
+	println!("distributing 1 privacy key shard to the current SD card");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/distribute-1-shard.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
 async fn create_descriptor() -> String {
 	println!("creating descriptor from 7 xpubs");
 	let output = Command::new("bash")
@@ -336,6 +346,26 @@ async fn extract_masterkey() -> String {
 	format!("{:?}", output)
 }
 
+#[tauri::command]
+async fn create_backup() -> String {
+	println!("creating backup directory of the current SD");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/create-backup.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
+async fn make_backup() -> String {
+	println!("making backup iso of the current SD and burning to CD");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/make-backup.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
@@ -358,9 +388,12 @@ fn main() {
                      install_sd_deps,
                      refresh_setup_cd,
                      distribute_2_shards,
+                     distribute_1_shard,
                      create_descriptor,
                      copy_descriptor,
                      extract_masterkey,
+                     create_backup,
+                     make_backup
                      ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
