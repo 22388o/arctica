@@ -9,6 +9,10 @@ cp /home/$USER/encrypted.gpg /mnt/ramdisk/backup
 #eventually make this append the SD number to the config definition
 echo "TYPE=Backup1" >> /mnt/ramdisk/backup/config.txt
 #copy btc core
-cp /home/$USER/bitcoin-22.0 /mnt/ramdisk/backup
+cp -r /home/$USER/bitcoin-22.0 /mnt/ramdisk/backup
 #copy binary
-cp /home/$USER/arctica
+cp /home/$USER/arctica /mnt/ramdisk/backup
+#copy image
+cp /home/$USER/arctica.jpeg /mnt/ramdisk/backup
+#copy scripts
+cp -r /home/$USER/scripts /mnt/ramdisk/backup
