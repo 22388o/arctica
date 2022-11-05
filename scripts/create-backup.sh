@@ -8,11 +8,7 @@ cp /home/$USER/encrypted.gpg /mnt/ramdisk/backup
 #create config
 #eventually make this append the SD number to the config definition
 echo "TYPE=Backup1" >> /mnt/ramdisk/backup/config.txt
-#copy btc core
-cp -r /home/$USER/bitcoin-22.0 /mnt/ramdisk/backup
-#copy binary
-cp /home/$USER/arctica /mnt/ramdisk/backup
-#copy image
-cp /home/$USER/arctica.jpeg /mnt/ramdisk/backup
-#copy scripts
-cp -r /home/$USER/scripts /mnt/ramdisk/backup
+
+#create iso from backup CD dir
+#eventually make this append SD number to the iso name
+genisoimage -r -J -o /mnt/ramdisk/backupSDNumber.iso /mnt/ramdisk/backup
