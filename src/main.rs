@@ -366,6 +366,16 @@ async fn make_backup() -> String {
 	format!("{:?}", output)
 }
 
+#[tauri::command]
+async fn start_bitcoind() -> String {
+	println!("starting the bitcoin daemon");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/start-bitcoind.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
@@ -393,7 +403,8 @@ fn main() {
                      copy_descriptor,
                      extract_masterkey,
                      create_backup,
-                     make_backup
+                     make_backup,
+                     start_bitcoind,
                      ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
