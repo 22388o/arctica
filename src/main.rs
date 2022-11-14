@@ -376,6 +376,16 @@ async fn start_bitcoind() -> String {
 	format!("{:?}", output)
 }
 
+#[tauri::command]
+async fn check_for_masterkey() -> String {
+	println!("checking ramdisk for masterkey");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/check-for-masterkey.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
@@ -405,6 +415,7 @@ fn main() {
                      create_backup,
                      make_backup,
                      start_bitcoind,
+                     check_for_masterkey,
                      ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
