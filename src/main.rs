@@ -379,11 +379,13 @@ async fn start_bitcoind() -> String {
 #[tauri::command]
 async fn check_for_masterkey() -> String {
 	println!("checking ramdisk for masterkey");
-	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/check-for-masterkey.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+    let b = std::path::Path::new("/mnt/ramdisk/masterkey").exists();
+    if b == true{
+        format!("masterkey found")
+    }
+	else{
+        format!("key not found")
+    }
 }
 
 fn main() {
