@@ -257,7 +257,7 @@ async fn create_ramdisk() -> String {
 }
 
 #[tauri::command]
-fn read_setup_cd() -> std::string::String {
+fn read_cd() -> std::string::String {
     let config_file = "/media/ubuntu/CDROM/config.txt";
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
@@ -420,6 +420,72 @@ async fn start_bitcoind() -> String {
 	format!("{:?}", output)
 }
 
+#[tauri::command]
+async fn check_for_masterkey() -> String {
+	println!("checking ramdisk for masterkey");
+    let b = std::path::Path::new("/mnt/ramdisk/masterkey").exists();
+    if b == true{
+        format!("masterkey found")
+    }
+	else{
+        format!("key not found")
+    }
+}
+
+#[tauri::command]
+async fn create_recovery_cd() -> String {
+	println!("creating recovery CD for manual decrypting");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/create-recovery-cd.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
+async fn copy_recovery_cd() -> String {
+	println!("copy recovery CD to ramdisk");
+	let output = Command::new("bash")
+        .args(["/home/ubuntu/scripts/copy-recovery-cd.sh"])
+        .output()
+        .expect("failed to execute process");
+  println!(";");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
+async fn calculate_number_of_shards() -> String {
+	println!("calculating number of shards");
+	let output = Command::new("bash")
+        .args(["/home/ubuntu/scripts/calculate-number-of-shards.sh"])
+        .output()
+        .expect("failed to execute process");
+  println!(";");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
+async fn collect_shards() -> String {
+	println!("collecting shards");
+	let output = Command::new("bash")
+        .args(["/home/ubuntu/scripts/collect-shards.sh"])
+        .output()
+        .expect("failed to execute process");
+  println!(";");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
+async fn convert_to_transfer_cd() -> String {
+	println!("converting recovery cd to transfer cd with masterkey");
+	let output = Command::new("bash")
+        .args(["/home/ubuntu/scripts/convert-to-transfer-cd.sh"])
+        .output()
+        .expect("failed to execute process");
+  println!(";");
+	format!("{:?}", output)
+}
+
 fn main() {
 	let user_pass: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
     let config: RpcConfig = RpcConfig {
@@ -433,31 +499,37 @@ fn main() {
   	.manage(TauriState(Mutex::new(config), Mutex::new(None), Mutex::new(None), Mutex::new(None)))
   	.invoke_handler(tauri::generate_handler![
         test_function,
-         print_rust,
-          create_wallet,
-           create_bootable_usb,
-            create_setup_cd,
-             read_setup_cd,
-             copy_setup_cd,
-              obtain_ubuntu,
-               async_write,
-                read,
-                 combine_shards,
-                  mount_internal,
-                   create_ramdisk,
-                    packup,
-                     unpack,
-                     install_sd_deps,
-                     refresh_setup_cd,
-                     distribute_2_shards,
-                     distribute_1_shard,
-                     create_descriptor,
-                     copy_descriptor,
-                     extract_masterkey,
-                     create_backup,
-                     make_backup,
-                     start_bitcoind,
-                     ])
+        print_rust,
+        create_wallet,
+        create_bootable_usb,
+        create_setup_cd,
+        read_cd,
+        copy_setup_cd,
+        obtain_ubuntu,
+        async_write,
+        read,
+        combine_shards,
+        mount_internal,
+        create_ramdisk,
+        packup,
+        unpack,
+        install_sd_deps,
+        refresh_setup_cd,
+        distribute_2_shards,
+        distribute_1_shard,
+        create_descriptor,
+        copy_descriptor,
+        extract_masterkey,
+        create_backup,
+        make_backup,
+        start_bitcoind,
+        check_for_masterkey,
+        create_recovery_cd,
+        copy_recovery_cd,
+        calculate_number_of_shards,
+        collect_shards,
+        convert_to_transfer_cd,
+        ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
