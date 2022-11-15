@@ -3,11 +3,13 @@
   windows_subsystem = "windows"
 )]
 
+use bitcoincore_rpc::RpcApi;
+use bitcoincore_rpc::Auth;
+use bitcoin;
 use bdk::{Wallet};
 use bdk::database::MemoryDatabase;
 use bdk::wallet::AddressIndex::New;
 use bitcoincore_rpc::Client;
-use bdk::blockchain::rpc::Auth;
 use bdk::blockchain::ConfigurableBlockchain;
 use bdk::blockchain::rpc::RpcBlockchain;
 use bdk::blockchain::rpc::RpcConfig;
@@ -20,9 +22,12 @@ use std::fs;
 use std::fs::File;
 use std::io::Write;
 use home::home_dir;
+use secp256k1::{rand, Secp256k1, SecretKey};
+use tauri::State;
 
 
-struct MyState(Mutex<Result<RpcBlockchain, bdk::Error>>);
+
+struct TauriState(Mutex<RpcConfig>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>);
 
 fn write(name: String, value:String) {
 	let mut config_file = home_dir().expect("could not get home directory");
@@ -87,20 +92,59 @@ fn read() -> std::string::String {
     format!("{}", contents)
 }
 
+#[tauri::command]
+fn generate_key() -> Result<bitcoin::PrivateKey, bitcoincore_rpc::Error> {
+	let secp = Secp256k1::new();
+	let secret_key = SecretKey::new(&mut rand::thread_rng());
+	Ok(bitcoin::PrivateKey::new(secret_key, bitcoin::Network::Bitcoin))
+}
+
+fn build_high_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
+	let mut keys = Vec::new();
+	for i in 0..11 {
+		keys.push(generate_key().expect("could not get key"))
+	}
+	let four_years = blockchain.get_height().unwrap()+210379;
+	let month = 4382;
+	Ok(format!("and(thresh(5,after({}),after({}),after({}),after({}),pk({}),pk({}),pk({}),pk({}),pk({}),pk({}),pk({})),thresh(2,after({}),after({}),pk({}),pk({}),pk({}),pk({})))", four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years, keys[7], keys[8], keys[9], keys[10]))
+}
+
+fn build_med_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
+	let mut keys = Vec::new();
+	for i in 0..11 {
+		keys.push(generate_key().expect("could not get key"))
+	}
+	let four_years = blockchain.get_height().unwrap()+210379;
+	let month = 4382;
+	Ok(format!("and(thresh(5,after({}),after({}),after({}),after({}),pk({}),pk({}),pk({}),pk({}),pk({}),pk({}),pk({})),thresh(2,after({}),after({}),pk({}),pk({}),pk({}),pk({})))", four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years, keys[7], keys[8], keys[9], keys[10]))
+}
+
+
+fn build_low_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
+	let mut keys = Vec::new();
+	for i in 0..11 {
+		keys.push(generate_key().expect("could not get key"))
+	}
+	let four_years = blockchain.get_height().unwrap()+210379;
+	let month = 4382;
+	Ok(format!("and(thresh(5,after({}),after({}),after({}),after({}),pk({}),pk({}),pk({}),pk({}),pk({}),pk({}),pk({})),thresh(2,after({}),after({}),pk({}),pk({}),pk({}),pk({})))", four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years, keys[7], keys[8], keys[9], keys[10]))
+}
+
+
 
 #[tauri::command]
-fn getblockchain() -> Result<RpcBlockchain, bdk::Error>{
-	let user_pass: Auth = Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
-    let config: RpcConfig = RpcConfig {
-	    url: "127.0.0.1:8332".to_string(),
-	    auth: user_pass,
-	    network: bdk::bitcoin::Network::Bitcoin,
-	    wallet_name: "wallet_name".to_string(),
-	    skip_blocks: None,
-	};
-	let blockchain = RpcBlockchain::from_config(&config);
-    return blockchain
+fn generate_wallet(state: State<TauriState>) -> Result<(), bdk::Error> {
+	//todo get block chain via the state
+	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap())?;
+	let high_desc = build_high_descriptor(&blockchain)?;
+	let med_desc = build_med_descriptor(&blockchain)?;
+	let low_desc = build_low_descriptor(&blockchain)?;
+	*state.1.lock().unwrap() = Some(Wallet::new(&high_desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default())?);
+	*state.2.lock().unwrap() = Some(Wallet::new(&med_desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default())?);
+	*state.3.lock().unwrap() = Some(Wallet::new(&low_desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default())?);
+	return Ok(())
 }
+
 
 #[tauri::command]
 async fn test_function() -> String {
@@ -377,8 +421,16 @@ async fn start_bitcoind() -> String {
 }
 
 fn main() {
+	let user_pass: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
+    let config: RpcConfig = RpcConfig {
+	    url: "127.0.0.1:8332".to_string(),
+	    auth: user_pass,
+	    network: bdk::bitcoin::Network::Bitcoin,
+	    wallet_name: "wallet_name".to_string(),
+	    sync_params: None,
+	};
   	tauri::Builder::default()
-  	.manage(MyState(Mutex::new(getblockchain())))
+  	.manage(TauriState(Mutex::new(config), Mutex::new(None), Mutex::new(None), Mutex::new(None)))
   	.invoke_handler(tauri::generate_handler![
         test_function,
          print_rust,

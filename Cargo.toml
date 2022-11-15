@@ -17,8 +17,11 @@ tauri-build = { version = "1.0.0-rc.9" }
 
 [dependencies]
 tokio = "1.14.1"
-bdk = { version = "0.18.0", features = ["rpc"] }
-bitcoincore-rpc = "0.15.0"
+bdk = { version = "0.24.0", features = ["rpc"] }
+bitcoincore-rpc = "0.16.0"
+bitcoin = "0.29.2"
+miniscript = "8.0.0"
+secp256k1 = "0.24.1"
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 tauri = { path="./tauri/core/tauri", version = "1.0.0-rc.11", features = [ "api-all" ] }
