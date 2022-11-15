@@ -388,37 +388,48 @@ async fn check_for_masterkey() -> String {
     }
 }
 
+#[tauri::command]
+async fn create_recovery_cd() -> String {
+	println!("creating recovery CD for manual decrypting");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/create-recovery-cd.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
   	.invoke_handler(tauri::generate_handler![
         test_function,
-         print_rust,
-          create_wallet,
-           create_bootable_usb,
-            create_setup_cd,
-             read_setup_cd,
-             copy_setup_cd,
-              obtain_ubuntu,
-               async_write,
-                read,
-                 combine_shards,
-                  mount_internal,
-                   create_ramdisk,
-                    packup,
-                     unpack,
-                     install_sd_deps,
-                     refresh_setup_cd,
-                     distribute_2_shards,
-                     distribute_1_shard,
-                     create_descriptor,
-                     copy_descriptor,
-                     extract_masterkey,
-                     create_backup,
-                     make_backup,
-                     start_bitcoind,
-                     check_for_masterkey,
-                     ])
+        print_rust,
+        create_wallet,
+        create_bootable_usb,
+        create_setup_cd,
+        read_setup_cd,
+        copy_setup_cd,
+        obtain_ubuntu,
+        async_write,
+        read,
+        combine_shards,
+        mount_internal,
+        create_ramdisk,
+        packup,
+        unpack,
+        install_sd_deps,
+        refresh_setup_cd,
+        distribute_2_shards,
+        distribute_1_shard,
+        create_descriptor,
+        copy_descriptor,
+        extract_masterkey,
+        create_backup,
+        make_backup,
+        start_bitcoind,
+        check_for_masterkey,
+        create_recovery_cd,
+        ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
