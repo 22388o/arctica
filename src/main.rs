@@ -431,6 +431,17 @@ async fn collect_shards() -> String {
 	format!("{:?}", output)
 }
 
+#[tauri::command]
+async fn convert_to_transfer_cd() -> String {
+	println!("converting recovery cd to transfer cd with masterkey");
+	let output = Command::new("bash")
+        .args(["/home/ubuntu/scripts/convert-to-transfer-cd.sh"])
+        .output()
+        .expect("failed to execute process");
+  println!(";");
+	format!("{:?}", output)
+}
+
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
@@ -465,6 +476,7 @@ fn main() {
         copy_recovery_cd,
         calculate_number_of_shards,
         collect_shards,
+        convert_to_transfer_cd,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
