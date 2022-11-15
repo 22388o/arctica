@@ -409,6 +409,28 @@ async fn copy_recovery_cd() -> String {
 	format!("{:?}", output)
 }
 
+#[tauri::command]
+async fn calculate_number_of_shards() -> String {
+	println!("calculating number of shards");
+	let output = Command::new("bash")
+        .args(["/home/ubuntu/scripts/calculate-number-of-shards.sh"])
+        .output()
+        .expect("failed to execute process");
+  println!(";");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
+async fn collect_shards() -> String {
+	println!("collecting shards");
+	let output = Command::new("bash")
+        .args(["/home/ubuntu/scripts/collect-shards.sh"])
+        .output()
+        .expect("failed to execute process");
+  println!(";");
+	format!("{:?}", output)
+}
+
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
@@ -441,6 +463,8 @@ fn main() {
         check_for_masterkey,
         create_recovery_cd,
         copy_recovery_cd,
+        calculate_number_of_shards,
+        collect_shards,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
