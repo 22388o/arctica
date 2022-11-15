@@ -1,5 +1,6 @@
 #create destination dir 
-mkdir /mnt/ramdisk/transferCD
+mkdir /mnt/ramdisk/shards
 
 #copy cd contents
-cp -R /media/$USER/CDROM/* /mnt/ramdisk/transferCD
+cp -R /media/$USER/CDROM/shards/* /mnt/ramdisk/shards
+
