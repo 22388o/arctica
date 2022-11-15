@@ -213,7 +213,7 @@ async fn create_ramdisk() -> String {
 }
 
 #[tauri::command]
-fn read_setup_cd() -> std::string::String {
+fn read_cd() -> std::string::String {
     let config_file = "/media/ubuntu/CDROM/config.txt";
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
@@ -398,6 +398,17 @@ async fn create_recovery_cd() -> String {
 	format!("{:?}", output)
 }
 
+#[tauri::command]
+async fn copy_recovery_cd() -> String {
+	println!("copy recovery CD to ramdisk");
+	let output = Command::new("bash")
+        .args(["/home/ubuntu/scripts/copy-recovery-cd.sh"])
+        .output()
+        .expect("failed to execute process");
+  println!(";");
+	format!("{:?}", output)
+}
+
 fn main() {
   	tauri::Builder::default()
   	.manage(MyState(Mutex::new(getblockchain())))
@@ -407,7 +418,7 @@ fn main() {
         create_wallet,
         create_bootable_usb,
         create_setup_cd,
-        read_setup_cd,
+        read_cd,
         copy_setup_cd,
         obtain_ubuntu,
         async_write,
@@ -429,6 +440,7 @@ fn main() {
         start_bitcoind,
         check_for_masterkey,
         create_recovery_cd,
+        copy_recovery_cd,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
