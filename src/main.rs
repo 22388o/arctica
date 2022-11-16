@@ -20,6 +20,7 @@ use std::fs;
 use std::fs::File;
 use std::io::Write;
 use home::home_dir;
+use std::{thread, time::Duration};
 
 
 struct MyState(Mutex<Result<RpcBlockchain, bdk::Error>>);
@@ -214,6 +215,8 @@ async fn create_ramdisk() -> String {
 
 #[tauri::command]
 fn read_cd() -> std::string::String {
+    // sleep for 3 seconds
+    thread::sleep(Duration::from_millis(3000))
     let config_file = "/media/ubuntu/CDROM/config.txt";
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
