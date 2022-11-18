@@ -159,7 +159,6 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
 
 #[tauri::command]
 async fn create_setup_cd() -> String {
-    write("type".to_string(), "setupcd".to_string());
 	println!("creating setup CD");
 	let output = Command::new("bash")
         .args(["/home/ubuntu/scripts/create-setup-cd.sh"])
