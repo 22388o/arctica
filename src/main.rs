@@ -25,10 +25,11 @@ use std::str::FromStr;
 use home::home_dir;
 use secp256k1::{rand, Secp256k1, SecretKey};
 use tauri::State;
+use std::{thread, time::Duration};
 
 
 
-struct TauriState(Mutex<RpcConfig>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>);
+struct TauriState(Mutex<RpcConfig>, Mutex<String>, Mutex<String>, Mutex<String>);
 
 fn write(name: String, value:String) {
 	let mut config_file = home_dir().expect("could not get home directory");
@@ -93,7 +94,6 @@ fn read() -> std::string::String {
     format!("{}", contents)
 }
 
-#[tauri::command]
 fn generate_key() -> Result<bitcoin::PrivateKey, bitcoincore_rpc::Error> {
 	let secp = Secp256k1::new();
 	let secret_key = SecretKey::new(&mut rand::thread_rng());
@@ -136,22 +136,22 @@ fn build_low_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
 }
 
-
-
 #[tauri::command]
 fn generate_wallet(state: State<TauriState>) -> String {
-	//todo get block chain via the state
 	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-	let high_desc = build_high_descriptor(&blockchain).expect("failed to bulid high lvl descriptor");
-	let med_desc = build_med_descriptor(&blockchain).expect("failed to bulid med lvl descriptor");
-	let low_desc = build_low_descriptor(&blockchain).expect("failed to bulid low lvl descriptor");
-	println!("high = {}", high_desc);
-	println!("med = {}", med_desc);
-	println!("low = {}", low_desc);
-	*state.1.lock().unwrap() = Some(Wallet::new(&high_desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to bulid high lvl wallet"));
-	*state.2.lock().unwrap() = Some(Wallet::new(&med_desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to bulid med lvl wallet"));
-	*state.3.lock().unwrap() = Some(Wallet::new(&low_desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to bulid low lvl wallet"));
+	*state.1.lock().unwrap() = build_high_descriptor(&blockchain).expect("failed to bulid high lvl descriptor");
+	*state.2.lock().unwrap() = build_med_descriptor(&blockchain).expect("failed to bulid med lvl descriptor");
+	*state.3.lock().unwrap() = build_low_descriptor(&blockchain).expect("failed to bulid low lvl descriptor");
 	return "Completed With No Problems".to_string()
+}
+
+#[tauri::command]
+fn get_address_high_wallet(state: State<TauriState>) -> String {
+	println!("test ");
+	let desc: String = (*state.1.lock().unwrap()).clone();
+	println!("desc = {}", desc);
+	let wallet: Wallet<MemoryDatabase> = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to bulid high lvl wallet");
+	return wallet.get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string()
 }
 
 
@@ -211,7 +211,6 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
 
 #[tauri::command]
 async fn create_setup_cd() -> String {
-    write("type".to_string(), "setupcd".to_string());
 	println!("creating setup CD");
 	let output = Command::new("bash")
         .args(["/home/ubuntu/scripts/create-setup-cd.sh"])
@@ -267,6 +266,8 @@ async fn create_ramdisk() -> String {
 
 #[tauri::command]
 fn read_cd() -> std::string::String {
+    // sleep for 3 seconds
+    thread::sleep(Duration::from_millis(3000));
     let config_file = "/media/ubuntu/CDROM/config.txt";
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
@@ -496,6 +497,7 @@ async fn convert_to_transfer_cd() -> String {
 }
 
 fn main() {
+	//TODO: confirm all these strings are correct per user(parse the bitcoin.conf)
 	let user_pass: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
     let config: RpcConfig = RpcConfig {
 	    url: "127.0.0.1:8332".to_string(),
@@ -505,7 +507,7 @@ fn main() {
 	    sync_params: None,
 	};
   	tauri::Builder::default()
-  	.manage(TauriState(Mutex::new(config), Mutex::new(None), Mutex::new(None), Mutex::new(None)))
+  	.manage(TauriState(Mutex::new(config), Mutex::new("".to_string()), Mutex::new("".to_string()), Mutex::new("".to_string())))
   	.invoke_handler(tauri::generate_handler![
         test_function,
         print_rust,
@@ -539,6 +541,7 @@ fn main() {
         collect_shards,
         convert_to_transfer_cd,
         generate_wallet,
+        get_address_high_wallet,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

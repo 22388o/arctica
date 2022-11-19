@@ -61,6 +61,10 @@ sudo cp -R /mnt/ramdisk/shards /mnt/ramdisk/setupCD
 #create iso from setupCD dir
 genisoimage -r -J -o /mnt/ramdisk/setupCD.iso /mnt/ramdisk/setupCD
 
+#wipe the CD
+sudo umount $OUTPUT
+wodim -v dev=$OUTPUT blank=fast
+
 #burn setupCD iso to the Setup CD
 wodim dev=$OUTPUT -v -data /mnt/ramdisk/setupCD.iso
 
