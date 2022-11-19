@@ -2,10 +2,12 @@
 OUTPUT=$(echo $(ls /dev/sr?))
 
 #make the transfer CD dir which holds files to be burned to the transfer CD
-mkdir /mnt/ramdisk/transferCD
+mkdir -p /mnt/ramdisk/transferCD/shards
 
 #create transferCD config
 echo "type=recoverycd" > /mnt/ramdisk/transferCD/config.txt
+
+
 
 #collect shards from sd card for export to transfer CD
 cp -r /home/$USER/shards/* /mnt/ramdisk/transferCD/shards
