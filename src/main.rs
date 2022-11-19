@@ -21,6 +21,7 @@ use std::process::Command;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
+use std::str::FromStr;
 use home::home_dir;
 use secp256k1::{rand, Secp256k1, SecretKey};
 use tauri::State;
@@ -101,48 +102,56 @@ fn generate_key() -> Result<bitcoin::PrivateKey, bitcoincore_rpc::Error> {
 
 fn build_high_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
 	let mut keys = Vec::new();
+	let ctx = Secp256k1::new();
 	for i in 0..11 {
-		keys.push(generate_key().expect("could not get key"))
+		keys.push(generate_key().expect("could not get key").public_key(&ctx));
+		println!("test = {}", generate_key().expect("could not get key").public_key(&ctx));
 	}
 	let four_years = blockchain.get_height().unwrap()+210379;
 	let month = 4382;
-	Ok(format!("and(thresh(5,after({}),after({}),after({}),after({}),pk({}),pk({}),pk({}),pk({}),pk({}),pk({}),pk({})),thresh(2,after({}),after({}),pk({}),pk({}),pk({}),pk({})))", four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years, keys[7], keys[8], keys[9], keys[10]))
+	let desc = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+	println!("DESC: {}", desc);
+	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
 }
 
 fn build_med_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
 	let mut keys = Vec::new();
-	for i in 0..11 {
-		keys.push(generate_key().expect("could not get key"))
+	let ctx = Secp256k1::new();
+	for i in 0..7 {
+		keys.push(generate_key().expect("could not get key").public_key(&ctx))
 	}
 	let four_years = blockchain.get_height().unwrap()+210379;
-	let month = 4382;
-	Ok(format!("and(thresh(5,after({}),after({}),after({}),after({}),pk({}),pk({}),pk({}),pk({}),pk({}),pk({}),pk({})),thresh(2,after({}),after({}),pk({}),pk({}),pk({}),pk({})))", four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years, keys[7], keys[8], keys[9], keys[10]))
+	let desc = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
+	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
 }
 
 
 fn build_low_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
 	let mut keys = Vec::new();
-	for i in 0..11 {
-		keys.push(generate_key().expect("could not get key"))
+	let ctx = Secp256k1::new();
+	for i in 0..7 {
+		keys.push(generate_key().expect("could not get key").public_key(&ctx))
 	}
-	let four_years = blockchain.get_height().unwrap()+210379;
-	let month = 4382;
-	Ok(format!("and(thresh(5,after({}),after({}),after({}),after({}),pk({}),pk({}),pk({}),pk({}),pk({}),pk({}),pk({})),thresh(2,after({}),after({}),pk({}),pk({}),pk({}),pk({})))", four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years, keys[7], keys[8], keys[9], keys[10]))
+	let desc = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
+	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
 }
 
 
 
 #[tauri::command]
-fn generate_wallet(state: State<TauriState>) -> Result<(), bdk::Error> {
+fn generate_wallet(state: State<TauriState>) -> String {
 	//todo get block chain via the state
-	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap())?;
-	let high_desc = build_high_descriptor(&blockchain)?;
-	let med_desc = build_med_descriptor(&blockchain)?;
-	let low_desc = build_low_descriptor(&blockchain)?;
-	*state.1.lock().unwrap() = Some(Wallet::new(&high_desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default())?);
-	*state.2.lock().unwrap() = Some(Wallet::new(&med_desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default())?);
-	*state.3.lock().unwrap() = Some(Wallet::new(&low_desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default())?);
-	return Ok(())
+	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+	let high_desc = build_high_descriptor(&blockchain).expect("failed to bulid high lvl descriptor");
+	let med_desc = build_med_descriptor(&blockchain).expect("failed to bulid med lvl descriptor");
+	let low_desc = build_low_descriptor(&blockchain).expect("failed to bulid low lvl descriptor");
+	println!("high = {}", high_desc);
+	println!("med = {}", med_desc);
+	println!("low = {}", low_desc);
+	*state.1.lock().unwrap() = Some(Wallet::new(&high_desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to bulid high lvl wallet"));
+	*state.2.lock().unwrap() = Some(Wallet::new(&med_desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to bulid med lvl wallet"));
+	*state.3.lock().unwrap() = Some(Wallet::new(&low_desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to bulid low lvl wallet"));
+	return "Completed With No Problems".to_string()
 }
 
 
@@ -529,6 +538,7 @@ fn main() {
         calculate_number_of_shards,
         collect_shards,
         convert_to_transfer_cd,
+        generate_wallet,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
