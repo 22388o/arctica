@@ -475,6 +475,17 @@ async fn calculate_number_of_shards() -> String {
 }
 
 #[tauri::command]
+async fn calculate_shard_test() -> String {
+	let mut x = 0;
+    for file in fs::read_dir("/media/$USER/CDROM/shards").unwrap() {
+		x = x + 1;
+	}
+	format!("{}", x)
+}
+
+
+
+#[tauri::command]
 async fn collect_shards() -> String {
 	println!("collecting shards");
 	let output = Command::new("bash")
@@ -538,6 +549,7 @@ fn main() {
         create_recovery_cd,
         copy_recovery_cd,
         calculate_number_of_shards,
+		calculate_shard_test,
         collect_shards,
         convert_to_transfer_cd,
         generate_wallet,
