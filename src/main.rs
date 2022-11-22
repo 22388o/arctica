@@ -136,23 +136,23 @@ fn build_low_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
 }
 
-#[tauri::command]
-fn generate_wallet(state: State<TauriState>) -> String {
-	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-	*state.1.lock().unwrap() = build_high_descriptor(&blockchain).expect("failed to bulid high lvl descriptor");
-	*state.2.lock().unwrap() = build_med_descriptor(&blockchain).expect("failed to bulid med lvl descriptor");
-	*state.3.lock().unwrap() = build_low_descriptor(&blockchain).expect("failed to bulid low lvl descriptor");
-	return "Completed With No Problems".to_string()
-}
+// #[tauri::command]
+// fn generate_wallet(state: State<TauriState>) -> String {
+// 	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+// 	*state.1.lock().unwrap() = build_high_descriptor(&blockchain).expect("failed to bulid high lvl descriptor");
+// 	*state.2.lock().unwrap() = build_med_descriptor(&blockchain).expect("failed to bulid med lvl descriptor");
+// 	*state.3.lock().unwrap() = build_low_descriptor(&blockchain).expect("failed to bulid low lvl descriptor");
+// 	return "Completed With No Problems".to_string()
+// }
 
-#[tauri::command]
-fn get_address_high_wallet(state: State<TauriState>) -> String {
-	println!("test ");
-	let desc: String = (*state.1.lock().unwrap()).clone();
-	println!("desc = {}", desc);
-	let wallet: Wallet<MemoryDatabase> = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to bulid high lvl wallet");
-	return wallet.get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string()
-}
+// #[tauri::command]
+// fn get_address_high_wallet(state: State<TauriState>) -> String {
+// 	println!("test ");
+// 	let desc: String = (*state.1.lock().unwrap()).clone();
+// 	println!("desc = {}", desc);
+// 	let wallet: Wallet<MemoryDatabase> = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to bulid high lvl wallet");
+// 	return wallet.get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string()
+// }
 
 
 #[tauri::command]
@@ -464,23 +464,12 @@ async fn copy_recovery_cd() -> String {
 }
 
 #[tauri::command]
-async fn calculate_number_of_shards() -> String {
-	println!("calculating number of shards");
-	let output = Command::new("bash")
-        .args(["/home/ubuntu/scripts/calculate-number-of-shards.sh"])
-        .output()
-        .expect("failed to execute process");
-  println!(";");
-	format!("{:?}", output)
-}
-
-#[tauri::command]
-async fn calculate_shard_test() -> String {
+async fn calculate_number_of_shards() -> u32 {
 	let mut x = 0;
-    for file in fs::read_dir("/media/$USER/CDROM/shards").unwrap() {
+    for file in fs::read_dir("/media/ubuntu/CDROM/shards").unwrap() {
 		x = x + 1;
 	}
-	format!("{}", x)
+	return x;
 }
 
 
@@ -549,11 +538,10 @@ fn main() {
         create_recovery_cd,
         copy_recovery_cd,
         calculate_number_of_shards,
-		calculate_shard_test,
         collect_shards,
         convert_to_transfer_cd,
-        generate_wallet,
-        get_address_high_wallet,
+        // generate_wallet,
+        // get_address_high_wallet,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
