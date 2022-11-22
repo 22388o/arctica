@@ -351,20 +351,60 @@ async fn refresh_setup_cd() -> String {
 }
 
 #[tauri::command]
-async fn distribute_2_shards() -> String {
-	println!("distributing 2 privacy key shards to the current SD card");
+async fn distribute_shards_sd2() -> String {
+	println!("distributing 2 privacy key shards on SD card 2");
 	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/distribute-2-shards.sh"])
+		.args(["/home/ubuntu/scripts/distribute-shards-sd2.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
 }
 
 #[tauri::command]
-async fn distribute_1_shard() -> String {
-	println!("distributing 1 privacy key shard to the current SD card");
+async fn distribute_shards_sd3() -> String {
+	println!("distributing 2 privacy key shards on SD card 3");
 	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/distribute-1-shard.sh"])
+		.args(["/home/ubuntu/scripts/distribute-shards-sd3.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
+async fn distribute_shards_sd4() -> String {
+	println!("distributing 2 privacy key shards on SD card 4");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/distribute-shards-sd4.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
+async fn distribute_shards_sd5() -> String {
+	println!("distributing 1 privacy key shard on SD card 5");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/distribute-shards-sd5.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
+async fn distribute_shards_sd6() -> String {
+	println!("distributing 1 privacy key shard on SD card 6");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/distribute-shards-sd6.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
+async fn distribute_shards_sd7() -> String {
+	println!("distributing 1 privacy key shard on SD card 7");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/distribute-shards-sd7.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
@@ -526,8 +566,12 @@ fn main() {
         unpack,
         install_sd_deps,
         refresh_setup_cd,
-        distribute_2_shards,
-        distribute_1_shard,
+        distribute_shards_sd2,
+        distribute_shards_sd3,
+        distribute_shards_sd4,
+        distribute_shards_sd5,
+        distribute_shards_sd6,
+        distribute_shards_sd7,
         create_descriptor,
         copy_descriptor,
         extract_masterkey,

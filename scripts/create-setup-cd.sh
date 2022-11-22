@@ -47,8 +47,8 @@ done
 #copy first 2 shards to SD 1
 sudo cp /mnt/ramdisk/shards/shard1.txt /home/$USER/shards
 sudo rm /mnt/ramdisk/shards/shard1.txt
-sudo cp /mnt/ramdisk/shards/shard2.txt /home/$USER/shards
-sudo rm /mnt/ramdisk/shards/shard2.txt
+sudo cp /mnt/ramdisk/shards/shard11.txt /home/$USER/shards
+sudo rm /mnt/ramdisk/shards/shard11.txt
 
 
 #remove stale shard file
