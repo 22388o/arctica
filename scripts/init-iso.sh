@@ -1,3 +1,6 @@
+#remove writable if exists, developer failsafe
+sudo rm -r -f /home/$USER/writable
+
 #download KVM deps
 sudo apt-get -y install qemu-system-x86 qemu-kvm libvirt-clients libvirt-daemon-system bridge-utils
 
