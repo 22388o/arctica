@@ -2,7 +2,7 @@
 OUTPUT=$(echo $(ls /dev/sr?))
 
 #make the transfer CD dir which holds files to be burned to the transfer CD
-mkdir -parents /mnt/ramdisk/transferCD/shards
+mkdir --parents /mnt/ramdisk/transferCD/shards
 
 #stage transfer CD with shards from current SD and from existing transfer CD ISO if applicable
 cp -R /media/$USER/CDROM/* /mnt/ramdisk/transferCD
