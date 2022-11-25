@@ -504,9 +504,18 @@ async fn copy_recovery_cd() -> String {
 }
 
 #[tauri::command]
-async fn calculate_number_of_shards() -> u32 {
+async fn calculate_number_of_shards_cd() -> u32 {
 	let mut x = 0;
     for file in fs::read_dir("/media/ubuntu/CDROM/shards").unwrap() {
+		x = x + 1;
+	}
+	return x;
+}
+
+#[tauri::command]
+async fn calculate_number_of_shards_ramdisk() -> u32 {
+	let mut x = 0;
+    for file in fs::read_dir("/mnt/ramdisk/transferCD/shards").unwrap() {
 		x = x + 1;
 	}
 	return x;
@@ -581,7 +590,8 @@ fn main() {
         check_for_masterkey,
         create_recovery_cd,
         copy_recovery_cd,
-        calculate_number_of_shards,
+        calculate_number_of_shards_cd,
+		calculate_number_of_shards_ramdisk,
         collect_shards,
         convert_to_transfer_cd,
         // generate_wallet,
