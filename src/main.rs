@@ -352,62 +352,35 @@ async fn refresh_setup_cd() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd2() -> String {
-	println!("distributing 2 privacy key shards on SD card 2");
-	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/distribute-shards-sd2.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard2.txt", "/home/$USER/shards/shard2.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard10.txt", "/home/$USER/shards/shard10.txt");
 }
 
 #[tauri::command]
 async fn distribute_shards_sd3() -> String {
-	println!("distributing 2 privacy key shards on SD card 3");
-	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/distribute-shards-sd3.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard3.txt", "/home/$USER/shards/shard3.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard9.txt", "/home/$USER/shards/shard9.txt");
 }
 
 #[tauri::command]
 async fn distribute_shards_sd4() -> String {
-	println!("distributing 2 privacy key shards on SD card 4");
-	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/distribute-shards-sd4.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard4.txt", "/home/$USER/shards/shard4.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard8.txt", "/home/$USER/shards/shard8.txt");
 }
 
 #[tauri::command]
 async fn distribute_shards_sd5() -> String {
-	println!("distributing 1 privacy key shard on SD card 5");
-	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/distribute-shards-sd5.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard5.txt", "/home/$USER/shards/shard5.txt");
 }
 
 #[tauri::command]
 async fn distribute_shards_sd6() -> String {
-	println!("distributing 1 privacy key shard on SD card 6");
-	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/distribute-shards-sd6.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard6.txt", "/home/$USER/shards/shard6.txt");
 }
 
 #[tauri::command]
 async fn distribute_shards_sd7() -> String {
-	println!("distributing 1 privacy key shard on SD card 7");
-	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/distribute-shards-sd7.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard7.txt", "/home/$USER/shards/shard7.txt");
 }
 
 #[tauri::command]
