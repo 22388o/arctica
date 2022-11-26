@@ -422,12 +422,7 @@ async fn create_descriptor() -> String {
 
 #[tauri::command]
 async fn copy_descriptor() -> String {
-	println!("copying descriptor from setupCD dump to sensitive dir");
-	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/copy-descriptor.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	fs::copy("/mnt/ramdisk/setupCD/descriptor.txt", "/mnt/ramdisk/sensitive/descriptor.txt");
 }
 
 #[tauri::command]
