@@ -432,12 +432,7 @@ async fn copy_descriptor() -> String {
 
 #[tauri::command]
 async fn extract_masterkey() -> String {
-	println!("extracting masterkey from setupCD dump");
-	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/extract-masterkey.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	fs::copy("/mnt/ramdisk/setupCD/masterkey", "/mnt/ramdisk/masterkey");
 }
 
 #[tauri::command]
