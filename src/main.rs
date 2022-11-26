@@ -457,7 +457,7 @@ async fn create_recovery_cd() -> String {
 
 #[tauri::command]
 async fn copy_recovery_cd() -> String {
-	println!("copy recovery CD to ramdisk");
+	fs::create_dir("/mnt/ramdisk/shards");
 	let output = Command::new("bash")
         .args(["/home/ubuntu/scripts/copy-recovery-cd.sh"])
         .output()
