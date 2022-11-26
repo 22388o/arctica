@@ -222,7 +222,7 @@ async fn create_setup_cd() -> String {
 
 #[tauri::command]
 async fn copy_setup_cd() -> String {
-	println!("copy setup CD to ramdisk");
+    fs::create_dir("/mnt/ramdisk/setupCD");
 	let output = Command::new("bash")
         .args(["/home/ubuntu/scripts/copy-setup-cd.sh"])
         .output()
