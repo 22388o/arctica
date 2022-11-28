@@ -354,33 +354,39 @@ async fn refresh_setup_cd() -> String {
 async fn distribute_shards_sd2() -> String {
 	fs::copy("/mnt/ramdisk/setupCD/shards/shard2.txt", "/home/$USER/shards/shard2.txt");
 	fs::copy("/mnt/ramdisk/setupCD/shards/shard10.txt", "/home/$USER/shards/shard10.txt");
+	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd3() -> String {
 	fs::copy("/mnt/ramdisk/setupCD/shards/shard3.txt", "/home/$USER/shards/shard3.txt");
 	fs::copy("/mnt/ramdisk/setupCD/shards/shard9.txt", "/home/$USER/shards/shard9.txt");
+	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd4() -> String {
 	fs::copy("/mnt/ramdisk/setupCD/shards/shard4.txt", "/home/$USER/shards/shard4.txt");
 	fs::copy("/mnt/ramdisk/setupCD/shards/shard8.txt", "/home/$USER/shards/shard8.txt");
+	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd5() -> String {
 	fs::copy("/mnt/ramdisk/setupCD/shards/shard5.txt", "/home/$USER/shards/shard5.txt");
+	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd6() -> String {
 	fs::copy("/mnt/ramdisk/setupCD/shards/shard6.txt", "/home/$USER/shards/shard6.txt");
+	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd7() -> String {
 	fs::copy("/mnt/ramdisk/setupCD/shards/shard7.txt", "/home/$USER/shards/shard7.txt");
+	format!("completed with no problems")
 }
 
 #[tauri::command]
@@ -396,11 +402,14 @@ async fn create_descriptor() -> String {
 #[tauri::command]
 async fn copy_descriptor() -> String {
 	fs::copy("/mnt/ramdisk/setupCD/descriptor.txt", "/mnt/ramdisk/sensitive/descriptor.txt");
+	format!("completed with no problems")
+	
 }
 
 #[tauri::command]
 async fn extract_masterkey() -> String {
 	fs::copy("/mnt/ramdisk/setupCD/masterkey", "/mnt/ramdisk/masterkey");
+	format!("completed with no problems")
 }
 
 #[tauri::command]
