@@ -5,7 +5,7 @@ OUTPUT=$(echo $(ls /dev/sr?))
 mkdir -p /mnt/ramdisk/transferCD/shards
 
 #create transferCD config
-echo "type=recoverycd" > /mnt/ramdisk/transferCD/config.txt
+echo "type=transfercd" > /mnt/ramdisk/transferCD/config.txt
 
 
 
