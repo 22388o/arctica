@@ -446,6 +446,19 @@ async fn check_for_masterkey() -> String {
 }
 
 #[tauri::command]
+async fn retrieve_masterkey() -> String {
+	println!("checking transferCD for masterkey");
+    let b = std::path::Path::new("/media/ubuntu/CDROM/masterkey").exists();
+    if b == true{
+		fs::copy("/media/ubuntu/CDROM/masterkey", "/mnt/ramdisk/masterkey");
+        format!("masterkey found")
+    }
+	else{
+        format!("key not found")
+    }
+}
+
+#[tauri::command]
 async fn create_recovery_cd() -> String {
 	println!("creating recovery CD for manual decrypting");
 	let output = Command::new("bash")
@@ -551,6 +564,7 @@ fn main() {
         make_backup,
         start_bitcoind,
         check_for_masterkey,
+		retrieve_masterkey,
         create_recovery_cd,
         copy_recovery_cd,
         calculate_number_of_shards_cd,
