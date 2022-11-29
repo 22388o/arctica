@@ -443,6 +443,16 @@ async fn start_bitcoind() -> String {
 }
 
 #[tauri::command]
+async fn start_bitcoind_network_off() -> String {
+	println!("starting the bitcoin daemon without networking");
+	let output = Command::new("bash")
+		.args(["/home/ubuntu/scripts/start-bitcoind-network-off.sh"])
+		.output()
+		.expect("failed to execute process");
+	format!("{:?}", output)
+}
+
+#[tauri::command]
 async fn check_for_masterkey() -> String {
 	println!("checking ramdisk for masterkey");
     let b = std::path::Path::new("/mnt/ramdisk/masterkey").exists();
@@ -572,6 +582,7 @@ fn main() {
         create_backup,
         make_backup,
         start_bitcoind,
+        start_bitcoind_network_off,
         check_for_masterkey,
 		retrieve_masterkey,
         create_recovery_cd,
