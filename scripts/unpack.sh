@@ -1,3 +1,6 @@
+#remove stale tarball
+sudo rm /mnt/ramdisk/decrypted.out
+
 #decrypt sensitive directory
 gpg --batch --passphrase-file /mnt/ramdisk/masterkey --output /mnt/ramdisk/decrypted.out -d /home/$USER/encrypted.gpg
 
