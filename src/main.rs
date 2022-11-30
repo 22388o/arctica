@@ -136,23 +136,23 @@ fn build_low_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
 }
 
-// #[tauri::command]
-// fn generate_wallet(state: State<TauriState>) -> String {
-// 	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-// 	*state.1.lock().unwrap() = build_high_descriptor(&blockchain).expect("failed to bulid high lvl descriptor");
-// 	*state.2.lock().unwrap() = build_med_descriptor(&blockchain).expect("failed to bulid med lvl descriptor");
-// 	*state.3.lock().unwrap() = build_low_descriptor(&blockchain).expect("failed to bulid low lvl descriptor");
-// 	return "Completed With No Problems".to_string()
-// }
+#[tauri::command]
+fn generate_wallet(state: State<TauriState>) -> String {
+	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+	*state.1.lock().unwrap() = build_high_descriptor(&blockchain).expect("failed to bulid high lvl descriptor");
+	*state.2.lock().unwrap() = build_med_descriptor(&blockchain).expect("failed to bulid med lvl descriptor");
+	*state.3.lock().unwrap() = build_low_descriptor(&blockchain).expect("failed to bulid low lvl descriptor");
+	return "Completed With No Problems".to_string()
+}
 
-// #[tauri::command]
-// fn get_address_high_wallet(state: State<TauriState>) -> String {
-// 	println!("test ");
-// 	let desc: String = (*state.1.lock().unwrap()).clone();
-// 	println!("desc = {}", desc);
-// 	let wallet: Wallet<MemoryDatabase> = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to bulid high lvl wallet");
-// 	return wallet.get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string()
-// }
+#[tauri::command]
+fn get_address_high_wallet(state: State<TauriState>) -> String {
+	println!("test ");
+	let desc: String = (*state.1.lock().unwrap()).clone();
+	println!("desc = {}", desc);
+	let wallet: Wallet<MemoryDatabase> = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to bulid high lvl wallet");
+	return wallet.get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string()
+}
 
 
 #[tauri::command]
