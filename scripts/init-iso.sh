@@ -51,8 +51,9 @@ cp -R ~/arctica/scripts /media/$USER/writable/upper/home/ubuntu
 tar -xzf ~/arctica/bitcoin-23.0-x86_64-linux-gnu.tar.gz -C /media/$USER/writable/upper/home/ubuntu
 #make local internal bitcoin dotfile
 mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
-#create bitcoin.conf that will be removed after setup is completed
-echo "networkactive=0" > /home/$USER/.bitcoin/bitcoin.conf
+#create bitcoin.conf
+echo "rpcuser=rpcuser" > /home/$USER/.bitcoin/bitcoin.conf
+echo "rpcpassword=477028" >> /home/$USER/.bitcoin/bitcoin.conf
 #create target device .bitcoin dir
 mkdir /media/$USER/writable/upper/home/ubuntu/.bitcoin
 #create shards dir
