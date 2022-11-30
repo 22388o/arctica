@@ -591,8 +591,8 @@ fn main() {
 		calculate_number_of_shards_ramdisk,
         collect_shards,
         convert_to_transfer_cd,
-        // generate_wallet,
-        // get_address_high_wallet,
+        generate_wallet,
+        get_address_high_wallet,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
