@@ -100,6 +100,11 @@ fn generate_key() -> Result<bitcoin::PrivateKey, bitcoincore_rpc::Error> {
 	Ok(bitcoin::PrivateKey::new(secret_key, bitcoin::Network::Bitcoin))
 }
 
+fn derive_public_key(private_key: bitcoin::PrivateKey) -> Result<bitcoin::PublicKey, bitcoincore_rpc::Error> {
+	let secp = Secp256k1::new();
+	Ok(PublicKey::from_private_key(&private_key))
+}
+
 fn build_high_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
 	let mut keys = Vec::new();
 	let ctx = Secp256k1::new();
