@@ -95,14 +95,13 @@ fn read() -> std::string::String {
 }
 
 fn generate_key() -> Result<bitcoin::PrivateKey, bitcoincore_rpc::Error> {
-	let secp = Secp256k1::new();
 	let secret_key = SecretKey::new(&mut rand::thread_rng());
 	Ok(bitcoin::PrivateKey::new(secret_key, bitcoin::Network::Bitcoin))
 }
 
 fn derive_public_key(private_key: bitcoin::PrivateKey) -> Result<bitcoin::PublicKey, bitcoincore_rpc::Error> {
 	let secp = Secp256k1::new();
-	Ok(PublicKey::from_private_key(&private_key))
+	Ok(bitcoin::PublicKey::from_private_key(&secp, &private_key))
 }
 
 fn build_high_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
@@ -163,14 +162,17 @@ fn get_address_high_wallet(state: State<TauriState>) -> String {
 #[tauri::command]
 async fn test_function() -> String {
 	println!("this is a test");
-	let output = Command::new("echo")
-            .args(["the test worked"])
-            .output()
-            .expect("failed to execute process");
-    // for byte in output.stdout {
-    // 	print!("{}", byte as char);
-    // }
-    println!(";");
+	let output = Command::new("sudo")
+        .args(["rm", "/test.txt"])
+        .output()
+        .expect("failed to remove file");
+    if (output.status.success()) {
+    	// Function Succeeds
+    	println!("output = {}", std::str::from_utf8(&output.stdout).unwrap());
+    } else {
+    	// Function Fails
+    	println!("output = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
 	format!("{:?}", output)
 }
 
@@ -250,12 +252,39 @@ async fn packup() -> String {
 #[tauri::command]
 async fn unpack() -> String {
 	println!("unpacking sensitive info");
-	let output = Command::new("bash")
-        .args(["/home/ubuntu/scripts/unpack.sh"])
-        .output()
-        .expect("failed to execute process");
-  println!(";");
-	format!("{:?}", output)
+
+	//remove stale tarball(We don't care if it fails/succeeds)
+	Command::new("sudo").args(["rm", "/mnt/ramdisk/decrypted.out"]).output().unwrap();
+
+
+	//decrypt sensitive directory
+	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/masterkey", "--output", "/mnt/ramdisk/decrypted.out", "-d", "/home/$USER/encrypted.gpg"]).output().unwrap();
+	if (!output.status.success()) {
+    	// Function Fails
+    	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	// unpack sensitive directory tarball
+	let output = Command::new("tar").args(["xvf", "/mnt/ramdisk/decrypted.out", "-C", "/mnt/ramdisk/"]).output().unwrap();
+	if (!output.status.success()) {
+    	// Function Fails
+    	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+    // copy sensitive dir to ramdisk
+	let output = Command::new("cp").args(["-R", "/mnt/ramdisk/mnt/ramdisk/sensitive", "/mnt/ramdisk"]).output().unwrap();
+	if (!output.status.success()) {
+    	// Function Fails
+    	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	// remove nested sensitive
+	Command::new("sudo").args(["rm", "-r", "/mnt/ramdisk/mnt"]).output().unwrap();
+
+	// #NOTES:
+	// #use this to append files to a decrypted tarball without having to create an entire new one
+	// #tar rvf output_tarball ~/filestobeappended
+	format!("SUCCESS in unpack")
 }
 
 #[tauri::command]
