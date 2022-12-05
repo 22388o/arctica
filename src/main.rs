@@ -97,12 +97,15 @@ fn read() -> std::string::String {
 #[tauri::command]
 async fn generate_key() -> Result<bitcoin::PrivateKey, bitcoincore_rpc::Error> {
 	let secret_key = SecretKey::new(&mut rand::thread_rng());
+	let mut fileRef = std::fs::File::create("/mnt/ramdisk/sensitive/private_key.txt").expect("private key file creation failed");
+	fileRef.write_all(secret_key.as_bytes()).expect("write to private key file failed")
 	Ok(bitcoin::PrivateKey::new(secret_key, bitcoin::Network::Bitcoin))
 }
 
 #[tauri::command]
  async fn derive_public_key(private_key: bitcoin::PrivateKey) -> Result<bitcoin::PublicKey, bitcoincore_rpc::Error> {
 	let secp = Secp256k1::new();
+	let mut fileRef = std::fs::File::create()
 	Ok(bitcoin::PublicKey::from_private_key(&secp, &private_key))
 }
 
@@ -631,7 +634,7 @@ fn main() {
         get_address_high_wallet,
 		generate_key,
 		derive_public_key,
-		
+
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
