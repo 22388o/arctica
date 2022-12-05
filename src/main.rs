@@ -125,9 +125,13 @@ fn store_public_key(public_key: bitcoin::PublicKey, file_name: String) -> Result
 }
 
 #[tauri::command]
-async fn generate_store_key_pair() -> String {
-	let private_key_file = "/mnt/ramdisk/sensitive/private_key.txt".to_string();
-	let public_key_file = "/mnt/ramdisk/sensitive/private_key.txt".to_string();
+async fn generate_store_key_pair(number: String) -> String {
+	//make the xpub dir in the setupCD staging area, can fail or succeed
+	Command::new("mkdir").args(["-parents", "/mnt/ramdisk/setupCD/xpubs"]).output().unwrap();
+
+	//need a param that makes the private key and public key file names dynamic, will come from front end.
+	let private_key_file = "/mnt/ramdisk/sensitive/private_key"+&number.to_string();
+	let public_key_file = "/mnt/ramdisk/sensitive/public_key"+&number.to_string();
 	let private_key = match generate_private_key() {
 		Ok(private_key) => private_key,
 		Err(err) => return "ERROR could not generate private_key: ".to_string()+&err.to_string()
@@ -144,6 +148,10 @@ async fn generate_store_key_pair() -> String {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store public key: ".to_string()+&err
 	}
+
+	//copy public key to setupCD dir
+	fs::copy("/mnt/ramdisk/sensitive/public_key"+&number, "/mnt/ramdisk/setupCD/xpubs/");
+
 	format!("SUCCESS generated and stored Private and Public Key Pair")
 }
 
