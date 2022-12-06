@@ -153,11 +153,7 @@ async fn generate_store_key_pair(number: String) -> String {
 	//copy public key to setupCD dir
 	let filetarget = "/mnt/ramdisk/sensitive/public_key".to_string()+&number;
 	let filedest = "/mnt/ramdisk/setupCD/publickeys/public_key".to_string()+&number;
-	let output = fs::copy(filetarget, filedest);
-	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in generate_store_key_pair = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
+	fs::copy(filetarget, filedest);
 
 	format!("SUCCESS generated and stored Private and Public Key Pair")
 }
