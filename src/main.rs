@@ -126,7 +126,7 @@ fn store_public_key(public_key: bitcoin::PublicKey, file_name: String) -> Result
 
 #[tauri::command]
 async fn generate_store_key_pair(number: String) -> String {
-	//need a param that makes the private key and public key file names dynamic, will come from front end.
+	//number corresponds to currentSD here and is provided by the front end
 	let private_key_file = "/mnt/ramdisk/sensitive/private_key".to_string()+&number;
 	let public_key_file = "/mnt/ramdisk/sensitive/public_key".to_string()+&number;
 	let private_key = match generate_private_key() {
@@ -153,7 +153,11 @@ async fn generate_store_key_pair(number: String) -> String {
 	//copy public key to setupCD dir
 	let filetarget = "/mnt/ramdisk/sensitive/public_key".to_string()+&number;
 	let filedest = "/mnt/ramdisk/setupCD/publickeys/public_key".to_string()+&number;
-	fs::copy(filetarget, filedest);
+	let output = fs::copy(filetarget, filedest);
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in generate_store_key_pair = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
 
 	format!("SUCCESS generated and stored Private and Public Key Pair")
 }
