@@ -324,7 +324,7 @@ async fn create_setup_cd() -> String {
 #[tauri::command]
 async fn copy_setup_cd() -> String {
     fs::create_dir("/mnt/ramdisk/setupCD");
-	let output = Command::new("cp").args(["-R", "/media/$USER/CDROM/*", "/mnt/ramdisk/setupCD"]).output().unwrap();
+	let output = Command::new("cp").args(["-R", "/media/ubuntu/CDROM/*", "/mnt/ramdisk/setupCD"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in copying setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -336,7 +336,7 @@ async fn copy_setup_cd() -> String {
 async fn packup() -> String {
 	println!("packing up sensitive info");
 	//remove stale encrypted dir
-	Command::new("sudo").args(["rm", "/home/$USER/encrypted.gpg"]).output().unwrap();
+	Command::new("sudo").args(["rm", "/home/ubuntu/encrypted.gpg"]).output().unwrap();
 
 	//remove stale tarball
 	Command::new("sudo").args(["rm", "/mnt/ramdisk/unecrypted.tar"]).output().unwrap();
@@ -349,7 +349,7 @@ async fn packup() -> String {
     }
 
 	//encrypt the sensitive directory tarball 
-	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/masterkey", "--output", "/home/$USER/encrypted.gpg", "--symmetric", "/mnt/ramdisk/unencrypted.tar"]).output().unwrap();
+	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/masterkey", "--output", "/home/ubuntu/encrypted.gpg", "--symmetric", "/mnt/ramdisk/unencrypted.tar"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -368,7 +368,7 @@ async fn unpack() -> String {
 
 
 	//decrypt sensitive directory
-	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/masterkey", "--output", "/mnt/ramdisk/decrypted.out", "-d", "/home/$USER/encrypted.gpg"]).output().unwrap();
+	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/masterkey", "--output", "/mnt/ramdisk/decrypted.out", "-d", "/home/ubuntu/encrypted.gpg"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -496,40 +496,40 @@ async fn refresh_setup_cd() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd2() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard2.txt", "/home/$USER/shards/shard2.txt");
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard10.txt", "/home/$USER/shards/shard10.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard2.txt", "/home/ubuntu/shards/shard2.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard10.txt", "/home/ubuntu/shards/shard10.txt");
 	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd3() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard3.txt", "/home/$USER/shards/shard3.txt");
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard9.txt", "/home/$USER/shards/shard9.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard3.txt", "/home/ubuntu/shards/shard3.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard9.txt", "/home/ubuntu/shards/shard9.txt");
 	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd4() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard4.txt", "/home/$USER/shards/shard4.txt");
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard8.txt", "/home/$USER/shards/shard8.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard4.txt", "/home/ubuntu/shards/shard4.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard8.txt", "/home/ubuntu/shards/shard8.txt");
 	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd5() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard5.txt", "/home/$USER/shards/shard5.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard5.txt", "/home/ubuntu/shards/shard5.txt");
 	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd6() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard6.txt", "/home/$USER/shards/shard6.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard6.txt", "/home/ubuntu/shards/shard6.txt");
 	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd7() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard7.txt", "/home/$USER/shards/shard7.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard7.txt", "/home/ubuntu/shards/shard7.txt");
 	format!("completed with no problems")
 }
 
