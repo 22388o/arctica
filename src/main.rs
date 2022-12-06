@@ -149,10 +149,10 @@ async fn generate_store_key_pair(number: String) -> String {
 	//make the xpub dir in the setupCD staging area, can fail or succeed
 	fs::create_dir("/mnt/ramdisk/setupCD");
 	fs::create_dir("/mnt/ramdisk/setupCD/publickeys");
-	let filetarget = "/mnt/ramdisk/sensitive/public_key".to_string()+&number;
-	let filedest = "/mnt/ramdisk/setupCD/publickeys/public_key".to_string()+&number;
 
 	//copy public key to setupCD dir
+	let filetarget = "/mnt/ramdisk/sensitive/public_key".to_string()+&number;
+	let filedest = "/mnt/ramdisk/setupCD/publickeys/public_key".to_string()+&number;
 	fs::copy(filetarget, filedest);
 
 	format!("SUCCESS generated and stored Private and Public Key Pair")
@@ -324,12 +324,12 @@ async fn create_setup_cd() -> String {
 #[tauri::command]
 async fn copy_setup_cd() -> String {
     fs::create_dir("/mnt/ramdisk/setupCD");
-	let output = Command::new("bash")
-        .args(["/home/ubuntu/scripts/copy-setup-cd.sh"])
-        .output()
-        .expect("failed to execute process");
-  println!(";");
-	format!("{:?}", output)
+	let output = Command::new("cp").args(["-R", "/media/$USER/CDROM/*", "/mnt/ramdisk/setupCD"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in copying setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+	format!("SUCCESS in coyping setup CD")
 }
 
 #[tauri::command]
