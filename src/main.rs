@@ -147,6 +147,7 @@ async fn generate_store_key_pair(number: String) -> String {
 	}
 
 	//make the xpub dir in the setupCD staging area, can fail or succeed
+	fs::create_dir("/mnt/ramdisk/setupCD");
 	fs::create_dir("/mnt/ramdisk/setupCD/publickeys");
 	let filedest = "/mnt/ramdisk/sensitive/public_key".to_string()+&number;
 

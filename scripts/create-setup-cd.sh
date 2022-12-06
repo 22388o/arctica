@@ -12,9 +12,6 @@ sudo apt install ssss
 #find cd path
 OUTPUT=$(echo $(ls /dev/sr?))
 
-#make the setup CD dir which holds files to be burned to the setup CD
-mkdir /mnt/ramdisk/setupCD
-
 #create setupCD config
 echo "type=setupcd" > /mnt/ramdisk/setupCD/config.txt
 
