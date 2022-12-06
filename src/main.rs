@@ -339,12 +339,28 @@ async fn copy_setup_cd() -> String {
 #[tauri::command]
 async fn packup() -> String {
 	println!("packing up sensitive info");
-	let output = Command::new("bash")
-        .args(["/home/ubuntu/scripts/packup.sh"])
-        .output()
-        .expect("failed to execute process");
-  println!(";");
-	format!("{:?}", output)
+	//remove stale encrypted dir
+	Command::new("sudo").args(["rm", "/home/$USER/encrypted.gpg"]).output().unwrap();
+
+	//remove stale tarball
+	Command::new("sudo").args(["rm", "/mnt/ramdisk/unecrypted.tar"]).output().unwrap();
+
+	//pack the sensitive directory into a tarball
+	let output = Command::new("tar").args(["cvf", "/mnt/ramdisk/unencrypted.tar", "/mnt/ramdisk/sensitive"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in packup = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	//encrypt the sensitive directory tarball 
+	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/masterkey", "--output", "/home/$USER/encrypted.gpg", "--symmetric", "/mnt/ramdisk/unencrypted.tar"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	format!("SUCCESS in unpack")
+
 }
 
 #[tauri::command]
