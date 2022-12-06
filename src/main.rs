@@ -314,7 +314,7 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
 async fn create_setup_cd() -> String {
 	println!("creating setup CD");
 	let output = Command::new("bash")
-        .args(["/home/ubuntu/scripts/create-setup-cd.sh"])
+        .args(["/home/".to_string()+&get_user()+"/scripts/create-setup-cd.sh"])
         .output()
         .expect("failed to execute process");
   println!(";");
@@ -324,7 +324,7 @@ async fn create_setup_cd() -> String {
 #[tauri::command]
 async fn copy_setup_cd() -> String {
     fs::create_dir("/mnt/ramdisk/setupCD");
-	let output = Command::new("cp").args(["-R", "/media/ubuntu/CDROM/*", "/mnt/ramdisk/setupCD"]).output().unwrap();
+	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/CDROM/*"), "/mnt/ramdisk/setupCD"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in copying setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -336,7 +336,7 @@ async fn copy_setup_cd() -> String {
 async fn packup() -> String {
 	println!("packing up sensitive info");
 	//remove stale encrypted dir
-	Command::new("sudo").args(["rm", "/home/ubuntu/encrypted.gpg"]).output().unwrap();
+	Command::new("sudo").args(["rm", &("/home/".to_string()+&get_user()+"/encrypted.gpg")]).output().unwrap();
 
 	//remove stale tarball
 	Command::new("sudo").args(["rm", "/mnt/ramdisk/unecrypted.tar"]).output().unwrap();
@@ -349,7 +349,7 @@ async fn packup() -> String {
     }
 
 	//encrypt the sensitive directory tarball 
-	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/masterkey", "--output", "/home/ubuntu/encrypted.gpg", "--symmetric", "/mnt/ramdisk/unencrypted.tar"]).output().unwrap();
+	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/masterkey", "--output", &("/home/".to_string()+&get_user()+"/encrypted.gpg"), "--symmetric", "/mnt/ramdisk/unencrypted.tar"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -368,7 +368,7 @@ async fn unpack() -> String {
 
 
 	//decrypt sensitive directory
-	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/masterkey", "--output", "/mnt/ramdisk/decrypted.out", "-d", "/home/ubuntu/encrypted.gpg"]).output().unwrap();
+	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/masterkey", "--output", "/mnt/ramdisk/decrypted.out", "-d", &("/home/".to_string()+&get_user()+"/encrypted.gpg")]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -401,7 +401,7 @@ async fn unpack() -> String {
 async fn create_ramdisk() -> String {
 	println!("creating ramdisk");
 	let output = Command::new("bash")
-        .args(["/home/ubuntu/scripts/create-ramdisk.sh"])
+        .args(["/home/".to_string()+&get_user()+"/scripts/create-ramdisk.sh"])
         .output()
         .expect("failed to execute process");
   println!(";");
@@ -412,7 +412,7 @@ async fn create_ramdisk() -> String {
 fn read_cd() -> std::string::String {
     // sleep for 3 seconds
     thread::sleep(Duration::from_millis(3000));
-    let config_file = "/media/ubuntu/CDROM/config.txt";
+    let config_file = "/media/".to_string()+&get_user()+"/CDROM/config.txt";
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
         Err(_) => {
@@ -436,12 +436,15 @@ fn print_rust(data: &str) -> String {
 	format!("completed with no problems")
 }
 
+fn get_user() -> String {
+	home_dir().unwrap().to_str().unwrap().to_string().split("/").collect::<Vec<&str>>()[2].to_string()
+}
 
 #[tauri::command]
 async fn create_wallet() -> String {
 	println!("creating simulated bitcoin wallet");
 	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/create-wallet.sh"])
+		.args(["/home/".to_string()+&get_user()+"/scripts/create-wallet.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
@@ -451,7 +454,7 @@ async fn create_wallet() -> String {
 async fn combine_shards() -> String {
 	println!("combining shards in /mnt/ramdisk/shards");
 	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/combine-shards.sh"])
+		.args(["/home/".to_string()+&get_user()+"/scripts/combine-shards.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
@@ -468,7 +471,7 @@ async fn async_write(name: &str, value: &str) -> Result<String, String> {
 async fn mount_internal() -> String {
 	println!("mounting internal storage and symlinking .bitcoin dirs");
 	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/mount-internal.sh"])
+		.args(["/home/".to_string()+&get_user()+"/scripts/mount-internal.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
@@ -478,7 +481,7 @@ async fn mount_internal() -> String {
 async fn install_sd_deps() -> String {
 	println!("installing deps required by SD card");
 	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/install-sd-deps.sh"])
+		.args(["/home/".to_string()+&get_user()+"/scripts/install-sd-deps.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
@@ -488,7 +491,7 @@ async fn install_sd_deps() -> String {
 async fn refresh_setup_cd() -> String {
 	println!("refreshing setupCD with latest data");
 	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/refresh-setup-cd.sh"])
+		.args(["/home/".to_string()+&get_user()+"/scripts/refresh-setup-cd.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
@@ -496,40 +499,40 @@ async fn refresh_setup_cd() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd2() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard2.txt", "/home/ubuntu/shards/shard2.txt");
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard10.txt", "/home/ubuntu/shards/shard10.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard2.txt", "/home/".to_string()+&get_user()+"/shards/shard2.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard10.txt", "/home/".to_string()+&get_user()+"/shards/shard10.txt");
 	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd3() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard3.txt", "/home/ubuntu/shards/shard3.txt");
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard9.txt", "/home/ubuntu/shards/shard9.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard3.txt", "/home/".to_string()+&get_user()+"/shards/shard3.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard9.txt", "/home/".to_string()+&get_user()+"/shards/shard9.txt");
 	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd4() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard4.txt", "/home/ubuntu/shards/shard4.txt");
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard8.txt", "/home/ubuntu/shards/shard8.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard4.txt", "/home/".to_string()+&get_user()+"/shards/shard4.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard8.txt", "/home/".to_string()+&get_user()+"/shards/shard8.txt");
 	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd5() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard5.txt", "/home/ubuntu/shards/shard5.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard5.txt", "/home/".to_string()+&get_user()+"/shards/shard5.txt");
 	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd6() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard6.txt", "/home/ubuntu/shards/shard6.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard6.txt", "/home/".to_string()+&get_user()+"/shards/shard6.txt");
 	format!("completed with no problems")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd7() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard7.txt", "/home/ubuntu/shards/shard7.txt");
+	fs::copy("/mnt/ramdisk/setupCD/shards/shard7.txt", "/home/".to_string()+&get_user()+"/shards/shard7.txt");
 	format!("completed with no problems")
 }
 
@@ -537,7 +540,7 @@ async fn distribute_shards_sd7() -> String {
 async fn create_descriptor() -> String {
 	println!("creating descriptor from 7 xpubs");
 	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/create-descriptor.sh"])
+		.args(["/home/".to_string()+&get_user()+"/scripts/create-descriptor.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
@@ -560,7 +563,7 @@ async fn extract_masterkey() -> String {
 async fn create_backup() -> String {
 	println!("creating backup directory of the current SD");
 	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/create-backup.sh"])
+		.args(["/home/".to_string()+&get_user()+"/scripts/create-backup.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
@@ -570,7 +573,7 @@ async fn create_backup() -> String {
 async fn make_backup() -> String {
 	println!("making backup iso of the current SD and burning to CD");
 	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/make-backup.sh"])
+		.args(["/home/".to_string()+&get_user()+"/scripts/make-backup.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
@@ -580,7 +583,7 @@ async fn make_backup() -> String {
 async fn start_bitcoind() -> String {
 	println!("starting the bitcoin daemon");
 	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/start-bitcoind.sh"])
+		.args(["/home/".to_string()+&get_user()+"/scripts/start-bitcoind.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
@@ -590,7 +593,7 @@ async fn start_bitcoind() -> String {
 async fn start_bitcoind_network_off() -> String {
 	println!("starting the bitcoin daemon without networking");
 	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/start-bitcoind-network-off.sh"])
+		.args(["/home/".to_string()+&get_user()+"/scripts/start-bitcoind-network-off.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
@@ -611,9 +614,9 @@ async fn check_for_masterkey() -> String {
 #[tauri::command]
 async fn retrieve_masterkey() -> String {
 	println!("checking transferCD for masterkey");
-    let b = std::path::Path::new("/media/ubuntu/CDROM/masterkey").exists();
+    let b = std::path::Path::new(&("/media/".to_string()+&get_user()+"/CDROM/masterkey")).exists();
     if b == true{
-		fs::copy("/media/ubuntu/CDROM/masterkey", "/mnt/ramdisk/masterkey");
+		fs::copy("/media/".to_string()+&get_user()+"/CDROM/masterkey", "/mnt/ramdisk/masterkey");
         format!("masterkey found")
     }
 	else{
@@ -625,7 +628,7 @@ async fn retrieve_masterkey() -> String {
 async fn create_recovery_cd() -> String {
 	println!("creating recovery CD for manual decrypting");
 	let output = Command::new("bash")
-		.args(["/home/ubuntu/scripts/create-recovery-cd.sh"])
+		.args(["/home/".to_string()+&get_user()+"/scripts/create-recovery-cd.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
@@ -635,7 +638,7 @@ async fn create_recovery_cd() -> String {
 async fn copy_recovery_cd() -> String {
 	fs::create_dir("/mnt/ramdisk/shards");
 	let output = Command::new("bash")
-        .args(["/home/ubuntu/scripts/copy-recovery-cd.sh"])
+        .args(["/home/".to_string()+&get_user()+"/scripts/copy-recovery-cd.sh"])
         .output()
         .expect("failed to execute process");
   println!(";");
@@ -645,7 +648,7 @@ async fn copy_recovery_cd() -> String {
 #[tauri::command]
 async fn calculate_number_of_shards_cd() -> u32 {
 	let mut x = 0;
-    for file in fs::read_dir("/media/ubuntu/CDROM/shards").unwrap() {
+    for file in fs::read_dir("/media/".to_string()+&get_user()+"/CDROM/shards").unwrap() {
 		x = x + 1;
 	}
 	return x;
@@ -666,7 +669,7 @@ async fn calculate_number_of_shards_ramdisk() -> u32 {
 async fn collect_shards() -> String {
 	println!("collecting shards");
 	let output = Command::new("bash")
-        .args(["/home/ubuntu/scripts/collect-shards.sh"])
+        .args(["/home/".to_string()+&get_user()+"/scripts/collect-shards.sh"])
         .output()
         .expect("failed to execute process");
   println!(";");
@@ -677,7 +680,7 @@ async fn collect_shards() -> String {
 async fn convert_to_transfer_cd() -> String {
 	println!("converting recovery cd to transfer cd with masterkey");
 	let output = Command::new("bash")
-        .args(["/home/ubuntu/scripts/convert-to-transfer-cd.sh"])
+        .args(["/home/".to_string()+&get_user()+"/scripts/convert-to-transfer-cd.sh"])
         .output()
         .expect("failed to execute process");
   println!(";");
