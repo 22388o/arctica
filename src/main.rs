@@ -256,8 +256,8 @@ async fn recover_key_pair() -> String {
 
 #[tauri::command]
 async fn test_function() -> String {
-	println!("this is a test");
-	let output = Command::new("echo").args(["\"file contents go here\"", ">", &("/home".to_string()+&get_user()+"/testfile.txt")]).output().unwrap();
+	let file = File::create("/home".to_string()+&get_user()+"/testfile.txt").unwrap();
+	let output = Command::new("echo").args(["file contents go here" ]).stdout(file).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in test function = {}", std::str::from_utf8(&output.stderr).unwrap());
