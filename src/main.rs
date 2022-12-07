@@ -650,6 +650,14 @@ async fn copy_descriptor() -> String {
 async fn extract_masterkey() -> String {
 	fs::copy("/mnt/ramdisk/setupCD/masterkey", "/mnt/ramdisk/masterkey");
 	format!("completed with no problems")
+
+	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/masterkey", "/mnt/ramdisk"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in extracting masterkey = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in extracting masterkey")
 }
 
 #[tauri::command]
