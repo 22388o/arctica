@@ -529,12 +529,36 @@ async fn install_sd_deps() -> String {
 
 #[tauri::command]
 async fn refresh_setup_cd() -> String {
-	println!("refreshing setupCD with latest data");
-	let output = Command::new("bash")
-		.args(["/home/".to_string()+&get_user()+"/scripts/refresh-setup-cd.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	//create iso from setupCD dir
+	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/setupCD.iso", "/mnt/ramdisk/setupCD"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR refreshing setupCD with genisoimage = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	//wipe the CD
+	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
+	let output = Command::new("wodim").args(["-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR refreshing setupCD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	//burn setupCD iso to the setupCD
+	let output = Command::new("wodim").args(["dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/setupCD.iso"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in refreshing setupCD with burning iso = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	//eject the disc
+	let output = Command::new("eject").args(["/dev/sr0"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in refreshing setupCD")
 }
 
 #[tauri::command]
@@ -664,6 +688,12 @@ async fn create_backup() -> String {
 #[tauri::command]
 async fn make_backup() -> String {
 	println!("making backup iso of the current SD and burning to CD");
+	// sleep for 4 seconds
+	let output = Command::new("sleep").args(["4"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in making backup with sleep = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 	let output = Command::new("bash")
 		.args(["/home/".to_string()+&get_user()+"/scripts/make-backup.sh"])
 		.output()
