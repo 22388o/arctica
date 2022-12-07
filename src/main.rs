@@ -805,34 +805,48 @@ async fn collect_shards() -> String {
 #[tauri::command]
 async fn convert_to_transfer_cd() -> String {
 	println!("converting completed recovery cd to transfer cd with masterkey");
+	//create transferCD target dir
+	Command::new("mkdir").args(["/mnt/ramdisk/transferCD"]).output().unwrap();
+	//create transferCD config
+	let file = File::create("/mnt/ramdisk/transferCD/config.txt").unwrap();
+	let output = Command::new("echo").args(["transfercd" ]).stdout(file).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in converting to transfer CD, with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//collect masterkey from cd dump and prepare for transfer to transfercd
+	let output = Command::new("cp").args(["/mnt/ramdisk/masterkey", "/mnt/ramdisk/transferCD"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in coverting to transfer CD, with copying masterkey = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//create iso from transferCD dir
+	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/transferCD"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in converting to transfer CD, with copying masterkey = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//wipe the CD
+	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
+	let output = Command::new("wodim").args(["-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR converting to transfer CD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//burn transferCD iso to the transfer CD
+	let output = Command::new("wodim").args(["dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/transferCD/iso"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR refreshing setupCD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//eject the disc
+	let output = Command::new("eject").args(["/dev/sr0"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 
-// #create transferCD config
-// echo "type=transfercd" > /mnt/ramdisk/transferCD/config.txt
-
-// #collect masterkey from cd dump and prepare for transfer to transfercd
-// cp /mnt/ramdisk/masterkey /mnt/ramdisk/transferCD
-
-// #create iso from transferCD dir
-// genisoimage -r -J -o /mnt/ramdisk/transferCD.iso /mnt/ramdisk/transferCD
-
-// #wipe the CD
-// sudo umount $OUTPUT
-// wodim -v dev=$OUTPUT blank=fast
-
-// #burn transferCD iso to the transfer CD
-// wodim dev=$OUTPUT -v -data /mnt/ramdisk/transferCD.iso
-
-// #eject the disk to refresh the filesystem
-// eject $OUTPUT
-// Command::new("mkdir").args(["/mnt/ramdisk/transferCD"])
-
-// let output = Command::new("bash").args([&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoind"), "-networkactive=0"]).output().unwrap();
-// if !output.status.success() {
-// 	// Function Fails
-// 	return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
-// }
-
-format!("SUCCESS in starting bitcoin daemon with networking disabled")
+	format!("SUCCESS in converting to transfer CD")
 }
 
 fn main() {
