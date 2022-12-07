@@ -671,13 +671,30 @@ async fn extract_masterkey() -> String {
 }
 
 #[tauri::command]
-async fn create_backup() -> String {
+async fn create_backup(number: String) -> String {
 	println!("creating backup directory of the current SD");
-	let output = Command::new("bash")
-		.args(["/home/".to_string()+&get_user()+"/scripts/create-backup.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+		//make backup dir for iso
+		Command::new("mkdir").args(["/mnt/ramdisk/backup"]).output().unwrap();
+		//Copy shards to backup
+		let output = Command::new("cp").args(["-r", &("/home/".to_string()+&get_user()+"/shards"), "/mnt/ramdisk/backup"]).output().unwrap();
+		if !output.status.success() {
+			// Function Fails
+			return format!("ERROR in creating backup with copying shards = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+		//Copy sensitive dir
+		let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/encrypted.gpg"), "/mnt/ramdisk/backup"]).output().unwrap();
+		if !output.status.success() {
+			// Function Fails
+			return format!("ERROR in creating backup with copying sensitive dir= {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+		//create .iso from backup dir
+		let output = Command::new("genisoimage").args(["-r", "-J", "-o", &("/mnt/ramdisk/backup".to_string()+&number+".iso"), "/mnt/ramdisk/backup"]).output().unwrap();
+		if !output.status.success() {
+			// Function Fails
+			return format!("ERROR in creating backup with creating iso= {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+	
+		format!("SUCCESS in creating backup of current SD")
 }
 
 #[tauri::command]
