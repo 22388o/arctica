@@ -836,7 +836,7 @@ async fn calculate_number_of_shards_ramdisk() -> u32 {
 }
 
 
-
+//broken
 #[tauri::command]
 async fn collect_shards() -> String {
 	println!("collecting shards");
@@ -861,6 +861,7 @@ async fn collect_shards() -> String {
 		return format!("ERROR in converting to transfer CD, with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
+	//this entire function is currently broken until a solution for the below recursive copy is discovered
 	//collect shards from sd card for export to transfer CD
 	//cp -r /home/$USER/shards/asterisk /mnt/ramdisk/transferCD/shards
 
