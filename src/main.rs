@@ -722,7 +722,7 @@ async fn retrieve_masterkey() -> String {
 		let output = Command::new("cp").args(["/media/".to_string()+&get_user()+"/CDROM/masterkey", "/mnt/ramdisk"]).output().unwrap();
 		if !output.status.success() {
 			// Function Fails
-			return format!("ERROR in extracting masterkey = {}", std::str::from_utf8(&output.stderr).unwrap());
+			return format!("ERROR in retrieving masterkey = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
         format!("masterkey found")
     }
@@ -743,7 +743,11 @@ async fn create_recovery_cd() -> String {
 
 #[tauri::command]
 async fn copy_recovery_cd() -> String {
-	fs::create_dir("/mnt/ramdisk/shards");
+	let output = Command::new("mkdir").args(["/mnt/ramdisk/shards"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in copying recovery CD with making shards dir = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 	let output = Command::new("bash")
         .args(["/home/".to_string()+&get_user()+"/scripts/copy-recovery-cd.sh"])
         .output()
