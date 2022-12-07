@@ -808,7 +808,6 @@ async fn create_recovery_cd() -> String {
 #[tauri::command]
 async fn copy_recovery_cd() -> String {
 	Command::new("mkdir").args(["/mnt/ramdisk/shards"]).output().unwrap();
-
 	let output = Command::new("bash")
         .args(["/home/".to_string()+&get_user()+"/scripts/copy-recovery-cd.sh"])
         .output()

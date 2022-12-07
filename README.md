@@ -60,7 +60,10 @@ Compile front end first
 `npm install`
 `npm run build`
 
-compile backend
+compile backend (you must do this if building from source)
 `cd ..`
 `cargo build`
 
+run the application and start following the prompts
+`cargo run`
+WARNING: this software overwrites external storage media and CDs without much warning, I advise you only run arctica on a dedicated machine, remove any extraneous external storage media, and only use USB sticks or SD cards and CDs you don't mind having wiped. 
