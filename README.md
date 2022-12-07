@@ -45,14 +45,14 @@ returning customer submodule update
 Install tauri dependencies
 
 `sudo apt update`
-`sudo apt install libwebkit2gtk-4.0-dev \
-    build-essential \
-    curl \
-    wget \
-    libssl-dev \
-    libgtk-3-dev \
-    libayatana-appindicator3-dev \
-    librsvg2-dev`
+`sudo apt install libwebkit2gtk-4.0-dev`
+`sudo apt install build-essential`
+`sudo apt install curl`
+`sudo apt install wget`
+`sudo apt install libssl-dev`
+`sudo apt install libgtk-3-dev`
+`sudo apt install libayatana-appindicator3-dev`
+`sudo apt install librsvg2-dev`
 
 Compile front end first
 
@@ -61,9 +61,12 @@ Compile front end first
 `npm run build`
 
 compile backend (you must do this if building from source)
+
 `cd ..`
 `cargo build`
 
 run the application and start following the prompts
+
 `cargo run`
+
 WARNING: this software overwrites external storage media and CDs without much warning, I advise you only run arctica on a dedicated machine, remove any extraneous external storage media, and only use USB sticks or SD cards and CDs you don't mind having wiped. 
