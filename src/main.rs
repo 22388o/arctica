@@ -257,18 +257,13 @@ async fn recover_key_pair() -> String {
 #[tauri::command]
 async fn test_function() -> String {
 	println!("this is a test");
-	let output = Command::new("sudo")
-        .args(["rm", "/test.txt"])
-        .output()
-        .expect("failed to remove file");
-    if (output.status.success()) {
-    	// Function Succeeds
-    	println!("output = {}", std::str::from_utf8(&output.stdout).unwrap());
-    } else {
-    	// Function Fails
-    	println!("output = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
-	format!("{:?}", output)
+	let output = Command::new("echo").args(["\"file contents go here\"", ">", &("/home".to_string()+&get_user()+"/testfile.txt")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in test function = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in test function")
 }
 
 
@@ -809,13 +804,35 @@ async fn collect_shards() -> String {
 
 #[tauri::command]
 async fn convert_to_transfer_cd() -> String {
-	println!("converting recovery cd to transfer cd with masterkey");
-	let output = Command::new("bash")
-        .args(["/home/".to_string()+&get_user()+"/scripts/convert-to-transfer-cd.sh"])
-        .output()
-        .expect("failed to execute process");
-  println!(";");
-	format!("{:?}", output)
+	println!("converting completed recovery cd to transfer cd with masterkey");
+
+// #create transferCD config
+// echo "type=transfercd" > /mnt/ramdisk/transferCD/config.txt
+
+// #collect masterkey from cd dump and prepare for transfer to transfercd
+// cp /mnt/ramdisk/masterkey /mnt/ramdisk/transferCD
+
+// #create iso from transferCD dir
+// genisoimage -r -J -o /mnt/ramdisk/transferCD.iso /mnt/ramdisk/transferCD
+
+// #wipe the CD
+// sudo umount $OUTPUT
+// wodim -v dev=$OUTPUT blank=fast
+
+// #burn transferCD iso to the transfer CD
+// wodim dev=$OUTPUT -v -data /mnt/ramdisk/transferCD.iso
+
+// #eject the disk to refresh the filesystem
+// eject $OUTPUT
+// Command::new("mkdir").args(["/mnt/ramdisk/transferCD"])
+
+// let output = Command::new("bash").args([&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoind"), "-networkactive=0"]).output().unwrap();
+// if !output.status.success() {
+// 	// Function Fails
+// 	return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
+// }
+
+format!("SUCCESS in starting bitcoin daemon with networking disabled")
 }
 
 fn main() {
