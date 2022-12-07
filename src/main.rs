@@ -632,6 +632,7 @@ async fn distribute_shards_sd7() -> String {
 	format!("SUCCESS in distributing shards to SD 7")
 }
 
+//deprecated
 #[tauri::command]
 async fn create_descriptor() -> String {
 	println!("creating descriptor from 7 xpubs");
@@ -642,6 +643,7 @@ async fn create_descriptor() -> String {
 	format!("{:?}", output)
 }
 
+//deprecated
 #[tauri::command]
 async fn copy_descriptor() -> String {
 	fs::copy("/mnt/ramdisk/setupCD/descriptor.txt", "/mnt/ramdisk/sensitive/descriptor.txt");
@@ -717,7 +719,11 @@ async fn retrieve_masterkey() -> String {
 	println!("checking transferCD for masterkey");
     let b = std::path::Path::new(&("/media/".to_string()+&get_user()+"/CDROM/masterkey")).exists();
     if b == true{
-		fs::copy("/media/".to_string()+&get_user()+"/CDROM/masterkey", "/mnt/ramdisk/masterkey");
+		let output = Command::new("cp").args(["/media/".to_string()+&get_user()+"/CDROM/masterkey", "/mnt/ramdisk"]).output().unwrap();
+		if !output.status.success() {
+			// Function Fails
+			return format!("ERROR in extracting masterkey = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
         format!("masterkey found")
     }
 	else{
