@@ -147,11 +147,7 @@ async fn generate_store_key_pair(number: String) -> String {
 	}
 
 	//make the pubkey dir in the setupCD staging area, can fail or succeed
-	let output = Command::new("mkdir").args(["--parents", "/mnt/ramdisk/setupCD/pubkeys"]).output().unwrap();
-	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in generate store key pair with making dir = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
+	Command::new("mkdir").args(["--parents", "/mnt/ramdisk/setupCD/pubkeys"]).output().unwrap();
 
 	//copy public key to setupCD dir
 	let output = Command::new("cp").args([&("/mnt/ramdisk/sensitive/public_key".to_string()+&number), "/mnt/ramdisk/setupCD/pubkeys"]).output().unwrap();
@@ -328,11 +324,8 @@ async fn create_setup_cd() -> String {
 
 #[tauri::command]
 async fn copy_setup_cd() -> String {
-	let output = Command::new("mkdir").args(["/mnt/ramdisk/setupCD"]).output().unwrap();
-	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in copying setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
+
+	Command::new("mkdir").args(["/mnt/ramdisk/setupCD"]).output().unwrap();
 
 	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/CDROM"), "/mnt/ramdisk"]).output().unwrap();
 	if !output.status.success() {
@@ -418,11 +411,7 @@ async fn unpack() -> String {
 async fn create_ramdisk() -> String {
 	println!("creating ramdisk");
 
-	let output = Command::new("sudo").args(["mkdir", "/mnt/ramdisk"]).output().unwrap();
-	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
+	Command::new("sudo").args(["mkdir", "/mnt/ramdisk"]).output().unwrap();
 
 	let output = Command::new("sudo").args(["mount", "-t", "ramfs", "-o", "size=250M", "ramfs", "/mnt/ramdisk"]).output().unwrap();
 	if !output.status.success() {
@@ -437,11 +426,7 @@ async fn create_ramdisk() -> String {
     }
 
 	//make the target dir for encrypted payload to or from SD cards
-	let output = Command::new("mkdir").args(["/mnt/ramdisk/sensitive"]).output().unwrap();
-	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
+	Command::new("mkdir").args(["/mnt/ramdisk/sensitive"]).output().unwrap();
 
 	format!("SUCCESS in Creating Ramdisk")
 }
@@ -468,7 +453,7 @@ fn read_cd() -> std::string::String {
     format!("{}", contents)
 }
 
-#[tauri::command]
+//helper function
 fn print_rust(data: &str) -> String {
 	println!("input = {}", data);
 	format!("completed with no problems")
@@ -812,7 +797,6 @@ fn main() {
   	.manage(TauriState(Mutex::new(config), Mutex::new("".to_string()), Mutex::new("".to_string()), Mutex::new("".to_string())))
   	.invoke_handler(tauri::generate_handler![
         test_function,
-        print_rust,
         create_bootable_usb,
         create_setup_cd,
         read_cd,
