@@ -146,14 +146,19 @@ async fn generate_store_key_pair(number: String) -> String {
 		Err(err) => return "ERROR could not store public key: ".to_string()+&err
 	}
 
-	//make the xpub dir in the setupCD staging area, can fail or succeed
-	fs::create_dir("/mnt/ramdisk/setupCD");
-	fs::create_dir("/mnt/ramdisk/setupCD/publickeys");
+	//make the pubkey dir in the setupCD staging area, can fail or succeed
+	let output = Command::new("mkdir").args(["--parents", "/mnt/ramdisk/setupCD/pubkeys"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in generate store key pair with making dir = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
 
 	//copy public key to setupCD dir
-	let filetarget = "/mnt/ramdisk/sensitive/public_key".to_string()+&number;
-	let filedest = "/mnt/ramdisk/setupCD/publickeys/public_key".to_string()+&number;
-	fs::copy(filetarget, filedest);
+	let output = Command::new("cp").args(["/mnt/ramdisk/sensitive/public_key".to_string()+&number, "/mnt/ramdisk/setupCD/pubkeys"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in generate store key pair with copying pubkey= {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
 
 	format!("SUCCESS generated and stored Private and Public Key Pair")
 }
