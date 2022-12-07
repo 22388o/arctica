@@ -8,7 +8,6 @@ mkdir -p /mnt/ramdisk/transferCD/shards
 echo "type=transfercd" > /mnt/ramdisk/transferCD/config.txt
 
 
-
 #collect shards from sd card for export to transfer CD
 cp -r /home/$USER/shards/* /mnt/ramdisk/transferCD/shards
 
