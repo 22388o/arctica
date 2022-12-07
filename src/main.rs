@@ -433,8 +433,12 @@ async fn create_ramdisk() -> String {
 
 #[tauri::command]
 fn read_cd() -> std::string::String {
-    // sleep for 3 seconds
-    thread::sleep(Duration::from_millis(3000));
+    // sleep for 4 seconds
+	let output = Command::new("sleep").args(["4"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in reading CD with sleep = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
     let config_file = "/media/".to_string()+&get_user()+"/CDROM/config.txt";
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
