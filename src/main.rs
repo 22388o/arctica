@@ -681,7 +681,7 @@ async fn create_backup() -> String {
 }
 
 #[tauri::command]
-async fn make_backup() -> String {
+async fn make_backup(number: String) -> String {
 	println!("making backup iso of the current SD and burning to CD");
 	// sleep for 4 seconds
 	let output = Command::new("sleep").args(["4"]).output().unwrap();
@@ -689,11 +689,27 @@ async fn make_backup() -> String {
 		// Function Fails
 		return format!("ERROR in making backup with sleep = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-	let output = Command::new("bash")
-		.args(["/home/".to_string()+&get_user()+"/scripts/make-backup.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	//wipe the CD
+	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
+	let output = Command::new("wodim").args(["-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in making backup with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//burn setupCD iso to the backup CD
+	let output = Command::new("wodim").args(["dev=/dev/sr0", "-v", "-data", &("/mnt/ramdisk/backup".to_string()+&number+".iso")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in making backup with burning iso to CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//eject the disc
+	let output = Command::new("eject").args(["/dev/sr0"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in making backup of current SD")
 }
 
 #[tauri::command]
