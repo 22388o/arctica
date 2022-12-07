@@ -669,12 +669,16 @@ async fn make_backup() -> String {
 
 #[tauri::command]
 async fn start_bitcoind() -> String {
+	/home/$USER/bitcoin-23.0/bin/bitcoind
+
 	println!("starting the bitcoin daemon");
-	let output = Command::new("bash")
-		.args(["/home/".to_string()+&get_user()+"/scripts/start-bitcoind.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	let output = Command::new("bash").args(["/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoind"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in starting bitcoin daemon = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in starting bitcoin daemon")
 }
 
 #[tauri::command]
@@ -728,11 +732,8 @@ async fn create_recovery_cd() -> String {
 
 #[tauri::command]
 async fn copy_recovery_cd() -> String {
-	let output = Command::new("mkdir").args(["/mnt/ramdisk/shards"]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in copying recovery CD with making shards dir = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
+	Command::new("mkdir").args(["/mnt/ramdisk/shards"]).output().unwrap();
+
 	let output = Command::new("bash")
         .args(["/home/".to_string()+&get_user()+"/scripts/copy-recovery-cd.sh"])
         .output()
