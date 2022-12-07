@@ -564,34 +564,69 @@ async fn distribute_shards_sd2() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd3() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard3.txt", "/home/".to_string()+&get_user()+"/shards/shard3.txt");
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard9.txt", "/home/".to_string()+&get_user()+"/shards/shard9.txt");
-	format!("completed with no problems")
+	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard3.txt", "/home".to_string()+&get_user()+"/shards"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in distributing shards to sd3 = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard9.txt", "/home".to_string()+&get_user()+"/shards"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in distributing shards to sd3 = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in distributing shards to SD 3")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd4() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard4.txt", "/home/".to_string()+&get_user()+"/shards/shard4.txt");
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard8.txt", "/home/".to_string()+&get_user()+"/shards/shard8.txt");
-	format!("completed with no problems")
+	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard4.txt", "/home".to_string()+&get_user()+"/shards"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in distributing shards to sd4 = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard8.txt", "/home".to_string()+&get_user()+"/shards"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in distributing shards to sd4 = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in distributing shards to SD 4")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd5() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard5.txt", "/home/".to_string()+&get_user()+"/shards/shard5.txt");
-	format!("completed with no problems")
+	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard5.txt", "/home".to_string()+&get_user()+"/shards"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in distributing shards to sd5 = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in distributing shards to SD 5")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd6() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard6.txt", "/home/".to_string()+&get_user()+"/shards/shard6.txt");
-	format!("completed with no problems")
+	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard6.txt", "/home".to_string()+&get_user()+"/shards"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in distributing shards to sd6 = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in distributing shards to SD 6")
 }
 
 #[tauri::command]
 async fn distribute_shards_sd7() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard7.txt", "/home/".to_string()+&get_user()+"/shards/shard7.txt");
-	format!("completed with no problems")
+	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard7.txt", "/home".to_string()+&get_user()+"/shards"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in distributing shards to sd7 = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in distributing shards to SD 7")
 }
 
 #[tauri::command]
