@@ -256,7 +256,7 @@ async fn recover_key_pair() -> String {
 
 #[tauri::command]
 async fn test_function() -> String {
-	let file = File::create("/home".to_string()+&get_user()+"/testfile.txt").unwrap();
+	let file = File::create("/home/".to_string()+&get_user()+"/testfile.txt").unwrap();
 	let output = Command::new("echo").args(["file contents go here" ]).stdout(file).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
