@@ -323,17 +323,24 @@ async fn create_setup_cd() -> String {
 
 #[tauri::command]
 async fn copy_setup_cd() -> String {
-    fs::create_dir("/mnt/ramdisk/setupCD");
+	let output = Command::new("mkdir").args(["/mnt/ramdisk/setupCD"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in copying setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
 	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/CDROM"), "/mnt/ramdisk"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in copying setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
+	
 	let output = Command::new("mv").args(["/mnt/ramdisk/CDROM", "/mnt/ramdisk/setupCD"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in copying setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
+
 	format!("SUCCESS in coyping setup CD")
 }
 
