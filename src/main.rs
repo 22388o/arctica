@@ -547,9 +547,19 @@ async fn refresh_setup_cd() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd2() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard2.txt", "/home/".to_string()+&get_user()+"/shards/shard2.txt");
-	fs::copy("/mnt/ramdisk/setupCD/shards/shard10.txt", "/home/".to_string()+&get_user()+"/shards/shard10.txt");
-	format!("completed with no problems")
+	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard2.txt", "/home".to_string()+&get_user()+"/shards"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in distributing shards to sd2 = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard10.txt", "/home".to_string()+&get_user()+"/shards"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in distributing shards to sd2 = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in distributing shards to SD 2")
 }
 
 #[tauri::command]
