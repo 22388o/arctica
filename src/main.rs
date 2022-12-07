@@ -485,11 +485,33 @@ async fn mount_internal() -> String {
 #[tauri::command]
 async fn install_sd_deps() -> String {
 	println!("installing deps required by SD card");
-	let output = Command::new("bash")
-		.args(["/home/".to_string()+&get_user()+"/scripts/install-sd-deps.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	//these are required on all 7 SD cards and will eventually be installed prior to first boot
+	let output = Command::new("sudo").args(["add-apt-repository", "-y", "universe"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	let output = Command::new("sudo").args(["apt", "update"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	//download wodim
+	let output = Command::new("sudo").args(["apt", "install", "-y", "wodim"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+	//download shamir secret sharing library
+	let output = Command::new("sudo").args(["apt", "install", "ssss"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	format!("SUCCESS in installing SD dependencies")
 }
 
 #[tauri::command]
