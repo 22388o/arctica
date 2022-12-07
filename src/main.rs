@@ -469,18 +469,9 @@ fn print_rust(data: &str) -> String {
 	format!("completed with no problems")
 }
 
+//helper function
 fn get_user() -> String {
 	home_dir().unwrap().to_str().unwrap().to_string().split("/").collect::<Vec<&str>>()[2].to_string()
-}
-
-#[tauri::command]
-async fn create_wallet() -> String {
-	println!("creating simulated bitcoin wallet");
-	let output = Command::new("bash")
-		.args(["/home/".to_string()+&get_user()+"/scripts/create-wallet.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
 }
 
 #[tauri::command]
@@ -810,7 +801,6 @@ fn main() {
   	.invoke_handler(tauri::generate_handler![
         test_function,
         print_rust,
-        create_wallet,
         create_bootable_usb,
         create_setup_cd,
         read_cd,
