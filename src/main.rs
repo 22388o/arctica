@@ -405,12 +405,33 @@ async fn unpack() -> String {
 #[tauri::command]
 async fn create_ramdisk() -> String {
 	println!("creating ramdisk");
-	let output = Command::new("bash")
-        .args(["/home/".to_string()+&get_user()+"/scripts/create-ramdisk.sh"])
-        .output()
-        .expect("failed to execute process");
-  println!(";");
-	format!("{:?}", output)
+
+	let output = Command::new("sudo").args(["mkdir", "/mnt/ramdisk"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	let output = Command::new("sudo").args(["mount", "-t", "ramfs", "-o", "size=250M", "ramfs", "/mnt/ramdisk"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	let output = Command::new("sudo").args(["chmod", "777", "/mnt/ramdisk"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	//make the target dir for encrypted payload to or from SD cards
+	let output = Command::new("mkdir").args(["/mnt/ramdisk/sensitive"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	format!("SUCCESS in Creating Ramdisk")
 }
 
 #[tauri::command]
