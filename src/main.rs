@@ -283,6 +283,7 @@ async fn obtain_ubuntu() -> String {
 	format!("completed with no problems")
 }
 
+//broken
 //initial flash of all 7 SD cards
 #[tauri::command]
 async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, String> {
@@ -294,29 +295,32 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
 	Command::new("sleep").args(["4"]).output().unwrap();
 	//remove old config from iso
 	Command::new("sudo").args(["rm", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/config.txt")]).output().unwrap();
+	//broken?
 	//copy new config
 	let output = Command::new("sudo").args(["cp", &("/home/".to_string()+&get_user()+"/config.txt"), &("/media".to_string()+&get_user()+"writable/upper/home/ubuntu")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return Ok(format!("ERROR in creating bootable with copying current config = {}", std::str::from_utf8(&output.stderr).unwrap()));
+		return format!("ERROR in creating bootable with copying current config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//open file permissions for config
 	let output = Command::new("sudo").args(["chmod", "777", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/config.txt")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return Ok(format!("ERROR in creating bootable with opening file permissions = {}", std::str::from_utf8(&output.stderr).unwrap()));
+		return format!("ERROR in creating bootable with opening file permissions = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+	//broken?
 	//remove current working config from local
 	let output = Command::new("sudo").args(["rm", &("/home/".to_string()+&get_user()+"/config.txt")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return Ok(format!("ERROR in creating bootable with removing current working config = {}", std::str::from_utf8(&output.stderr).unwrap()));
+		return format!("ERROR in creating bootable with removing current working config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+	//this part of the script is broken?
 	//burn iso with mkusb
 	let output = Command::new("printf").args(["\'%s\n\'", "n", "y", "g", "y", "|", "mkusb", &("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return Ok(format!("ERROR in creating bootable with mkusb = {}", std::str::from_utf8(&output.stderr).unwrap()));
+		return format!("ERROR in creating bootable with mkusb = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	Ok(format!("SUCCESS in creating bootable device"))
 }
