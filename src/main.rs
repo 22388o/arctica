@@ -322,7 +322,7 @@ async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, Strin
 		// Function Fails
 		return format!("ERROR in creating bootable with mkusb = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-	Ok(format!("SUCCESS in creating bootable device"))
+	format!("SUCCESS in creating bootable device")
 }
 
 #[tauri::command]
@@ -802,11 +802,48 @@ async fn retrieve_masterkey() -> String {
 #[tauri::command]
 async fn create_recovery_cd() -> String {
 	println!("creating recovery CD for manual decrypting");
-	let output = Command::new("bash")
-		.args(["/home/".to_string()+&get_user()+"/scripts/create-recovery-cd.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	//create transferCD config
+	let file = File::create("/mnt/ramdisk/transferCD/config.txt").unwrap();
+	let output = Command::new("echo").args(["type=transfercd" ]).stdout(file).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in creating recovery CD, with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//collect shards from SD card for export to transfer CD
+	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/shards"), "/mnt/ramdisk/transferCD/shards"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in creating recovery CD with copying shards from SD = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+	//create iso from transferCD dir
+	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/transferCD"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR creating recovery CD with creating ISO = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//wipe the CD
+	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
+	let output = Command::new("wodim").args(["-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR converting to transfer CD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//burn transferCD iso to the transfer CD
+	Command::new("wodim").args(["dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/transferCD.iso"]).output().unwrap();
+	let output = Command::new("wodim").args(["-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR converting to transfer CD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//eject the disc
+	let output = Command::new("eject").args(["/dev/sr0"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in creating recovery CD")
+
 }
 
 #[tauri::command]
@@ -872,7 +909,7 @@ async fn collect_shards() -> String {
 	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/transferCD"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return format!("ERROR converting to transfer CD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR converting to transfer CD with creating ISO = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//wipe the CD
 	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
