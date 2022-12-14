@@ -31,6 +31,33 @@ use std::{thread, time::Duration};
 
 struct TauriState(Mutex<RpcConfig>, Mutex<String>, Mutex<String>, Mutex<String>);
 
+//helper function
+fn print_rust(data: &str) -> String {
+	println!("input = {}", data);
+	format!("completed with no problems")
+}
+
+//helper function
+fn get_user() -> String {
+	home_dir().unwrap().to_str().unwrap().to_string().split("/").collect::<Vec<&str>>()[2].to_string()
+}
+
+//helper function
+//copy any shards potentially on the recovery CD to ramdisk
+fn copy_shards_to_ramdisk() {
+	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard1.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
+	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard2.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
+	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard3.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
+	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard4.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
+	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard5.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
+	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard6.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
+	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard7.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
+	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard8.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
+	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard9.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
+	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard10.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
+	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard11.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
+}
+
 fn write(name: String, value:String) {
 	let mut config_file = home_dir().expect("could not get home directory");
     config_file.push("config.txt");
@@ -467,17 +494,6 @@ fn read_cd() -> std::string::String {
     format!("{}", contents)
 }
 
-//helper function
-fn print_rust(data: &str) -> String {
-	println!("input = {}", data);
-	format!("completed with no problems")
-}
-
-//helper function
-fn get_user() -> String {
-	home_dir().unwrap().to_str().unwrap().to_string().split("/").collect::<Vec<&str>>()[2].to_string()
-}
-
 #[tauri::command]
 async fn combine_shards() -> String {
 	println!("combining shards in /mnt/ramdisk/shards");
@@ -849,12 +865,8 @@ async fn create_recovery_cd() -> String {
 #[tauri::command]
 async fn copy_recovery_cd() -> String {
 	Command::new("mkdir").args(["/mnt/ramdisk/shards"]).output().unwrap();
-	let output = Command::new("bash")
-        .args(["/home/".to_string()+&get_user()+"/scripts/copy-recovery-cd.sh"])
-        .output()
-        .expect("failed to execute process");
-  println!(";");
-	format!("{:?}", output)
+	copy_shards_to_ramdisk();
+	return "success in copying recovery CD"
 }
 
 #[tauri::command]
@@ -904,6 +916,10 @@ async fn collect_shards() -> String {
 	//this entire function is currently broken until a solution for the below recursive copy is discovered
 	//collect shards from sd card for export to transfer CD
 	//cp -r /home/$USER/shards/asterisk /mnt/ramdisk/transferCD/shards
+
+	//maybe use this from copy_recovery_cd if needed
+	// Command::new("mkdir").args(["/mnt/ramdisk/shards"]).output().unwrap();
+	// copy_shards_to_ramdisk();
 
 	//create iso from transferCD dir
 	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/transferCD"]).output().unwrap();
