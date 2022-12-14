@@ -313,7 +313,7 @@ async fn obtain_ubuntu() -> String {
 //broken
 //initial flash of all 7 SD cards
 #[tauri::command]
-async fn create_bootable_usb(number:  &str, setup: &str) -> Result<String, String> {
+async fn create_bootable_usb(number: String, setup: String) -> String {
     write("type".to_string(), "sdcard".to_string());
     write("sdNumber".to_string(), number.to_string());
     write("setupStep".to_string(), setup.to_string());
@@ -859,14 +859,13 @@ async fn create_recovery_cd() -> String {
 	}
 
 	format!("SUCCESS in creating recovery CD")
-
 }
 
 #[tauri::command]
 async fn copy_recovery_cd() -> String {
 	Command::new("mkdir").args(["/mnt/ramdisk/shards"]).output().unwrap();
 	copy_shards_to_ramdisk();
-	return "success in copying recovery CD"
+	format!("success in copying recovery CD")
 }
 
 #[tauri::command]
@@ -999,7 +998,15 @@ async fn convert_to_transfer_cd() -> String {
 	format!("SUCCESS in converting to transfer CD")
 }
 
+// fn test() {
+// 	let output = Command::new("printf").args(["\'%s\n\'", "n", "y", "g", "y", "|", "mkusb", &("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso")]).output().unwrap();
+// 	if !output.status.success() {
+// 		println!("ERROR");
+// 	}
+// }
+
 fn main() {
+	// test();
 	//TODO: confirm all these strings are correct per user(parse the bitcoin.conf)
 	let user_pass: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
     let config: RpcConfig = RpcConfig {
