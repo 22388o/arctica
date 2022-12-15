@@ -322,7 +322,7 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
 	//remove old config from iso
 	Command::new("sudo").args(["rm", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/config.txt")]).output().unwrap();
 	//copy new config
-	let output = Command::new("sudo").args(["cp", &("/home/".to_string()+&get_user()+"/config.txt"), &("/media".to_string()+&get_user()+"writable/upper/home/ubuntu")]).output().unwrap();
+	let output = Command::new("sudo").args(["cp", &("/home/".to_string()+&get_user()+"/config.txt"), &("/media/".to_string()+&get_user()+"writable/upper/home/ubuntu")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in creating bootable with copying current config = {}", std::str::from_utf8(&output.stderr).unwrap());
