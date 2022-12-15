@@ -759,7 +759,7 @@ async fn make_backup(number: String) -> String {
 #[tauri::command]
 async fn start_bitcoind() -> String {
 	println!("starting the bitcoin daemon");
-	let output = Command::new("bash").args(["/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoind"]).output().unwrap();
+	let output = Command::new(&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoind")).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in starting bitcoin daemon = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -771,7 +771,7 @@ async fn start_bitcoind() -> String {
 #[tauri::command]
 async fn start_bitcoind_network_off() -> String {
 	println!("starting the bitcoin daemon with networking disabled");
-	let output = Command::new("bash").args([&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoind"), "-networkactive=0"]).output().unwrap();
+	let output = Command::new(&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoind")).args(["-networkactive=0"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
