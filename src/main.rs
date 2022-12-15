@@ -370,7 +370,7 @@ async fn copy_setup_cd() -> String {
     	return format!("ERROR in copying setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 	
-	let output = Command::new("mv").args(["/mnt/ramdisk/CDROM", "/mnt/ramdisk/setupCD"]).output().unwrap();
+	let output = Command::new("sudo").args(["mv", "/mnt/ramdisk/CDROM", "/mnt/ramdisk/setupCD"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in copying setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
