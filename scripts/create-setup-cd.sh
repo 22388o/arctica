@@ -13,7 +13,7 @@ sudo apt install ssss
 OUTPUT=$(echo $(ls /dev/sr?))
 
 #create setupCD config
-echo "type=setupcd" > /mnt/ramdisk/setupCD/config.txt
+echo "type=setupcd" > /mnt/ramdisk/CDROM/config.txt
 
 
 #generate masterkey for encrypting persistent directories
@@ -52,11 +52,11 @@ sudo rm /mnt/ramdisk/shards/shard11.txt
 sudo rm /mnt/ramdisk/shards_untrimmed.txt
 
 #stage setup CD with masterkey (for decrypting without bps) and shards for distribution to respective SD cards
-sudo cp /mnt/ramdisk/masterkey /mnt/ramdisk/setupCD
-sudo cp -R /mnt/ramdisk/shards /mnt/ramdisk/setupCD
+sudo cp /mnt/ramdisk/masterkey /mnt/ramdisk/CDROM
+sudo cp -R /mnt/ramdisk/shards /mnt/ramdisk/CDROM
 
 #create iso from setupCD dir
-genisoimage -r -J -o /mnt/ramdisk/setupCD.iso /mnt/ramdisk/setupCD
+genisoimage -r -J -o /mnt/ramdisk/setupCD.iso /mnt/ramdisk/CDROM
 
 #wipe the CD
 sudo umount $OUTPUT

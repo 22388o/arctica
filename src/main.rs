@@ -174,10 +174,10 @@ async fn generate_store_key_pair(number: String) -> String {
 	}
 
 	//make the pubkey dir in the setupCD staging area, can fail or succeed
-	Command::new("mkdir").args(["--parents", "/mnt/ramdisk/setupCD/pubkeys"]).output().unwrap();
+	Command::new("mkdir").args(["--parents", "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
 
 	//copy public key to setupCD dir
-	let output = Command::new("cp").args([&("/mnt/ramdisk/sensitive/public_key".to_string()+&number), "/mnt/ramdisk/setupCD/pubkeys"]).output().unwrap();
+	let output = Command::new("cp").args([&("/mnt/ramdisk/sensitive/public_key".to_string()+&number), "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in generate store key pair with copying pubkey= {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -367,13 +367,6 @@ async fn copy_setup_cd() -> String {
     	// Function Fails
     	return format!("ERROR in copying setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
-	
-	let output = Command::new("sudo").args(["mv", "/mnt/ramdisk/CDROM", "/mnt/ramdisk/setupCD"]).output().unwrap();
-	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in copying setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
-
 	format!("SUCCESS in coyping setup CD")
 }
 
@@ -550,7 +543,7 @@ async fn install_sd_deps() -> String {
 #[tauri::command]
 async fn refresh_setup_cd() -> String {
 	//create iso from setupCD dir
-	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/setupCD.iso", "/mnt/ramdisk/setupCD"]).output().unwrap();
+	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/setupCD.iso", "/mnt/ramdisk/CDROM"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR refreshing setupCD with genisoimage = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -583,13 +576,13 @@ async fn refresh_setup_cd() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd2() -> String {
-	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard2.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard2.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd2 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard10.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard10.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd2 = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -600,13 +593,13 @@ async fn distribute_shards_sd2() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd3() -> String {
-	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard3.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard3.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd3 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard9.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard9.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd3 = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -617,13 +610,13 @@ async fn distribute_shards_sd3() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd4() -> String {
-	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard4.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard4.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd4 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard8.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard8.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd4 = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -634,7 +627,7 @@ async fn distribute_shards_sd4() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd5() -> String {
-	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard5.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard5.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd5 = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -645,7 +638,7 @@ async fn distribute_shards_sd5() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd6() -> String {
-	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard6.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard6.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd6 = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -656,7 +649,7 @@ async fn distribute_shards_sd6() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd7() -> String {
-	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/shards/shard7.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard7.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd7 = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -679,14 +672,14 @@ async fn create_descriptor() -> String {
 //deprecated
 #[tauri::command]
 async fn copy_descriptor() -> String {
-	fs::copy("/mnt/ramdisk/setupCD/descriptor.txt", "/mnt/ramdisk/sensitive/descriptor.txt");
+	fs::copy("/mnt/ramdisk/CDROM/descriptor.txt", "/mnt/ramdisk/sensitive/descriptor.txt");
 	format!("completed with no problems")
 	
 }
 
 #[tauri::command]
 async fn extract_masterkey() -> String {
-	let output = Command::new("cp").args(["/mnt/ramdisk/setupCD/masterkey", "/mnt/ramdisk"]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/masterkey", "/mnt/ramdisk"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in extracting masterkey = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -813,20 +806,20 @@ async fn retrieve_masterkey() -> String {
 async fn create_recovery_cd() -> String {
 	println!("creating recovery CD for manual decrypting");
 	//create transferCD config
-	let file = File::create("/mnt/ramdisk/transferCD/config.txt").unwrap();
+	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
 	let output = Command::new("echo").args(["type=transfercd" ]).stdout(file).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in creating recovery CD, with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//collect shards from SD card for export to transfer CD
-	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/shards"), "/mnt/ramdisk/transferCD/shards"]).output().unwrap();
+	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/shards"), "/mnt/ramdisk/CDROM/shards"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in creating recovery CD with copying shards from SD = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 	//create iso from transferCD dir
-	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/transferCD"]).output().unwrap();
+	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/CDROM"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR creating recovery CD with creating ISO = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -874,7 +867,7 @@ async fn calculate_number_of_shards_cd() -> u32 {
 #[tauri::command]
 async fn calculate_number_of_shards_ramdisk() -> u32 {
 	let mut x = 0;
-    for file in fs::read_dir("/mnt/ramdisk/transferCD/shards").unwrap() {
+    for file in fs::read_dir("/mnt/ramdisk/CDROM/shards").unwrap() {
 		x = x + 1;
 	}
 	return x;
@@ -886,20 +879,17 @@ async fn calculate_number_of_shards_ramdisk() -> u32 {
 async fn collect_shards() -> String {
 	println!("collecting shards");
 	//create transferCD target dir
-	Command::new("mkdir").args(["--parents", "/mnt/ramdisk/transferCD/shards"]).output().unwrap();
+	Command::new("mkdir").args(["--parents", "/mnt/ramdisk/CDROM/shards"]).output().unwrap();
 	//stage transferCD target dir with current CD content
 	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/CDROM"), "/mnt/ramdisk"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in collecting shards with copying CDROM contents = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
-	let output = Command::new("mv").args(["/mnt/ramdisk/CDROM", "/mnt/ramdisk/transferCD"]).output().unwrap();
-	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR collecting shards with moving CDROM contents = {}", std::str::from_utf8(&output.stderr).unwrap());
+
     }
 	//create transferCD config
-	let file = File::create("/mnt/ramdisk/transferCD/config.txt").unwrap();
+	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
 	let output = Command::new("echo").args(["type=transfercd" ]).stdout(file).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
@@ -908,14 +898,14 @@ async fn collect_shards() -> String {
 
 	//this entire function is currently broken until a solution for the below recursive copy is discovered
 	//collect shards from sd card for export to transfer CD
-	//cp -r /home/$USER/shards/asterisk /mnt/ramdisk/transferCD/shards
+	//cp -r /home/$USER/shards/asterisk /mnt/ramdisk/CDROM/shards
 
 	//maybe use this from copy_recovery_cd if needed
 	// Command::new("mkdir").args(["/mnt/ramdisk/shards"]).output().unwrap();
 	// copy_shards_to_ramdisk();
 
 	//create iso from transferCD dir
-	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/transferCD"]).output().unwrap();
+	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/CDROM"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR converting to transfer CD with creating ISO = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -949,22 +939,22 @@ async fn collect_shards() -> String {
 async fn convert_to_transfer_cd() -> String {
 	println!("converting completed recovery cd to transfer cd with masterkey");
 	//create transferCD target dir
-	Command::new("mkdir").args(["/mnt/ramdisk/transferCD"]).output().unwrap();
+	Command::new("mkdir").args(["/mnt/ramdisk/CDROM"]).output().unwrap();
 	//create transferCD config
-	let file = File::create("/mnt/ramdisk/transferCD/config.txt").unwrap();
+	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
 	let output = Command::new("echo").args(["type=transfercd" ]).stdout(file).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in converting to transfer CD, with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//collect masterkey from cd dump and prepare for transfer to transfercd
-	let output = Command::new("cp").args(["/mnt/ramdisk/masterkey", "/mnt/ramdisk/transferCD"]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/masterkey", "/mnt/ramdisk/CDROM"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in coverting to transfer CD, with copying masterkey = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//create iso from transferCD dir
-	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/transferCD"]).output().unwrap();
+	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/CDROM"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in converting to transfer CD, with copying masterkey = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -977,7 +967,7 @@ async fn convert_to_transfer_cd() -> String {
 		return format!("ERROR converting to transfer CD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//burn transferCD iso to the transfer CD
-	let output = Command::new("wodim").args(["dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/transferCD/iso"]).output().unwrap();
+	let output = Command::new("wodim").args(["dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/transferCD.iso"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR refreshing setupCD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
