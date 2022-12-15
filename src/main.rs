@@ -340,7 +340,7 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
 		return format!("ERROR in creating bootable with removing current working config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//burn iso with mkusb
-	let output = Command::new("sudo").args(["dd", "bs=16M", &("if=/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso"), "of=/dev/sda", "status=progress", "oflag=direct"]).output().unwrap();
+	let output = Command::new("sudo").args(["dd", "bs=1M", &("if=/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso"), "of=/dev/sda", "status=progress", "oflag=dsync"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in creating bootable with dd = {}", std::str::from_utf8(&output.stderr).unwrap());
