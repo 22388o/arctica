@@ -362,8 +362,6 @@ async fn create_setup_cd() -> String {
 #[tauri::command]
 async fn copy_setup_cd() -> String {
 
-	Command::new("mkdir").args(["/mnt/ramdisk/setupCD"]).output().unwrap();
-
 	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/CDROM"), "/mnt/ramdisk"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
