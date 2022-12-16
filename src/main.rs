@@ -927,6 +927,7 @@ async fn convert_to_transfer_cd() -> String {
 		// Function Fails
 		return format!("ERROR in converting to transfer CD, with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+	//this is a deprecated script as masterkey no longer lives in /ramdisk but instead lives in /ramdisk/CDROM. Revise. 
 	//collect masterkey from cd dump and prepare for transfer to transfercd
 	let output = Command::new("cp").args(["/mnt/ramdisk/masterkey", "/mnt/ramdisk/CDROM"]).output().unwrap();
 	if !output.status.success() {
