@@ -775,23 +775,6 @@ async fn check_for_masterkey() -> String {
 }
 
 #[tauri::command]
-async fn retrieve_masterkey() -> String {
-	println!("checking transferCD for masterkey");
-    let b = std::path::Path::new(&("/media/".to_string()+&get_user()+"/CDROM/masterkey")).exists();
-    if b == true{
-		let output = Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/masterkey"), "/mnt/ramdisk"]).output().unwrap();
-		if !output.status.success() {
-			// Function Fails
-			return format!("ERROR in retrieving masterkey = {}", std::str::from_utf8(&output.stderr).unwrap());
-		}
-        format!("masterkey found")
-    }
-	else{
-        format!("key not found")
-    }
-}
-
-#[tauri::command]
 async fn create_recovery_cd() -> String {
 	println!("creating recovery CD for manual decrypting");
 	//create transferCD config
@@ -996,7 +979,7 @@ fn main() {
         create_bootable_usb,
         create_setup_cd,
         read_cd,
-        copy_setup_cd,
+        copy_cd_to_ramdisk,
         obtain_ubuntu,
         async_write,
         read,
@@ -1020,7 +1003,6 @@ fn main() {
         start_bitcoind,
         start_bitcoind_network_off,
         check_for_masterkey,
-		retrieve_masterkey,
         create_recovery_cd,
         copy_recovery_cd,
         calculate_number_of_shards_cd,
