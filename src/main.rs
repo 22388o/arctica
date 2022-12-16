@@ -387,7 +387,7 @@ async fn packup() -> String {
     }
 
 	//encrypt the sensitive directory tarball 
-	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/masterkey", "--output", &("/home/".to_string()+&get_user()+"/encrypted.gpg"), "--symmetric", "/mnt/ramdisk/unencrypted.tar"]).output().unwrap();
+	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/CDROM/masterkey", "--output", &("/home/".to_string()+&get_user()+"/encrypted.gpg"), "--symmetric", "/mnt/ramdisk/unencrypted.tar"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in packup = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -406,7 +406,7 @@ async fn unpack() -> String {
 
 
 	//decrypt sensitive directory
-	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/masterkey", "--output", "/mnt/ramdisk/decrypted.out", "-d", &("/home/".to_string()+&get_user()+"/encrypted.gpg")]).output().unwrap();
+	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/CDROM/masterkey", "--output", "/mnt/ramdisk/decrypted.out", "-d", &("/home/".to_string()+&get_user()+"/encrypted.gpg")]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -678,17 +678,6 @@ async fn copy_descriptor() -> String {
 }
 
 #[tauri::command]
-async fn extract_masterkey() -> String {
-	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/masterkey", "/mnt/ramdisk"]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in extracting masterkey = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-
-	format!("SUCCESS in extracting masterkey")
-}
-
-#[tauri::command]
 async fn create_backup(number: String) -> String {
 	println!("creating backup directory of the current SD");
 		//make backup dir for iso
@@ -776,7 +765,7 @@ async fn start_bitcoind_network_off() -> String {
 #[tauri::command]
 async fn check_for_masterkey() -> String {
 	println!("checking ramdisk for masterkey");
-    let b = std::path::Path::new("/mnt/ramdisk/masterkey").exists();
+    let b = std::path::Path::new("/mnt/ramdisk/CDROM/masterkey").exists();
     if b == true{
         format!("masterkey found")
     }

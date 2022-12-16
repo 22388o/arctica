@@ -23,6 +23,6 @@ done
 ssss-combine -t 5 < /mnt/ramdisk/shards.txt 2> /mnt/ramdisk/masterkey_untrimmed.txt
 FILE=$(cat /mnt/ramdisk/masterkey_untrimmed.txt)
 #trim excess from reconstituted key
-echo $FILE | cut -c 19- > /mnt/ramdisk/masterkey
+echo $FILE | cut -c 19- > /mnt/ramdisk/CDROM/masterkey
 rm /mnt/ramdisk/masterkey_untrimmed.txt
 

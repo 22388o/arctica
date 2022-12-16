@@ -17,10 +17,10 @@ echo "type=setupcd" > /mnt/ramdisk/CDROM/config.txt
 
 
 #generate masterkey for encrypting persistent directories
-base64 /dev/urandom | head -c 50 > /mnt/ramdisk/masterkey
+base64 /dev/urandom | head -c 50 > /mnt/ramdisk/CDROM/masterkey
 
 #split masterkey used for encryption into a 5 of 11 scheme
-ssss-split -t 5 -n 11 < /mnt/ramdisk/masterkey > /mnt/ramdisk/shards_untrimmed.txt
+ssss-split -t 5 -n 11 < /mnt/ramdisk/CDROM/masterkey > /mnt/ramdisk/shards_untrimmed.txt
 #make target dir for shard files
 mkdir /mnt/ramdisk/shards
 
@@ -51,8 +51,7 @@ sudo rm /mnt/ramdisk/shards/shard11.txt
 #remove stale shard file
 sudo rm /mnt/ramdisk/shards_untrimmed.txt
 
-#stage setup CD with masterkey (for decrypting without bps) and shards for distribution to respective SD cards
-sudo cp /mnt/ramdisk/masterkey /mnt/ramdisk/CDROM
+#stage setup CD with shards for distribution to respective SD cards
 sudo cp -R /mnt/ramdisk/shards /mnt/ramdisk/CDROM
 
 #create iso from setupCD dir
