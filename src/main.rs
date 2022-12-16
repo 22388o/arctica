@@ -887,7 +887,7 @@ async fn collect_shards() -> String {
     	return format!("ERROR in collecting shards with copying CDROM contents = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
-    }
+    
 	//create transferCD config
 	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
 	let output = Command::new("echo").args(["type=transfercd" ]).stdout(file).output().unwrap();
