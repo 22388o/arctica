@@ -56,8 +56,7 @@ mkdir /media/$USER/writable/upper/home/ubuntu/.bitcoin
 #create bitcoin.conf on target device
 echo "rpcuser=rpcuser" > /media/$USER/writable/upper/home/ubuntu/.bitcoin/bitcoin.conf
 echo "rpcpassword=477028" >> /media/$USER/writable/upper/home/ubuntu/.bitcoin/bitcoin.conf
-#create shards dir
-mkdir /media/$USER/writable/upper/home/ubuntu/shards
+
 
 
 

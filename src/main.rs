@@ -584,6 +584,9 @@ async fn refresh_setup_cd() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd2() -> String {
+	//create local shards dir
+	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]
+
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard2.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
@@ -601,6 +604,9 @@ async fn distribute_shards_sd2() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd3() -> String {
+	//create local shards dir
+	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]
+
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard3.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
@@ -618,6 +624,9 @@ async fn distribute_shards_sd3() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd4() -> String {
+	//create local shards dir
+	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]
+
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard4.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
@@ -635,6 +644,9 @@ async fn distribute_shards_sd4() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd5() -> String {
+	//create local shards dir
+	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]
+
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard5.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
@@ -646,6 +658,9 @@ async fn distribute_shards_sd5() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd6() -> String {
+	//create local shards dir
+	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]
+
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard6.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
@@ -657,6 +672,9 @@ async fn distribute_shards_sd6() -> String {
 
 #[tauri::command]
 async fn distribute_shards_sd7() -> String {
+	//create local shards dir
+	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]
+
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard7.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
