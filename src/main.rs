@@ -351,6 +351,8 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
 #[tauri::command]
 async fn create_setup_cd() -> String {
 	println!("creating setup CD");
+	//create local shards dir
+	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	let output = Command::new("bash")
         .args(["/home/".to_string()+&get_user()+"/scripts/create-setup-cd.sh"])
         .output()
