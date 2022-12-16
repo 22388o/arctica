@@ -360,14 +360,14 @@ async fn create_setup_cd() -> String {
 }
 
 #[tauri::command]
-async fn copy_setup_cd() -> String {
+async fn copy_cd_to_ramdisk() -> String {
 
 	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/CDROM"), "/mnt/ramdisk"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
-    	return format!("ERROR in copying setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+    	return format!("ERROR in copying CD contents = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
-	format!("SUCCESS in coyping setup CD")
+	format!("SUCCESS in coyping CD contents")
 }
 
 #[tauri::command]
@@ -1015,7 +1015,6 @@ fn main() {
         distribute_shards_sd7,
         create_descriptor,
         copy_descriptor,
-        extract_masterkey,
         create_backup,
         make_backup,
         start_bitcoind,
