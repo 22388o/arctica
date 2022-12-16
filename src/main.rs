@@ -361,11 +361,17 @@ async fn create_setup_cd() -> String {
 
 #[tauri::command]
 async fn copy_cd_to_ramdisk() -> String {
-
+	//copy cd contents to ramdisk
 	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/CDROM"), "/mnt/ramdisk"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in copying CD contents = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+	//open up permissions
+	let output = Command::new("sudo").args(["chmod", "-R", "777" "/mnt/ramdisk/CDROM"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in opening file permissions of CDROM = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 	format!("SUCCESS in coyping CD contents")
 }
