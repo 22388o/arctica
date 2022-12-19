@@ -318,10 +318,18 @@ async fn init_iso() -> String {
 	let a = std::path::Path::new("./ubuntu-22.04.1-desktop-amd64.iso").exists();
 	let b = std::path::Path::new("./bitcoin-23.0-x86_64-linux-gnu.tar.gz").exists();
 	if a == false{
-		Command::new("wget").args(["-O", "ubuntu-22.04.1-desktop-amd64.iso", "http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso"]).output().unwrap();
+		let output = Command::new("wget").args(["-O", "ubuntu-22.04.1-desktop-amd64.iso", "http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso"]).output().unwrap();
+		if !output.status.success() {
+			// Function Fails
+			return format!("ERROR in init iso with downloading ubuntu iso = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
 	}
 	if b == false{
-		Command::new("wget").args(["https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz"]).output().unwrap();
+		let output = Command::new("wget").args(["https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz"]).output().unwrap();
+		if !output.status.success() {
+			// Function Fails
+			return format!("ERROR in init iso with downloading bitcoin core = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
 	}
 
 	//remove stale persistent isos
@@ -331,53 +339,114 @@ async fn init_iso() -> String {
 	Command::new("sudo").args(["rm", "pid.txt"]).output().unwrap();
 
 	//modify ubuntu iso to have persistence
-	Command::new("bash").args(["<", "ubuntu-22.04.1-desktop-amd64.iso", "sed", "\n's/maybe-ubiquity/  persistent  /\n'", ">", "persistent-ubuntu1.iso"]).output().unwrap();
-	Command::new("bash").args(["<", "persistent-ubuntu1.iso", "sed", "\n's/set timeout=30/set timeout=1 /\n'", ">", "persistent-ubuntu.iso"]).output().unwrap();
+	let output = Command::new("bash").args(["<", "ubuntu-22.04.1-desktop-amd64.iso", "sed", "\n's/maybe-ubiquity/  persistent  /\n'", ">", "persistent-ubuntu1.iso"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with sed maybe ubiquity = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	let output = Command::new("bash").args(["<", "persistent-ubuntu1.iso", "sed", "\n's/set timeout=30/set timeout=1 /\n'", ">", "persistent-ubuntu.iso"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with sed set timeout = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 
 	//remove stale persistent iso
 	Command::new("sudo").args(["rm", "persistent-ubuntu1.iso"]).output().unwrap();
 
 	//fallocate persistent iso
-	Command::new("fallocate").args(["-l", "5GiB", "persistent-ubuntu.iso"]).output().unwrap();
+	let output = Command::new("fallocate").args(["-l", "5GiB", "persistent-ubuntu.iso"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with fallocate persistent iso = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 
 	//boot kvm to establish persistence
-	Command::new("kvm").args(["-m", "2048", &("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso", "-daemonize", "-pidfile", "pid.txt", "-cpu", "host", "-display", "none")]).output().unwrap();
-	
+	let output = Command::new("kvm").args(["-m", "2048", &("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso", "-daemonize", "-pidfile", "pid.txt", "-cpu", "host", "-display", "none")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with kvm = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
 	// sleep for 200 seconds
 	Command::new("sleep").args(["200"]).output().unwrap();
 
 	//obtain pid
 	let pid = Command::new("cat").args(["./pid.txt"]).output().stdout();
+	
 	//kill pid
-	Command::new("kill").args(["-9", pid]).output().unwrap();
+	let output = Command::new("kill").args(["-9", pid]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with killing pid = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 
 	//mount persistent iso at /media/$USER/writable/upper/
-	Command::new("udisksctl").args(["loop-setup", "-f", "persistent-ubuntu.iso"]).output().unwrap();
+	let output = Command::new("udisksctl").args(["loop-setup", "-f", "persistent-ubuntu.iso"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with mounting persistent iso = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 
 	// sleep for 2 seconds
 	Command::new("sleep").args(["2"]).output().unwrap();
 
 	//open file permissions for persistent directory
-	Command::new("sudo").args(["chmod", "777", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
+	let output = Command::new("sudo").args(["chmod", "777", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with opening file permissions of persistent dir = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 
 	//copy over artica binary and make executable
-	Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/target/debug/app"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/arctica")]).output().unwrap();
-	Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/icons/arctica.jpeg"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/arctica.jpeg")]).output().unwrap();
-	Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/shortcut/Arctica.desktop"), &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
-	Command::new("sudo").args(["chmod", "+x", &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
+	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/target/debug/app"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/arctica")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with copying arctica binary = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/icons/arctica.jpeg"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/arctica.jpeg")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with copying binary jpeg = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/shortcut/Arctica.desktop"), &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with copying arctica.desktop = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	let output = Command::new("sudo").args(["chmod", "+x", &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with making binary executable = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 
 	//copy over scripts library. 
 	//this can be removed after refactor is completed
-	Command::new("cp").args(["-r", &("/home/".to_string()+&get_user()+"/arctica/scripts"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
+	let output = Command::new("cp").args(["-r", &("/home/".to_string()+&get_user()+"/arctica/scripts"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with copying scripts dir = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 
 	//extract bitcoin core
-	Command::new("tar").args(["-xzf", &("/home/".to_string()+&get_user()+"/arctica/bitcoin-23.0-x86_64-linux-gnu.tar.gz"), "-C", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
+	let output = Command::new("tar").args(["-xzf", &("/home/".to_string()+&get_user()+"/arctica/bitcoin-23.0-x86_64-linux-gnu.tar.gz"), "-C", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with extracting bitcoin core = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 
 	//make local internal bitcoin dotfile
-	Command::new("mkdir").args(["--parents", &("/home/".to_string()+&get_user()+"/.bitcoin/blocks"), &("/home/".to_string()+&get_user()+"/.bitcoin/chainstate")]).output().unwrap();
+	let output = Command::new("mkdir").args(["--parents", &("/home/".to_string()+&get_user()+"/.bitcoin/blocks"), &("/home/".to_string()+&get_user()+"/.bitcoin/chainstate")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with making local .bitcoin dir = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 
 	//create target device .bitcoin dir
-	Command::new("mkdir").args([&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.bitcoin")]).output().unwrap();
+	let output = Command::new("mkdir").args([&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.bitcoin")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with making target .bitcoin dir = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 
 	//create bitcoin.conf on target device
 	let file = File::create(&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.bitcoin/bitcoin.conf")).unwrap();
