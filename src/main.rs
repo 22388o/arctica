@@ -361,7 +361,7 @@ async fn init_iso() -> String {
 	}
 
 	//boot kvm to establish persistence
-	let output = Command::new("kvm").args(["-m", "2048", &("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso", "-daemonize", "-pidfile", "pid.txt", "-cpu", "host", "-display", "none")]).output().unwrap();
+	let output = Command::new("kvm").args(["-m", "2048", &("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso"), "-daemonize", "-pidfile", "pid.txt", "-cpu", "host", "-display", "none"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with kvm = {}", std::str::from_utf8(&output.stderr).unwrap());
