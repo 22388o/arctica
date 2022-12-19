@@ -296,7 +296,7 @@ async fn test_function() -> String {
 
 // runs on the boot screen when user clicks install, downloads latest copy of tails
 #[tauri::command]
-async fn obtain_ubuntu() -> String {
+async fn init_iso() -> String {
 	println!("obtaining & creating modified ubuntu iso");
 	let output = Command::new("bash")
            .args(["./scripts/init-iso.sh"])
@@ -1009,7 +1009,7 @@ fn main() {
         create_setup_cd,
         read_cd,
         copy_cd_to_ramdisk,
-        obtain_ubuntu,
+        init_iso,
         async_write,
         read,
         combine_shards,
