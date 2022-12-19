@@ -331,13 +331,20 @@ async fn init_iso() -> String {
 	Command::new("sudo").args(["rm", "pid.txt"]).output().unwrap();
 
 	//modify ubuntu iso to have persistence
-	Command::new("bash").args(["<", "ubuntu-22.04.1-desktop-amd64.iso", "sed", "\n's/maybe-ubiquity/  persistent  /\n'", ">", "persistent-ubuntu1.iso"])
-	Command::new("bash").args(["<", "persistent-ubuntu1.iso", "sed", "\n's/set timeout=30/set timeout=1 /\n'", ">", "persistent-ubuntu.iso"])
+	Command::new("bash").args(["<", "ubuntu-22.04.1-desktop-amd64.iso", "sed", "\n's/maybe-ubiquity/  persistent  /\n'", ">", "persistent-ubuntu1.iso"]).output().unwrap();
+	Command::new("bash").args(["<", "persistent-ubuntu1.iso", "sed", "\n's/set timeout=30/set timeout=1 /\n'", ">", "persistent-ubuntu.iso"]).output().unwrap();
 
 	//remove stale persistent iso
 	Command::new("sudo").args(["rm", "persistent-ubuntu1.iso"]).output().unwrap();
 
+	//fallocate persistent iso
+	Command::new("fallocate").args(["-l", "5GiB", "persistent-ubuntu.iso"]).output().unwrap();
 
+	//boot kvm to establish persistence
+	Command::new("kvm").args(["-m", "2048", &("/home/".to_string()+&get_user()+"arctica/persistent-ubuntu.iso", "-daemonize", "-pidfile", "pid.txt", "-cpu", "host", "-display", "none")]).output().unwrap();
+	
+	// sleep for 200 seconds
+	Command::new("sleep").args(["200"]).output().unwrap();
 
 	let output = Command::new("bash")
            .args(["./scripts/init-iso.sh"])

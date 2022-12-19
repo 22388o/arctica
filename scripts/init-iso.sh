@@ -22,11 +22,13 @@
 # < ubuntu-22.04.1-desktop-amd64.iso sed 's/maybe-ubiquity/  persistent  /' > persistent-ubuntu1.iso
 # < persistent-ubuntu1.iso sed 's/set timeout=30/set timeout=1 /' > persistent-ubuntu.iso
 # sudo rm persistent-ubuntu1.iso
+# fallocate -l 5GiB persistent-ubuntu.iso
 
-fallocate -l 5GiB persistent-ubuntu.iso
+#commented out for refactor
 #first time iso boot to establish persistence
-kvm -m 2048 ~/arctica/persistent-ubuntu.iso -daemonize -pidfile pid.txt -cpu host -display none
-sleep 200
+# kvm -m 2048 ~/arctica/persistent-ubuntu.iso -daemonize -pidfile pid.txt -cpu host -display none
+# sleep 200
+
 kill -9 $(cat ./pid.txt)
 udisksctl loop-setup -f persistent-ubuntu.iso
 sleep 2
