@@ -294,7 +294,8 @@ async fn test_function() -> String {
 }
 
 
-// runs on the boot screen when user clicks install, downloads latest copy of tails
+// file paths for this script and create_bootable_usb will need to change for prod
+//these paths assume the user is compiling the application with cargo run inside ~/arctica
 #[tauri::command]
 async fn init_iso() -> String {
 	println!("obtaining & creating modified ubuntu iso");
