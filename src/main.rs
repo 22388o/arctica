@@ -306,8 +306,8 @@ async fn init_iso() -> String {
 	
 	//check if ubuntu iso & bitcoin core already exists, and if no, obtain
 	//NOTE: this currently checks the arctica repo but this will change once refactor is finished and user can run binary on host machine 
-	let a = std::path::Path::new("./ubuntu-22.04.1-desktop-amd64.iso");
-	let b = std::path::Path::new("./bitcoin-23.0-x86_64-linux-gnu.tar.gz")
+	let a = std::path::Path::new("./ubuntu-22.04.1-desktop-amd64.iso").exists();
+	let b = std::path::Path::new("./bitcoin-23.0-x86_64-linux-gnu.tar.gz").exists();
 	if a == false{
 		Command::new("wget").args(["-O", "ubuntu-22.04.1-desktop-amd64.iso", "http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso"]).output().unwrap();
 	}
