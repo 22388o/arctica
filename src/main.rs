@@ -326,9 +326,18 @@ async fn init_iso() -> String {
 
 	//remove stale persistent isos
 	Command::new("sudo").args(["rm", "persistent-ubuntu.iso"]).output().unwrap();
-	Command::new("sudo").args(["rm", "persistent-ubuntu.iso1"]).output().unwrap();
+	Command::new("sudo").args(["rm", "persistent-ubuntu1.iso"]).output().unwrap();
 	//remove stale pid file
 	Command::new("sudo").args(["rm", "pid.txt"]).output().unwrap();
+
+	//modify ubuntu iso to have persistence
+	Command::new("bash").args(["<", "ubuntu-22.04.1-desktop-amd64.iso", "sed", "\n's/maybe-ubiquity/  persistent  /\n'", ">", "persistent-ubuntu1.iso"])
+	Command::new("bash").args(["<", "persistent-ubuntu1.iso", "sed", "\n's/set timeout=30/set timeout=1 /\n'", ">", "persistent-ubuntu.iso"])
+
+	//remove stale persistent iso
+	Command::new("sudo").args(["rm", "persistent-ubuntu1.iso"]).output().unwrap();
+
+
 
 	let output = Command::new("bash")
            .args(["./scripts/init-iso.sh"])
