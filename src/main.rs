@@ -298,6 +298,8 @@ async fn test_function() -> String {
 #[tauri::command]
 async fn init_iso() -> String {
 	println!("obtaining & creating modified ubuntu iso");
+	//remove writable if exists, developer failsafe
+	Command::new("sudo").args(["rm", "-r", "-f", &("/media/".to_string()+&get_user()+"/writable")]).output().unwrap();
 	let output = Command::new("bash")
            .args(["./scripts/init-iso.sh"])
            .output()
@@ -992,7 +994,6 @@ async fn convert_to_transfer_cd() -> String {
 
 fn main() {
 	// test();
-	//TODO: confirm all these strings are correct per user(parse the bitcoin.conf)
 	let user_pass: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
     let config: RpcConfig = RpcConfig {
 	    url: "127.0.0.1:8332".to_string(),
