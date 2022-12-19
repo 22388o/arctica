@@ -13,8 +13,6 @@ sudo apt-get -y install qemu-system-x86 qemu-kvm libvirt-clients libvirt-daemon-
 
 FILE="./ubuntu-22.04.1-desktop-amd64.iso"
 FILE1="./bitcoin-23.0-x86_64-linux-gnu.tar.gz"
-#obtain blk id for internal storage for symlinking .bitcoin folders
-UUID=$(echo $(blkid) | cut -d '"' -f 2)
 if [ ! -f "$FILE" ]; then 
     wget -O ubuntu-22.04.1-desktop-amd64.iso http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso
 fi

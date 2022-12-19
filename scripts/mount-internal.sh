@@ -5,6 +5,8 @@ sudo chmod 777 /home/$USER/.bitcoin
 sudo unlink /home/$USER/.bitcoin/chainstate
 sudo unlink /home/$USER/.bitcoin/blocks
 
+# UUID=$(echo $(blkid) | cut -d '"' -f 2)
+
 #obtain Host User and UUID mounted by udisksctl
 PLACEHOLDER=$(ls /media/$USER)
 strarr=($PLACEHOLDER)
