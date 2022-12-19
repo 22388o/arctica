@@ -341,21 +341,58 @@ async fn init_iso() -> String {
 	Command::new("fallocate").args(["-l", "5GiB", "persistent-ubuntu.iso"]).output().unwrap();
 
 	//boot kvm to establish persistence
-	Command::new("kvm").args(["-m", "2048", &("/home/".to_string()+&get_user()+"arctica/persistent-ubuntu.iso", "-daemonize", "-pidfile", "pid.txt", "-cpu", "host", "-display", "none")]).output().unwrap();
+	Command::new("kvm").args(["-m", "2048", &("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso", "-daemonize", "-pidfile", "pid.txt", "-cpu", "host", "-display", "none")]).output().unwrap();
 	
 	// sleep for 200 seconds
 	Command::new("sleep").args(["200"]).output().unwrap();
 
-	let output = Command::new("bash")
-           .args(["./scripts/init-iso.sh"])
-           .output()
-           .expect("failed to execute process");
-   for byte in output.stdout {
-   	print!("{}", byte as char);
-   }
-    println!(";");
+	//obtain pid
+	let pid = Command::new("cat").args(["./pid.txt"]).output().stdout();
+	//kill pid
+	Command::new("kill").args(["-9", pid]).output().unwrap();
 
-	format!("completed with no problems")
+	//mount persistent iso at /media/$USER/writable/upper/
+	Command::new("udisksctl").args(["loop-setup", "-f", "persistent-ubuntu.iso"]).output().unwrap();
+
+	// sleep for 2 seconds
+	Command::new("sleep").args(["2"]).output().unwrap();
+
+	//open file permissions for persistent directory
+	Command::new("sudo").args(["chmod", "777", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
+
+	//copy over artica binary and make executable
+	Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/target/debug/app"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/arctica")]).output().unwrap();
+	Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/icons/arctica.jpeg"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/arctica.jpeg")]).output().unwrap();
+	Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/shortcut/Arctica.desktop"), &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
+	Command::new("sudo").args(["chmod", "+x", &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
+
+	//copy over scripts library. 
+	//this can be removed after refactor is completed
+	Command::new("cp").args(["-r", &("/home/".to_string()+&get_user()+"/arctica/scripts"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
+
+	//extract bitcoin core
+	Command::new("tar").args(["-xzf", &("/home/".to_string()+&get_user()+"/arctica/bitcoin-23.0-x86_64-linux-gnu.tar.gz"), "-C", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
+
+	//make local internal bitcoin dotfile
+	Command::new("mkdir").args(["--parents", &("/home/".to_string()+&get_user()+"/.bitcoin/blocks"), &("/home/".to_string()+&get_user()+"/.bitcoin/chainstate")]).output().unwrap();
+
+	//create target device .bitcoin dir
+	Command::new("mkdir").args([&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.bitcoin")]).output().unwrap();
+
+	//create bitcoin.conf on target device
+	let file = File::create(&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.bitcoin/bitcoin.conf")).unwrap();
+	let output = Command::new("echo").args(["rpcuser=rpcuser"]).stdout(file).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso, with creating bitcoin.conf = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	let output = Command::new("echo").args(["rpcpassword=477028"]).stdout(file).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso, with creating bitcoin.conf = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}	
+
+	format!("SUCCESS in init_iso")
 }
 
 //initial flash of all 7 SD cards

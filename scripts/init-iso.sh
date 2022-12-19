@@ -28,29 +28,36 @@
 #first time iso boot to establish persistence
 # kvm -m 2048 ~/arctica/persistent-ubuntu.iso -daemonize -pidfile pid.txt -cpu host -display none
 # sleep 200
+# kill -9 $(cat ./pid.txt)
+# udisksctl loop-setup -f persistent-ubuntu.iso
+# sleep 2
 
-kill -9 $(cat ./pid.txt)
-udisksctl loop-setup -f persistent-ubuntu.iso
-sleep 2
 #iso mounted at /media/$USER/writable/upper/home/ubuntu
+
 #open file permissions for persistent directory
-sudo chmod 777 /media/$USER/writable/upper/home/ubuntu
+# sudo chmod 777 /media/$USER/writable/upper/home/ubuntu
+
 #copy over artica binary
-cp ~/arctica/target/debug/app /media/$USER/writable/upper/home/ubuntu/arctica
-cp ~/arctica/icons/arctica.jpeg /media/$USER/writable/upper/home/ubuntu/arctica.jpeg
-sudo cp ~/arctica/shortcut/Arctica.desktop /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
-sudo chmod +x /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
+# cp ~/arctica/target/debug/app /media/$USER/writable/upper/home/ubuntu/arctica
+# cp ~/arctica/icons/arctica.jpeg /media/$USER/writable/upper/home/ubuntu/arctica.jpeg
+# sudo cp ~/arctica/shortcut/Arctica.desktop /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
+# sudo chmod +x /media/$USER/writable/upper/usr/share/applications/Arctica.desktop
+
 #copy over scripts library
-cp -R ~/arctica/scripts /media/$USER/writable/upper/home/ubuntu
+# cp -R ~/arctica/scripts /media/$USER/writable/upper/home/ubuntu
+
 #extract bitcoin core
-tar -xzf ~/arctica/bitcoin-23.0-x86_64-linux-gnu.tar.gz -C /media/$USER/writable/upper/home/ubuntu
+# tar -xzf ~/arctica/bitcoin-23.0-x86_64-linux-gnu.tar.gz -C /media/$USER/writable/upper/home/ubuntu
+
 #make local internal bitcoin dotfile
-mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
+# mkdir --parents /home/$USER/.bitcoin/blocks /home/$USER/.bitcoin/chainstate
+
 #create target device .bitcoin dir
-mkdir /media/$USER/writable/upper/home/ubuntu/.bitcoin
+# mkdir /media/$USER/writable/upper/home/ubuntu/.bitcoin
+
 #create bitcoin.conf on target device
-echo "rpcuser=rpcuser" > /media/$USER/writable/upper/home/ubuntu/.bitcoin/bitcoin.conf
-echo "rpcpassword=477028" >> /media/$USER/writable/upper/home/ubuntu/.bitcoin/bitcoin.conf
+# echo "rpcuser=rpcuser" > /media/$USER/writable/upper/home/ubuntu/.bitcoin/bitcoin.conf
+# echo "rpcpassword=477028" >> /media/$USER/writable/upper/home/ubuntu/.bitcoin/bitcoin.conf
 
 
 
