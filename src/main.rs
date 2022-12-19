@@ -300,6 +300,21 @@ async fn init_iso() -> String {
 	println!("obtaining & creating modified ubuntu iso");
 	//remove writable if exists, developer failsafe
 	Command::new("sudo").args(["rm", "-r", "-f", &("/media/".to_string()+&get_user()+"/writable")]).output().unwrap();
+
+	//download KVM deps
+	Command::new("sudo").args(["apt-get", "-y", "install", "qemu-system-x86", "qemu-kvm", "libvirt-clients", "libvirt-daemon-system", "bridge-utils"]).output().unwrap();
+	
+	//check if ubuntu iso & bitcoin core already exists, and if no, obtain
+	//NOTE: this currently checks the arctica repo but this will change once refactor is finished and user can run binary on host machine 
+	let a = std::path::Path::new("./ubuntu-22.04.1-desktop-amd64.iso");
+	let b = std::path::Path::new("./bitcoin-23.0-x86_64-linux-gnu.tar.gz")
+	if a == false{
+		Command::new("wget").args(["-O", "ubuntu-22.04.1-desktop-amd64.iso", "http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso"]).output().unwrap();
+	}
+	if b == false{
+		Command::new("wget").args(["https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz"]).output().unwrap();
+	}
+
 	let output = Command::new("bash")
            .args(["./scripts/init-iso.sh"])
            .output()

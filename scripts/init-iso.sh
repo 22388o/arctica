@@ -1,5 +1,5 @@
-#download KVM deps
-sudo apt-get -y install qemu-system-x86 qemu-kvm libvirt-clients libvirt-daemon-system bridge-utils
+#download KVM deps, commented out for refactor
+# sudo apt-get -y install qemu-system-x86 qemu-kvm libvirt-clients libvirt-daemon-system bridge-utils
 
 #download mkusb deps, commented out for now as create_bootable no longer uses mkusb
 # sudo add-apt-repository -y universe
@@ -8,15 +8,16 @@ sudo apt-get -y install qemu-system-x86 qemu-kvm libvirt-clients libvirt-daemon-
 # sudo apt install -y mkusb
 # sudo apt install -y usb-pack-efi
 
-FILE="./ubuntu-22.04.1-desktop-amd64.iso"
-FILE1="./bitcoin-23.0-x86_64-linux-gnu.tar.gz"
-if [ ! -f "$FILE" ]; then 
-    wget -O ubuntu-22.04.1-desktop-amd64.iso http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso
-fi
+# Commented out for refactor
+# FILE="./ubuntu-22.04.1-desktop-amd64.iso"
+# FILE1="./bitcoin-23.0-x86_64-linux-gnu.tar.gz"
+# if [ ! -f "$FILE" ]; then 
+#     wget -O ubuntu-22.04.1-desktop-amd64.iso http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso
+# fi
 
-if [ ! -f "$FILE1" ]; then
-    wget https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz
-fi
+# if [ ! -f "$FILE1" ]; then
+#     wget https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz
+# fi
 
 sudo rm persistent-ubuntu.iso
 sudo rm persistent-ubuntu1.iso
