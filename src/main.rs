@@ -298,12 +298,20 @@ async fn test_function() -> String {
 #[tauri::command]
 async fn init_iso() -> String {
 	println!("obtaining & creating modified ubuntu iso");
+
 	//remove writable if exists, developer failsafe
 	Command::new("sudo").args(["rm", "-r", "-f", &("/media/".to_string()+&get_user()+"/writable")]).output().unwrap();
 
 	//download KVM deps
 	Command::new("sudo").args(["apt-get", "-y", "install", "qemu-system-x86", "qemu-kvm", "libvirt-clients", "libvirt-daemon-system", "bridge-utils"]).output().unwrap();
 	
+	//mkusb deps, deprecated as create_bootable no longer uses mkusb
+	// sudo add-apt-repository -y universe
+	// sudo add-apt-repository -y ppa:mkusb/ppa
+	// sudo apt -y update
+	// sudo apt install -y mkusb
+	// sudo apt install -y usb-pack-efi
+
 	//check if ubuntu iso & bitcoin core already exists, and if no, obtain
 	//NOTE: this currently checks the arctica repo but this will change once refactor is finished and user can run binary on host machine 
 	let a = std::path::Path::new("./ubuntu-22.04.1-desktop-amd64.iso").exists();
@@ -315,7 +323,7 @@ async fn init_iso() -> String {
 		Command::new("wget").args(["https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz"]).output().unwrap();
 	}
 
-	//remove stale persistent iso
+	//remove stale persistent isos
 	Command::new("sudo").args(["rm", "persistent-ubuntu.iso"]).output().unwrap();
 	Command::new("sudo").args(["rm", "persistent-ubuntu.iso1"]).output().unwrap();
 	//remove stale pid file

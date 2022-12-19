@@ -1,13 +1,6 @@
 #download KVM deps, commented out for refactor
 # sudo apt-get -y install qemu-system-x86 qemu-kvm libvirt-clients libvirt-daemon-system bridge-utils
 
-#download mkusb deps, commented out for now as create_bootable no longer uses mkusb
-# sudo add-apt-repository -y universe
-# sudo add-apt-repository -y ppa:mkusb/ppa
-# sudo apt -y update
-# sudo apt install -y mkusb
-# sudo apt install -y usb-pack-efi
-
 # Commented out for refactor
 # FILE="./ubuntu-22.04.1-desktop-amd64.iso"
 # FILE1="./bitcoin-23.0-x86_64-linux-gnu.tar.gz"
