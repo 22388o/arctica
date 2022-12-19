@@ -315,6 +315,12 @@ async fn init_iso() -> String {
 		Command::new("wget").args(["https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz"]).output().unwrap();
 	}
 
+	//remove stale persistent iso
+	Command::new("sudo").args(["rm", "persistent-ubuntu.iso"]).output().unwrap();
+	Command::new("sudo").args(["rm", "persistent-ubuntu.iso1"]).output().unwrap();
+	//remove stale pid file
+	Command::new("sudo").args(["rm", "pid.txt"]).output().unwrap();
+
 	let output = Command::new("bash")
            .args(["./scripts/init-iso.sh"])
            .output()

@@ -19,9 +19,11 @@
 #     wget https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz
 # fi
 
-sudo rm persistent-ubuntu.iso
-sudo rm persistent-ubuntu1.iso
-sudo rm pid.txt
+#commented out for refactor
+# sudo rm persistent-ubuntu.iso
+# sudo rm persistent-ubuntu1.iso
+# sudo rm pid.txt
+
 #modify ubuntu iso to have persistence
 < ubuntu-22.04.1-desktop-amd64.iso sed 's/maybe-ubiquity/  persistent  /' > persistent-ubuntu1.iso
 < persistent-ubuntu1.iso sed 's/set timeout=30/set timeout=1 /' > persistent-ubuntu.iso
