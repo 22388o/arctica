@@ -42,7 +42,7 @@ Arctica provides the best balance of security, ease of use and privacy when stor
 
 1. Install dependencies.
     ```bash
-    sudo apt update && sudo apt install -y libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+    sudo apt update && sudo apt install -y nodejs npm libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
     ```
 2. Clone the repository.
     ```bash
