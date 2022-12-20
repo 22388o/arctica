@@ -67,13 +67,28 @@ While Arctica provides the best balance of security, privacy, and, ease of use w
     npm install
     npm run build
     ```
-5. Compile the backend. (You must do this if building from source.)
+5. Compile the backend. (You must do this if building from source.) If you encounter a ``failed to parse the `edition` key`` build error, re-install Rust using [rustup](https://www.rust-lang.org/tools/install) after removing `rustc` and `cargo`.
     ```bash
-    cd ..
+    cd ../
     cargo build
+    ```
 6. Run the application and begin following the prompts.
     ```bash
     cargo run
     ```
+
+Here are the instructions repeated in one code block.
+```bash
+sudo apt update && sudo apt install -y nodejs npm libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+git clone https://github.com/wild-kard/arctica.git
+cd arctica/
+git submodule update --recursive --init
+cd arctica-frontend/
+npm install
+npm run build
+cd ../
+cargo build
+cargo run
+``` 
 
 WARNING: this software overwrites external storage media and CDs without much warning, I advise you only run arctica on a dedicated machine, remove any extraneous external storage media, and only use USB sticks or SD cards and CDs you don't mind having wiped.
