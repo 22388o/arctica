@@ -11,3 +11,5 @@ persistent-ubuntu1.iso
 wget-log
 pid.txt
 config.txt
+/arctica-frontend/
+/tarui/
