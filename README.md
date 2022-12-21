@@ -44,7 +44,7 @@ While Arctica provides the best balance of security, privacy, and, ease of use w
 
 1. Install dependencies.
     ```bash
-    sudo apt update && sudo apt install -y nodejs npm libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+    sudo apt update && sudo apt install -y nodejs npm cargo libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
     ```
 2. Clone the repository.
     ```bash
@@ -79,7 +79,7 @@ While Arctica provides the best balance of security, privacy, and, ease of use w
 
 Here are the instructions repeated in one code block.
 ```bash
-sudo apt update && sudo apt install -y nodejs npm libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+sudo apt update && sudo apt install -y nodejs npm cargo libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
 git clone https://github.com/wild-kard/arctica.git
 cd arctica/
 git submodule update --recursive --init
