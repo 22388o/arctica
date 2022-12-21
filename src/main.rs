@@ -371,10 +371,14 @@ async fn init_iso() -> String {
 	Command::new("sleep").args(["200"]).output().unwrap();
 
 	//obtain pid
-	let pid = Command::new("cat").args(["./pid.txt"]).output().stdout();
+	let file = "./pid.txt";
+	let pid = match fs::read_to_string(file){
+		Ok(data) => data,
+		Err(err) => return format!("{}", err.to_string())
+	};
 	
 	//kill pid
-	let output = Command::new("kill").args(["-9", pid]).output().unwrap();
+	let output = Command::new("kill").args(["-9", &pid]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with killing pid = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -450,16 +454,16 @@ async fn init_iso() -> String {
 
 	//create bitcoin.conf on target device
 	let file = File::create(&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.bitcoin/bitcoin.conf")).unwrap();
-	let output = Command::new("echo").args(["rpcuser=rpcuser"]).stdout(file).output().unwrap();
+	let output = Command::new("echo").args(["-e", "rpcuser=rpcuser\nrpcpassword=477028"]).stdout(file).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso, with creating bitcoin.conf = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-	let output = Command::new("echo").args(["rpcpassword=477028"]).stdout(file).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in init iso, with creating bitcoin.conf = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}	
+	// let output = Command::new("echo").args(["rpcpassword=477028"]).stdout(file).output().unwrap();
+	// if !output.status.success() {
+	// 	// Function Fails
+	// 	return format!("ERROR in init iso, with creating bitcoin.conf = {}", std::str::from_utf8(&output.stderr).unwrap());
+	// }	
 
 	format!("SUCCESS in init_iso")
 }
