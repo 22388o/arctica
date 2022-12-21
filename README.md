@@ -40,39 +40,34 @@ While Arctica provides the best balance of security, privacy, and, ease of use w
 - Soft Shelf Life. Because Arctica is designed to have a decaying high security storage area, you will find that Arctica's security assurances intentionally degrade over time. This decision has been taken to find a balance between high security assurance and inheritance in the event of a users untimely demise.
 - Privacy. While using Bitcoin Core over Tor does provide significant privacy advantages over many cold storage solutions, using multisig is not very common. This means that someone could look at the blockchain and infer that the owner of the coins is probably using our software for cold storage. This will eventually be fixed through changes to bitcoin. Multisig is still worth using in light of the privacy risk due to the security and recovery benefits. Additionally, the type of multisig you are using is only exposed to the network when you spend from Arctica (not when you deposit funds).
 
-## Developer Instructions
+## Build from Source Instructions
 
 1. Install dependencies.
     ```bash
     sudo apt update && sudo apt install -y nodejs npm cargo libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
     ```
 2. Clone the repository.
+    
+    Note: Update any submodule changes since cloning with `git submodule update --remote --recursive`
     ```bash
-    git clone https://github.com/wild-kard/arctica.git
+    git clone --recurse-submodules https://github.com/wild-kard/arctica.git
     ```
-3. Update the submodules to pull in `arctica-frontend` and `tauri`.
-  - First-time submodule update:
-    ```bash
-    cd arctica/
-    git submodule update --recursive --init
-    ```
-  - Or if returning:
-    ```bash
-    cd arctica/
-    git submodule update --recursive --remote
-    ```
-4. Compile the frontend first.
+    
+
+3. Compile the frontend first.
     ```bash
     cd arctica-frontend/
     npm install
     npm run build
     ```
-5. Compile the backend. (You must do this if building from source.) If you encounter a ``failed to parse the `edition` key`` build error, re-install Rust using [rustup](https://www.rust-lang.org/tools/install) after removing `rustc` and `cargo`.
+4. Compile the backend.
+
+    Note: If you see a Rust build error ``failed to parse the `edition` key``, then remove `rustc` and `cargo` then [re-install Rust](https://www.rust-lang.org/tools/install).
     ```bash
     cd ../
     cargo build
     ```
-6. Run the application and begin following the prompts.
+5. Run the application and begin following the prompts.
     ```bash
     cargo run
     ```
@@ -80,10 +75,8 @@ While Arctica provides the best balance of security, privacy, and, ease of use w
 Here are the instructions repeated in one code block.
 ```bash
 sudo apt update && sudo apt install -y nodejs npm cargo libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
-git clone https://github.com/wild-kard/arctica.git
-cd arctica/
-git submodule update --recursive --init
-cd arctica-frontend/
+git clone --recurse-submodules https://github.com/wild-kard/arctica.git
+cd arctica/arctica-frontend/
 npm install
 npm run build
 cd ../
