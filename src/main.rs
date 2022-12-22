@@ -1173,21 +1173,9 @@ async fn convert_to_transfer_cd() -> String {
 }
 
 
-fn test() {
-	// let exists = Path::new(&(get_home()+"/arctica/persistent-ubuntu1.iso")).exists();
-	// if (exists) {
-	// 	let output = Command::new("rm").args(["persistent-ubuntu1.iso"]).output().unwrap();
-	// 	//We Don't care if this fails or succecceds
-	// }
-	// let output = Command::new("bash").args([&(get_home()+"/arctica/scripts/sed1.sh")]).output().unwrap();
-	// if !output.status.success() {
-	// 	return format!("ERROR in running sed1 {}", std::str::from_utf8(&output.stderr).unwrap());
-	// } 
-	// let exists = Path::new(&(get_home()+"/arctica/persistent-ubuntu1.iso")).exists();
-	// if (!exists) {
-	// 	return format!("ERROR in running sed1, script completed but did not create iso");
-	// }
-}
+// fn test() {
+	
+// }
 
 fn main() {
 	// test();
