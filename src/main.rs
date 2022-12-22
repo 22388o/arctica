@@ -26,6 +26,7 @@ use home::home_dir;
 use secp256k1::{rand, Secp256k1, SecretKey};
 use tauri::State;
 use std::{thread, time::Duration};
+use std::path::Path;
 
 
 
@@ -40,6 +41,9 @@ fn print_rust(data: &str) -> String {
 //helper function
 fn get_user() -> String {
 	home_dir().unwrap().to_str().unwrap().to_string().split("/").collect::<Vec<&str>>()[2].to_string()
+}
+fn get_home() -> String {
+	home_dir().unwrap().to_str().unwrap().to_string()
 }
 
 //helper function
@@ -345,16 +349,23 @@ async fn init_iso() -> String {
 
 	println!("modifying ubuntu iso to have persistence");
 	//modify ubuntu iso to have persistence
-	let output = Command::new("bash").args(["<", "ubuntu-22.04.1-desktop-amd64.iso", "sed", "\n's/maybe-ubiquity/  persistent  /\n'", ">", "persistent-ubuntu1.iso"]).output().unwrap();
+	let output = Command::new("bash").args([&(get_home()+"/arctica/scripts/sed1.sh")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in init iso with sed maybe ubiquity = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in running sed1 {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
+	let exists = Path::new(&(get_home()+"/arctica/persistent-ubuntu1.iso")).exists();
+	if (!exists) {
+		return format!("ERROR in running sed1, script completed but did not create iso");
 	}
+
 	println!("modifying ubuntu iso timeout");
-	let output = Command::new("bash").args(["<", "persistent-ubuntu1.iso", "sed", "\n's/set timeout=30/set timeout=1 /\n'", ">", "persistent-ubuntu.iso"]).output().unwrap();
+	let output = Command::new("bash").args([&(get_home()+"/arctica/scripts/sed2.sh")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in init iso with sed set timeout = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in running sed2 {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
+	let exists = Path::new(&(get_home()+"/arctica/persistent-ubuntu.iso")).exists();
+	if (!exists) {
+		return format!("ERROR in running sed2, script completed but did not create iso");
 	}
 
 	println!("removing stale persistent iso");
@@ -1166,12 +1177,22 @@ async fn convert_to_transfer_cd() -> String {
 	format!("SUCCESS in converting to transfer CD")
 }
 
-// fn test() {
-// 	let output = Command::new("printf").args(["\'%s\n\'", "n", "y", "g", "y", "|", "mkusb", &("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso")]).output().unwrap();
-// 	if !output.status.success() {
-// 		println!("ERROR");
-// 	}
-// }
+
+fn test() {
+	// let exists = Path::new(&(get_home()+"/arctica/persistent-ubuntu1.iso")).exists();
+	// if (exists) {
+	// 	let output = Command::new("rm").args(["persistent-ubuntu1.iso"]).output().unwrap();
+	// 	//We Don't care if this fails or succecceds
+	// }
+	// let output = Command::new("bash").args([&(get_home()+"/arctica/scripts/sed1.sh")]).output().unwrap();
+	// if !output.status.success() {
+	// 	return format!("ERROR in running sed1 {}", std::str::from_utf8(&output.stderr).unwrap());
+	// } 
+	// let exists = Path::new(&(get_home()+"/arctica/persistent-ubuntu1.iso")).exists();
+	// if (!exists) {
+	// 	return format!("ERROR in running sed1, script completed but did not create iso");
+	// }
+}
 
 fn main() {
 	// test();
