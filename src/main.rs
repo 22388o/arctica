@@ -495,11 +495,6 @@ async fn init_iso() -> String {
 		// Function Fails
 		return format!("ERROR in init iso, with creating bitcoin.conf = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-	// let output = Command::new("echo").args(["rpcpassword=477028"]).stdout(file).output().unwrap();
-	// if !output.status.success() {
-	// 	// Function Fails
-	// 	return format!("ERROR in init iso, with creating bitcoin.conf = {}", std::str::from_utf8(&output.stderr).unwrap());
-	// }	
 
 	format!("SUCCESS in init_iso")
 }
