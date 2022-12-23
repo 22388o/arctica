@@ -354,7 +354,7 @@ async fn init_iso() -> String {
 		return format!("ERROR in running sed1 {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 	let exists = Path::new(&(get_home()+"/arctica/persistent-ubuntu1.iso")).exists();
-	if (!exists) {
+	if !exists {
 		return format!("ERROR in running sed1, script completed but did not create iso");
 	}
 
@@ -364,7 +364,7 @@ async fn init_iso() -> String {
 		return format!("ERROR in running sed2 {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 	let exists = Path::new(&(get_home()+"/arctica/persistent-ubuntu.iso")).exists();
-	if (!exists) {
+	if !exists {
 		return format!("ERROR in running sed2, script completed but did not create iso");
 	}
 
