@@ -442,7 +442,7 @@ async fn init_iso() -> String {
 		return format!("ERROR in init iso with copying binary jpeg = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	println!("making arctica a .desktop file");
-	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/shortcut/Arctica.desktop"), &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
+	let output = Command::new("sudo").args(["cp", &("/home/".to_string()+&get_user()+"/arctica/shortcut/Arctica.desktop"), &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with copying arctica.desktop = {}", std::str::from_utf8(&output.stderr).unwrap());
