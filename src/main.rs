@@ -396,7 +396,7 @@ async fn init_iso() -> String {
 	//obtain pid
 	let file = "./pid.txt";
 	let pid = match fs::read_to_string(file){
-		Ok(data) => data,
+		Ok(data) => data.replace("\n", ""),
 		Err(err) => return format!("{}", err.to_string())
 	};
 	
@@ -1174,6 +1174,23 @@ async fn convert_to_transfer_cd() -> String {
 
 
 // fn test() {
+
+// 	println!("obtaining pid");
+// 	//obtain pid
+// 	let file = "./pid.txt";
+// 	let pid = match fs::read_to_string(file){
+// 		Ok(data) => data.replace("\n", ""),
+// 		Err(err) => return println!("error {}", err.to_string())
+// 	};
+// 	println!("pid = {}", pid);
+	
+// 	println!("killing pid");
+// 	//kill pid
+// 	let output = Command::new("kill").args(["-9", &pid]).output().unwrap();
+// 	if !output.status.success() {
+// 		// Function Fails
+// 		println!("ERROR in init iso with killing pid = {}", std::str::from_utf8(&output.stderr).unwrap());
+// 	}
 	
 // }
 
