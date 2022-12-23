@@ -447,6 +447,7 @@ async fn init_iso() -> String {
 		// Function Fails
 		return format!("ERROR in init iso with copying arctica.desktop = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+	
 	println!("making arctica binary an executable");
 	let output = Command::new("sudo").args(["chmod", "+x", &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
 	if !output.status.success() {
@@ -456,7 +457,6 @@ async fn init_iso() -> String {
 
 	println!("copying scripts library");
 	//copy over scripts library. 
-	//this can be removed after refactor is completed
 	let output = Command::new("cp").args(["-r", &("/home/".to_string()+&get_user()+"/arctica/scripts"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
