@@ -565,7 +565,11 @@ async fn create_setup_cd() -> String {
     	// Function Fails
     	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
-	
+
+	//create setupCD config
+	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
+	let output = Command::new("echo").args(["type=setupcd" ]).stdout(file).output().unwrap();
+
 	let output = Command::new("bash")
         .args(["/home/".to_string()+&get_user()+"/scripts/create-setup-cd.sh"])
         .output()

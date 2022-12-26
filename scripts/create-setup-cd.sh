@@ -1,9 +1,6 @@
 #find cd path
 OUTPUT=$(echo $(ls /dev/sr?))
 
-#create setupCD config
-echo "type=setupcd" > /mnt/ramdisk/CDROM/config.txt
-
 
 #generate masterkey for encrypting persistent directories
 base64 /dev/urandom | head -c 50 > /mnt/ramdisk/CDROM/masterkey
