@@ -542,6 +542,30 @@ async fn create_setup_cd() -> String {
 	println!("creating setup CD");
 	//create local shards dir
 	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	//install sd dependencies for wodim and ssss
+	let output = Command::new("sudo").args(["add-apt-repository", "-y", "universe"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+	let output = Command::new("sudo").args(["apt", "update"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+	//download wodim
+	let output = Command::new("sudo").args(["apt", "install", "-y", "wodim"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+	//download shamir secret sharing library
+	let output = Command::new("sudo").args(["apt", "install", "ssss"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+	
 	let output = Command::new("bash")
         .args(["/home/".to_string()+&get_user()+"/scripts/create-setup-cd.sh"])
         .output()
