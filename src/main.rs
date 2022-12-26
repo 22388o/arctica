@@ -410,7 +410,7 @@ async fn init_iso() -> String {
 
 	println!("mount persistent iso");
 	//mount persistent iso at /media/$USER/writable/upper/
-	let output = Command::new("udisksctl").args(["loop-setup", "-f", "persistent-ubuntu.iso"]).output().unwrap();
+	let output = Command::new("udisksctl").args(["loop-setup", "-f", &("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with mounting persistent iso = {}", std::str::from_utf8(&output.stderr).unwrap());
