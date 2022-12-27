@@ -441,19 +441,19 @@ async fn init_iso() -> String {
 	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return format!("ERROR in init iso with copying arctica binary = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in init iso with copying genisoimage = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//copying over dependencies ssss
 	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/ssss_0.5-5_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return format!("ERROR in init iso with copying arctica binary = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in init iso with copying ssss = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//copying over dependencies wodim
 	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return format!("ERROR in init iso with copying arctica binary = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in init iso with copying wodim = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
 
@@ -572,35 +572,53 @@ async fn create_setup_cd() -> String {
 	//create local shards dir
 	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	//install sd dependencies for wodim and ssss
-	let output = Command::new("sudo").args(["add-apt-repository", "-y", "universe"]).output().unwrap();
+	// let output = Command::new("sudo").args(["add-apt-repository", "-y", "universe"]).output().unwrap();
+	// if !output.status.success() {
+    // 	// Function Fails
+    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    // }
+	// let output = Command::new("sudo").args(["apt", "update"]).output().unwrap();
+	// if !output.status.success() {
+    // 	// Function Fails
+    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    // }
+	// //download wodim
+	// let output = Command::new("sudo").args(["apt", "install", "-y", "wodim"]).output().unwrap();
+	// if !output.status.success() {
+    // 	// Function Fails
+    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    // }
+	// //download shamir secret sharing library
+	// let output = Command::new("sudo").args(["apt", "install", "ssss"]).output().unwrap();
+	// if !output.status.success() {
+    // 	// Function Fails
+    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    // }
+
+	//install sd dependencies for genisoimage
+	let output = Command::new("sudo").args(["apt", "install" &(get_home()+"/dependencies/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
-	let output = Command::new("sudo").args(["apt", "update"]).output().unwrap();
+		return format!("ERROR in installing genisoimage for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
+
+	//install sd dependencies for ssss
+	let output = Command::new("sudo").args(["apt", "install" &(get_home()+"/dependencies/ssss_0.5-5_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
-	//download wodim
-	let output = Command::new("sudo").args(["apt", "install", "-y", "wodim"]).output().unwrap();
+		return format!("ERROR in installing ssss for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
+
+	//install sd dependencies for wodim
+	let output = Command::new("sudo").args(["apt", "install" &(get_home()+"/dependencies/wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
-	//download shamir secret sharing library
-	let output = Command::new("sudo").args(["apt", "install", "ssss"]).output().unwrap();
-	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
+		return format!("ERROR in installing wodim for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
 
 	//create setupCD config
 	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
 	let output = Command::new("echo").args(["type=setupcd" ]).stdout(file).output().unwrap();
 
 	//create masterkey and derive shards
-	let output = Command::new("bash").args([&(get_home()+"/arctica/scripts/create-setup-cd.sh")]).output().unwrap();
+	let output = Command::new("bash").args([&(get_home()+"/scripts/create-setup-cd.sh")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in running create-setup-cd.sh {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
@@ -825,31 +843,49 @@ async fn mount_internal() -> String {
 #[tauri::command]
 async fn install_sd_deps() -> String {
 	println!("installing deps required by SD card");
-	//these are required on all 7 SD cards and will eventually be installed prior to first boot
-	let output = Command::new("sudo").args(["add-apt-repository", "-y", "universe"]).output().unwrap();
-	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
+	//these are required on all 7 SD cards
+	// let output = Command::new("sudo").args(["add-apt-repository", "-y", "universe"]).output().unwrap();
+	// if !output.status.success() {
+    // 	// Function Fails
+    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    // }
 
-	let output = Command::new("sudo").args(["apt", "update"]).output().unwrap();
-	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
+	// let output = Command::new("sudo").args(["apt", "update"]).output().unwrap();
+	// if !output.status.success() {
+    // 	// Function Fails
+    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    // }
 
-	//download wodim
-	let output = Command::new("sudo").args(["apt", "install", "-y", "wodim"]).output().unwrap();
+	// //download wodim
+	// let output = Command::new("sudo").args(["apt", "install", "-y", "wodim"]).output().unwrap();
+	// if !output.status.success() {
+    // 	// Function Fails
+    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    // }
+	// //download shamir secret sharing library
+	// let output = Command::new("sudo").args(["apt", "install", "ssss"]).output().unwrap();
+	// if !output.status.success() {
+    // 	// Function Fails
+    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
+    // }
+
+	//install sd dependencies for genisoimage
+	let output = Command::new("sudo").args(["apt", "install" &(get_home()+"/dependencies/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
-	//download shamir secret sharing library
-	let output = Command::new("sudo").args(["apt", "install", "ssss"]).output().unwrap();
+		return format!("ERROR in installing genisoimage {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
+
+	//install sd dependencies for ssss
+	let output = Command::new("sudo").args(["apt", "install" &(get_home()+"/dependencies/ssss_0.5-5_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
+		return format!("ERROR in installing ssss {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
+
+	//install sd dependencies for wodim
+	let output = Command::new("sudo").args(["apt", "install" &(get_home()+"/dependencies/wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in installing wodim {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
 
 	format!("SUCCESS in installing SD dependencies")
 }
