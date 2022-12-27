@@ -1,7 +1,3 @@
-#find cd path
-OUTPUT=$(echo $(ls /dev/sr?))
-
-
 #generate masterkey for encrypting persistent directories
 base64 /dev/urandom | head -c 50 > /mnt/ramdisk/CDROM/masterkey
 
@@ -23,31 +19,4 @@ do
     echo $Line > /mnt/ramdisk/shards/shard$X.txt
     X+=1
 done
-
-#NOTE: BEFORE THESE ARE REMOVED IN PROD THE APPROPRIATE SHARDS NEED TO GO TO THE BPS
-#CONSIDER EVENTUALLY BREAKING THIS INTO A SEPERATE SCRIPT
-
-#copy first 2 shards to SD 1
-sudo cp /mnt/ramdisk/shards/shard1.txt /home/$USER/shards
-sudo cp /mnt/ramdisk/shards/shard11.txt /home/$USER/shards
-
-
-#remove stale shard file
-sudo rm /mnt/ramdisk/shards_untrimmed.txt
-
-#stage setup CD with shards for distribution to respective SD cards
-sudo cp -R /mnt/ramdisk/shards /mnt/ramdisk/CDROM
-
-#create iso from setupCD dir
-genisoimage -r -J -o /mnt/ramdisk/setupCD.iso /mnt/ramdisk/CDROM
-
-#wipe the CD
-sudo umount $OUTPUT
-wodim -v dev=$OUTPUT blank=fast
-
-#burn setupCD iso to the Setup CD
-wodim dev=$OUTPUT -v -data /mnt/ramdisk/setupCD.iso
-
-#eject the disk to refresh the file system
-eject $OUTPUT
 
