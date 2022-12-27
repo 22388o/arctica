@@ -434,7 +434,7 @@ async fn init_iso() -> String {
 
 	println!("Making dependencies directory");
 	//make dependencies directory
-	Command::new("mkdir").args([&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")])
+	Command::new("mkdir").args([&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
 
 	println!("Copying dependencies");
 	//copying over dependencies genisoimage
