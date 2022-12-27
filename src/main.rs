@@ -319,6 +319,10 @@ async fn init_iso() -> String {
 	// sudo apt install -y mkusb
 	// sudo apt install -y usb-pack-efi
 
+	//download dependencies required on each SD card
+	Command::new("sudo").args(["apt", "update"]).output().unwrap();
+	Command::new("sudo").args(["apt", "download", "wodim", "genisoimage", "ssss"]).output().unwrap();
+
 	//check if ubuntu iso & bitcoin core already exists, and if no, obtain
 	//NOTE: this currently checks the arctica repo but this will change once refactor is finished and user can run binary on host machine 
 	println!("obtaining ubuntu iso and bitcoin core if needed");
@@ -427,6 +431,31 @@ async fn init_iso() -> String {
 		// Function Fails
 		return format!("ERROR in init iso with opening file permissions of persistent dir = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+
+	println!("Making dependencies directory")
+	//make dependencies directory
+	Command::new("mkdir").args([&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")])
+
+	println!("Copying dependencies")
+	//copying over dependencies genisoimage
+	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with copying arctica binary = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//copying over dependencies ssss
+	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/ssss_0.5-5_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with copying arctica binary = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//copying over dependencies wodim
+	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with copying arctica binary = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
 
 	println!("copying arctica binary");
 	//copy over artica binary and make executable
