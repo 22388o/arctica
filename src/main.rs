@@ -570,12 +570,70 @@ async fn create_setup_cd() -> String {
 	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
 	let output = Command::new("echo").args(["type=setupcd" ]).stdout(file).output().unwrap();
 
-	let output = Command::new("bash")
-        .args(["/home/".to_string()+&get_user()+"/scripts/create-setup-cd.sh"])
-        .output()
-        .expect("failed to execute process");
-  println!(";");
-	format!("{:?}", output)
+	//create masterkey and derive shards
+	let output = Command::new("bash").args([&(get_home()+"/arctica/scripts/create-setup-cd.sh")]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in running create-setup-cd.sh {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
+	//NOTE: EVENTUALLY THE APPROPRIATE SHARDS NEED TO GO TO THE BPS HERE
+
+	//copy first 2 shards to SD 1
+	let output = Command::new("sudo").args(["cp", "/mnt/ramdisk/shards/shard1.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in copying shard1.txt in create setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+	let output = Command::new("sudo").args(["cp", "/mnt/ramdisk/shards/shard11.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in copying shard11.txt in create setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	//remove stale shard file
+	let output = Command::new("sudo").args(["rm", "/mnt/ramdisk/shards_untrimmed.txt"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in removing deprecated shards_untrimmed in create setup cd = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	//stage setup CD dir with shards for distribution
+	let output = Command::new("sudo").args(["cp", "-R", "/mnt/ramdisk/shards", "/mnt/ramdisk/CDROM"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in copying shards to CDROM dir in create setup cd = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	//create iso from setupCD dir
+	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/setupCD.iso", "/mnt/ramdisk/CDROM"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR refreshing setupCD with genisoimage = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	//wipe the CD
+	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
+	let output = Command::new("wodim").args(["-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR refreshing setupCD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	//burn setupCD iso to the setupCD
+	let output = Command::new("wodim").args(["dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/setupCD.iso"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in refreshing setupCD with burning iso = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	//eject the disc
+	let output = Command::new("eject").args(["/dev/sr0"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in Creating Setup CD")
+
 }
 
 #[tauri::command]
