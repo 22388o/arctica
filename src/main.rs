@@ -432,11 +432,11 @@ async fn init_iso() -> String {
 		return format!("ERROR in init iso with opening file permissions of persistent dir = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	println!("Making dependencies directory")
+	println!("Making dependencies directory");
 	//make dependencies directory
 	Command::new("mkdir").args([&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")])
 
-	println!("Copying dependencies")
+	println!("Copying dependencies");
 	//copying over dependencies genisoimage
 	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
 	if !output.status.success() {
