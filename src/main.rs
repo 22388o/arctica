@@ -596,19 +596,19 @@ async fn create_setup_cd() -> String {
     // }
 
 	//install sd dependencies for genisoimage
-	let output = Command::new("sudo").args(["apt", "install" &(get_home()+"/dependencies/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
+	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in installing genisoimage for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 
 	//install sd dependencies for ssss
-	let output = Command::new("sudo").args(["apt", "install" &(get_home()+"/dependencies/ssss_0.5-5_amd64.deb")]).output().unwrap();
+	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/ssss_0.5-5_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in installing ssss for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 
 	//install sd dependencies for wodim
-	let output = Command::new("sudo").args(["apt", "install" &(get_home()+"/dependencies/wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
+	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in installing wodim for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
@@ -870,19 +870,19 @@ async fn install_sd_deps() -> String {
     // }
 
 	//install sd dependencies for genisoimage
-	let output = Command::new("sudo").args(["apt", "install" &(get_home()+"/dependencies/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
+	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in installing genisoimage {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 
 	//install sd dependencies for ssss
-	let output = Command::new("sudo").args(["apt", "install" &(get_home()+"/dependencies/ssss_0.5-5_amd64.deb")]).output().unwrap();
+	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/ssss_0.5-5_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in installing ssss {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 
 	//install sd dependencies for wodim
-	let output = Command::new("sudo").args(["apt", "install" &(get_home()+"/dependencies/wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
+	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in installing wodim {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
