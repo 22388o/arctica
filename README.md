@@ -42,9 +42,10 @@ While Arctica provides the best balance of security, privacy, and, ease of use w
 
 ## Build from Source Instructions
 
-1. Install dependencies.
+1. Install Rust and dependencies.
     ```bash
-    sudo apt update && sudo apt install -y nodejs npm cargo libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh # taken from https://www.rust-lang.org/tools/install
+    sudo apt update && sudo apt install -y nodejs npm libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
     ```
 2. Clone the repository.
     
@@ -56,7 +57,7 @@ While Arctica provides the best balance of security, privacy, and, ease of use w
 
 3. Compile the frontend first.
     ```bash
-    cd arctica-frontend/
+    cd arctica/arctica-frontend/
     npm install
     npm run build
     ```
