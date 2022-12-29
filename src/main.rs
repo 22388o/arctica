@@ -821,31 +821,6 @@ async fn mount_internal() -> String {
 async fn install_sd_deps() -> String {
 	println!("installing deps required by SD card");
 	//these are required on all 7 SD cards
-	// let output = Command::new("sudo").args(["add-apt-repository", "-y", "universe"]).output().unwrap();
-	// if !output.status.success() {
-    // 	// Function Fails
-    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    // }
-
-	// let output = Command::new("sudo").args(["apt", "update"]).output().unwrap();
-	// if !output.status.success() {
-    // 	// Function Fails
-    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    // }
-
-	// //download wodim
-	// let output = Command::new("sudo").args(["apt", "install", "-y", "wodim"]).output().unwrap();
-	// if !output.status.success() {
-    // 	// Function Fails
-    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    // }
-	// //download shamir secret sharing library
-	// let output = Command::new("sudo").args(["apt", "install", "ssss"]).output().unwrap();
-	// if !output.status.success() {
-    // 	// Function Fails
-    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    // }
-
 	//install sd dependencies for genisoimage
 	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
