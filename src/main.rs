@@ -557,7 +557,7 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
 		// Function Fails
 		return format!("ERROR in creating bootable with removing current working config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-	//burn iso with mkusb
+	//burn iso with dd
 	let output = Command::new("sudo").args(["dd", "bs=16M", &("if=/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso"), "of=/dev/sda", "status=progress", "oflag=direct"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
@@ -571,29 +571,6 @@ async fn create_setup_cd() -> String {
 	println!("creating setup CD");
 	//create local shards dir
 	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
-	//install sd dependencies for wodim and ssss
-	// let output = Command::new("sudo").args(["add-apt-repository", "-y", "universe"]).output().unwrap();
-	// if !output.status.success() {
-    // 	// Function Fails
-    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    // }
-	// let output = Command::new("sudo").args(["apt", "update"]).output().unwrap();
-	// if !output.status.success() {
-    // 	// Function Fails
-    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    // }
-	// //download wodim
-	// let output = Command::new("sudo").args(["apt", "install", "-y", "wodim"]).output().unwrap();
-	// if !output.status.success() {
-    // 	// Function Fails
-    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    // }
-	// //download shamir secret sharing library
-	// let output = Command::new("sudo").args(["apt", "install", "ssss"]).output().unwrap();
-	// if !output.status.success() {
-    // 	// Function Fails
-    // 	return format!("ERROR in installing SD dependencies = {}", std::str::from_utf8(&output.stderr).unwrap());
-    // }
 
 	//install sd dependencies for genisoimage
 	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
