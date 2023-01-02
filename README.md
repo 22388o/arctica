@@ -44,8 +44,9 @@ While Arctica provides the best balance of security, privacy, and, ease of use w
 
 1. Install Rust and dependencies.
     ```bash
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh # taken from https://www.rust-lang.org/tools/install
     sudo apt update && sudo apt install -y nodejs npm libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y # taken from https://www.rust-lang.org/tools/install and https://github.com/rust-lang/rustup/issues/297#issuecomment-444818896
+    source "$HOME/.cargo/env"
     ```
 2. Clone the repository.
     
@@ -74,16 +75,17 @@ While Arctica provides the best balance of security, privacy, and, ease of use w
     ```
 
 Here are the instructions repeated in one code block.
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh # taken from https://www.rust-lang.org/tools/install
-sudo apt update && sudo apt install -y nodejs npm libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
-git clone --recurse-submodules https://github.com/wild-kard/arctica.git
-cd arctica/arctica-frontend/
-npm install
-npm run build
-cd ../
-cargo build
-cargo run
-``` 
+    ```bash
+    sudo apt update && sudo apt install -y nodejs npm libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y # taken from https://www.rust-lang.org/tools/install
+    source "$HOME/.cargo/env"
+    git clone --recurse-submodules https://github.com/wild-kard/arctica.git
+    cd arctica/arctica-frontend/
+    npm install
+    npm run build
+    cd ../
+    cargo build
+    cargo run
+    ``` 
 
 WARNING: This software overwrites external storage media and CDs without much warning, I advise you only run arctica on a dedicated machine, remove any extraneous external storage media, and only use USB sticks or SD cards and CDs you don't mind having wiped.
