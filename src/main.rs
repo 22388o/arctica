@@ -566,9 +566,9 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
 	let output = mkusb_child_two.wait_with_output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return format!("ERROR in creating bootable with dd = {}", std::str::from_utf8(&output.stdout).unwrap());
+		return format!("ERROR in creating bootable with dd = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-	format!("SUCCESS in creating bootable device: {}")
+	format!("SUCCESS in creating bootable device")
 }
 
 #[tauri::command]
