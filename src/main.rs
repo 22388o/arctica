@@ -313,12 +313,13 @@ async fn init_iso() -> String {
 	//download KVM deps
 	Command::new("sudo").args(["apt-get", "-y", "install", "qemu-system-x86", "qemu-kvm", "libvirt-clients", "libvirt-daemon-system", "bridge-utils"]).output().unwrap();
 	
-	//mkusb deps, deprecated as create_bootable no longer uses mkusb
-	// sudo add-apt-repository -y universe
-	// sudo add-apt-repository -y ppa:mkusb/ppa
-	// sudo apt -y update
-	// sudo apt install -y mkusb
-	// sudo apt install -y usb-pack-efi
+	//obtain mkusb deps, 
+	Command::new("sudo").args(["add-apt-repository", "-y", "universe"]).output().unwrap();
+	Command::new("sudo").args(["add-apt-repository", "-y", "ppa:mkusb/ppa"]).output().unwrap();
+	Command::new("sudo").args(["apt", "-y", "update"]).output().unwrap();
+	Command::new("sudo").args(["apt", "install", "-y", "mkusb"]).output().unwrap();
+	Command::new("sudo").args(["apt", "install", "-y", "usb-pack-efi"]).output().unwrap();
+
 
 	//download dependencies required on each SD card
 	Command::new("sudo").args(["apt", "update"]).output().unwrap();
@@ -558,15 +559,15 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
 		// Function Fails
 		return format!("ERROR in creating bootable with removing current working config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-	//burn iso with dd
-	// let output = Command::new("sudo").args(["dd", "bs=16M", &("if=/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso"), "of=/dev/sda", "status=progress", "oflag=direct"]).output().unwrap();
-	// let output = Command::new("printf").args(["\'%s\n\'", "n", "y", "g", "y", "|", "mkusb", &("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso")]).output().unwrap();
-	let mkusb_child = Command::new("printf").args(["\'%s\n\'", "n", "y", "g", "y"]).stdout(Stdio::piped()).spawn().unwrap();
+	//burn iso with mkusb
+	let mkusb_child = Command::new("printf").args(["%s\n", "n", "y", "g", "y"]).stdout(Stdio::piped()).spawn().unwrap();
+	println!("received stdout, piping to mkusb");
 	let mkusb_child_two = Command::new("mkusb").args([&("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso")]).stdin(Stdio::from(mkusb_child.stdout.unwrap())).stdout(Stdio::piped()).spawn().unwrap();
+	println!("mkusb finished creating output");
 	let output = mkusb_child_two.wait_with_output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return format!("ERROR in creating bootable with dd = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in creating bootable with mkusb = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	format!("SUCCESS in creating bootable device")
 }
