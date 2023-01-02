@@ -27,6 +27,7 @@ use secp256k1::{rand, Secp256k1, SecretKey};
 use tauri::State;
 use std::{thread, time::Duration};
 use std::path::Path;
+use std::process::Stdio;
 
 
 
@@ -558,12 +559,16 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
 		return format!("ERROR in creating bootable with removing current working config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//burn iso with dd
-	let output = Command::new("sudo").args(["dd", "bs=16M", &("if=/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso"), "of=/dev/sda", "status=progress", "oflag=direct"]).output().unwrap();
+	// let output = Command::new("sudo").args(["dd", "bs=16M", &("if=/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso"), "of=/dev/sda", "status=progress", "oflag=direct"]).output().unwrap();
+	// let output = Command::new("printf").args(["\'%s\n\'", "n", "y", "g", "y", "|", "mkusb", &("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso")]).output().unwrap();
+	let mkusb_child = Command::new("printf").args(["\'%s\n\'", "n", "y", "g", "y"]).stdout(Stdio::piped()).spawn().unwrap();
+	let mkusb_child_two = Command::new("mkusb").args([&("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso")]).stdin(Stdio::from(mkusb_child.stdout.unwrap())).stdout(Stdio::piped()).spawn().unwrap();
+	let output = mkusb_child_two.wait_with_output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return format!("ERROR in creating bootable with dd = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in creating bootable with dd = {}", std::str::from_utf8(&output.stdout).unwrap());
 	}
-	format!("SUCCESS in creating bootable device")
+	format!("SUCCESS in creating bootable device: {}")
 }
 
 #[tauri::command]
