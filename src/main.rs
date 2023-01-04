@@ -191,6 +191,36 @@ async fn generate_store_key_pair(number: String) -> String {
 	format!("SUCCESS generated and stored Private and Public Key Pair")
 }
 
+//this function simulates the creation of a time machine key. Eventually this creation will be performed by the BPS and 
+//the pubkeys will be shared with the user instead. 4 Time machine Keys are needed so this function will be run 4 times in total.
+#[tauri::command]
+async fn generate_store_simulated_time_machine_key_pair(number: String) -> String {
+	//make the time machine key dir in the setupCD staging area, can fail or succeed
+	Command::new("mkdir").args(["--parents", "/mnt/ramdisk/CDROM/timemachinekeys"]).output().unwrap();
+
+	//number param is provided by the front end
+	let private_key_file = "/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&number;
+	let public_key_file = "/mnt/ramdisk/CDROM/timemachinekeys/time_machine_public_key".to_string()+&number;
+	let private_key = match generate_private_key() {
+		Ok(private_key) => private_key,
+		Err(err) => return "ERROR could not generate private_key: ".to_string()+&err.to_string()
+	};
+	let public_key = match derive_public_key(private_key) {
+		Ok(public_key) => public_key,
+		Err(err) => return "ERROR could not dervie public key: ".to_string()+&err.to_string()
+	};
+	match store_private_key(private_key, private_key_file) {
+		Ok(_) => {},
+		Err(err) => return "ERROR could not store private key: ".to_string()+&err
+	}
+	match store_public_key(public_key, public_key_file) {
+		Ok(_) => {},
+		Err(err) => return "ERROR could not store public key: ".to_string()+&err
+	}
+
+	format!("SUCCESS generated and stored Private and Public Key Pair")
+}
+
 fn recover_private_key(file_name: String) -> Result<bitcoin::PrivateKey, String> {
 	let private_key_string = match fs::read_to_string(file_name) {
 		Ok(data) => data,
@@ -231,59 +261,59 @@ async fn recover_key_pair() -> String {
 	format!("SUCCESS recovered Private/Public Key Pair")
 }
 
-// fn build_high_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
-// 	let mut keys = Vec::new();
-// 	let ctx = Secp256k1::new();
-// 	for i in 0..11 {
-// 		keys.push(generate_key().expect("could not get key").public_key(&ctx));
-// 		println!("test = {}", generate_key().expect("could not get key").public_key(&ctx));
-// 	}
-// 	let four_years = blockchain.get_height().unwrap()+210379;
-// 	let month = 4382;
-// 	let desc = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
-// 	println!("DESC: {}", desc);
-// 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
-// }
+fn build_high_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
+	let mut keys = Vec::new();
+	let ctx = Secp256k1::new();
+	for i in 0..11 {
+		keys.push(generate_key().expect("could not get key").public_key(&ctx));
+		println!("test = {}", generate_key().expect("could not get key").public_key(&ctx));
+	}
+	let four_years = blockchain.get_height().unwrap()+210379;
+	let month = 4382;
+	let desc = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+	println!("DESC: {}", desc);
+	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
+}
 
-// fn build_med_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
-// 	let mut keys = Vec::new();
-// 	let ctx = Secp256k1::new();
-// 	for i in 0..7 {
-// 		keys.push(generate_key().expect("could not get key").public_key(&ctx))
-// 	}
-// 	let four_years = blockchain.get_height().unwrap()+210379;
-// 	let desc = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
-// 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
-// }
+fn build_med_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
+	let mut keys = Vec::new();
+	let ctx = Secp256k1::new();
+	for i in 0..7 {
+		keys.push(generate_key().expect("could not get key").public_key(&ctx))
+	}
+	let four_years = blockchain.get_height().unwrap()+210379;
+	let desc = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
+	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
+}
 
 
-// fn build_low_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
-// 	let mut keys = Vec::new();
-// 	let ctx = Secp256k1::new();
-// 	for i in 0..7 {
-// 		keys.push(generate_key().expect("could not get key").public_key(&ctx))
-// 	}
-// 	let desc = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
-// 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
-// }
+fn build_low_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
+	let mut keys = Vec::new();
+	let ctx = Secp256k1::new();
+	for i in 0..7 {
+		keys.push(generate_key().expect("could not get key").public_key(&ctx))
+	}
+	let desc = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
+	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
+}
 
-// #[tauri::command]
-// fn generate_wallet(state: State<TauriState>) -> String {
-// 	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-// 	*state.1.lock().unwrap() = build_high_descriptor(&blockchain).expect("failed to bulid high lvl descriptor");
-// 	*state.2.lock().unwrap() = build_med_descriptor(&blockchain).expect("failed to bulid med lvl descriptor");
-// 	*state.3.lock().unwrap() = build_low_descriptor(&blockchain).expect("failed to bulid low lvl descriptor");
-// 	return "Completed With No Problems".to_string()
-// }
+#[tauri::command]
+fn generate_wallet(state: State<TauriState>) -> String {
+	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+	*state.1.lock().unwrap() = build_high_descriptor(&blockchain).expect("failed to bulid high lvl descriptor");
+	*state.2.lock().unwrap() = build_med_descriptor(&blockchain).expect("failed to bulid med lvl descriptor");
+	*state.3.lock().unwrap() = build_low_descriptor(&blockchain).expect("failed to bulid low lvl descriptor");
+	return "Completed With No Problems".to_string()
+}
 
-// #[tauri::command]
-// fn get_address_high_wallet(state: State<TauriState>) -> String {
-// 	println!("test ");
-// 	let desc: String = (*state.1.lock().unwrap()).clone();
-// 	println!("desc = {}", desc);
-// 	let wallet: Wallet<MemoryDatabase> = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to bulid high lvl wallet");
-// 	return wallet.get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string()
-// }
+#[tauri::command]
+fn get_address_high_wallet(state: State<TauriState>) -> String {
+	println!("test ");
+	let desc: String = (*state.1.lock().unwrap()).clone();
+	println!("desc = {}", desc);
+	let wallet: Wallet<MemoryDatabase> = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to bulid high lvl wallet");
+	return wallet.get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string()
+}
 
 
 #[tauri::command]
@@ -1351,7 +1381,10 @@ fn main() {
         collect_shards,
         convert_to_transfer_cd,
 		generate_store_key_pair,
+		generate_store_simulated_time_machine_key_pair,
 		recover_key_pair,
+		get_address_high_wallet,
+		generate_wallet,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
