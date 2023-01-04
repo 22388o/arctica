@@ -261,50 +261,50 @@ async fn recover_key_pair() -> String {
 	format!("SUCCESS recovered Private/Public Key Pair")
 }
 
-fn build_high_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
-	let mut keys = Vec::new();
-	let ctx = Secp256k1::new();
-	for i in 0..11 {
-		keys.push(generate_key().expect("could not get key").public_key(&ctx));
-		println!("test = {}", generate_key().expect("could not get key").public_key(&ctx));
-	}
-	let four_years = blockchain.get_height().unwrap()+210379;
-	let month = 4382;
-	let desc = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
-	println!("DESC: {}", desc);
-	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
-}
+// fn build_high_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
+// 	let mut keys = Vec::new();
+// 	let ctx = Secp256k1::new();
+	// for i in 0..11 {
+	// 	keys.push(generate_key().expect("could not get key").public_key(&ctx));
+	// 	println!("test = {}", generate_key().expect("could not get key").public_key(&ctx));
+	// }
+// 	let four_years = blockchain.get_height().unwrap()+210379;
+// 	let month = 4382;
+// 	let desc = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+// 	println!("DESC: {}", desc);
+// 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
+// }
 
-fn build_med_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
-	let mut keys = Vec::new();
-	let ctx = Secp256k1::new();
-	for i in 0..7 {
-		keys.push(generate_key().expect("could not get key").public_key(&ctx))
-	}
-	let four_years = blockchain.get_height().unwrap()+210379;
-	let desc = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
-	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
-}
+// fn build_med_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
+// 	let mut keys = Vec::new();
+// 	let ctx = Secp256k1::new();
+// 	for i in 0..7 {
+// 		keys.push(generate_key().expect("could not get key").public_key(&ctx))
+// 	}
+// 	let four_years = blockchain.get_height().unwrap()+210379;
+// 	let desc = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
+// 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
+// }
 
 
-fn build_low_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
-	let mut keys = Vec::new();
-	let ctx = Secp256k1::new();
-	for i in 0..7 {
-		keys.push(generate_key().expect("could not get key").public_key(&ctx))
-	}
-	let desc = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
-	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
-}
+// fn build_low_descriptor(blockchain: &RpcBlockchain) -> Result<String, bdk::Error> {
+// 	let mut keys = Vec::new();
+// 	let ctx = Secp256k1::new();
+	// for i in 0..7 {
+	// 	keys.push(generate_key().expect("could not get key").public_key(&ctx))
+	// }
+	// let desc = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
+	// Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
+// }
 
-#[tauri::command]
-fn generate_wallet(state: State<TauriState>) -> String {
-	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-	*state.1.lock().unwrap() = build_high_descriptor(&blockchain).expect("failed to bulid high lvl descriptor");
-	*state.2.lock().unwrap() = build_med_descriptor(&blockchain).expect("failed to bulid med lvl descriptor");
-	*state.3.lock().unwrap() = build_low_descriptor(&blockchain).expect("failed to bulid low lvl descriptor");
-	return "Completed With No Problems".to_string()
-}
+// #[tauri::command]
+// fn generate_wallet(state: State<TauriState>) -> String {
+// 	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+// 	*state.1.lock().unwrap() = build_high_descriptor(&blockchain).expect("failed to bulid high lvl descriptor");
+// 	*state.2.lock().unwrap() = build_med_descriptor(&blockchain).expect("failed to bulid med lvl descriptor");
+// 	*state.3.lock().unwrap() = build_low_descriptor(&blockchain).expect("failed to bulid low lvl descriptor");
+// 	return "Completed With No Problems".to_string()
+// }
 
 #[tauri::command]
 fn get_address_high_wallet(state: State<TauriState>) -> String {
@@ -1384,7 +1384,6 @@ fn main() {
 		generate_store_simulated_time_machine_key_pair,
 		recover_key_pair,
 		get_address_high_wallet,
-		generate_wallet,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
