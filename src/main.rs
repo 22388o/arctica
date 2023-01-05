@@ -28,8 +28,7 @@ use tauri::State;
 use std::{thread, time::Duration};
 use std::path::Path;
 use std::process::Stdio;
-
-
+use std::io::BufReader;
 
 struct TauriState(Mutex<RpcConfig>, Mutex<String>, Mutex<String>, Mutex<String>);
 
@@ -1021,15 +1020,43 @@ async fn distribute_shards_sd7() -> String {
 	format!("SUCCESS in distributing shards to SD 7")
 }
 
+//create array vector of pubkeys
+// fn file_to_vec(filename: String) -> io::Result<Vec<String>> {
+// 	let file_in = fs::File::open(filename)?;
+// 	let file_reader = BufReader::new(file_in);
+// 	Ok(file_reader.lines().filter_map(io::Result::ok).collect())
+// }
+
 //deprecated
 #[tauri::command]
 async fn create_descriptor() -> String {
-	println!("creating descriptor from 7 xpubs");
-	let output = Command::new("bash")
-		.args(["/home/".to_string()+&get_user()+"/scripts/create-descriptor.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	println!("creating descriptors from 7 xpubs & 4 time machine keys");
+
+	//convert all 11 public_keys in the ramdisk to an array vector
+	// let key = file_to_vec("/mnt/ramdisk/CDROM/pubkeys/public_key1");
+	// assert!(key.len() == 1)
+	let mut key_array = Vec::new();
+
+	for i in 1..=7{
+		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))).expect(&("Error reading public_key".to_string()+&(i.to_string())));
+		key_array.push(key);
+	}
+
+	for i in 1..=4{
+		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key".to_string()+&(i.to_string())));
+		key_array.push(key);
+	}
+
+
+	println!("{:?}", key_array);
+	// let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard7.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	// if !output.status.success() {
+	// 	// Function Fails
+	// 	return format!("ERROR in distributing shards to sd7 = {}", std::str::from_utf8(&output.stderr).unwrap());
+	// }
+
+	format!("SUCCESS in creating descriptors")
+
 }
 
 //deprecated
