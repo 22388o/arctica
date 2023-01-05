@@ -267,7 +267,7 @@ async fn recover_key_pair() -> String {
 	format!("SUCCESS recovered Private/Public Key Pair")
 }
 
-fn build_high_descriptor(blockchain: &RpcBlockchain, keys: Vec<String>) -> Result<String, bdk::Error> {
+fn build_high_descriptor(blockchain: &RpcBlockchain, keys: Vec<u8>) -> Result<String, bdk::Error> {
 	let four_years = blockchain.get_height().unwrap()+210379;
 	let month = 4382;
 	let desc = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
@@ -275,14 +275,14 @@ fn build_high_descriptor(blockchain: &RpcBlockchain, keys: Vec<String>) -> Resul
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
 }
 
-fn build_med_descriptor(blockchain: &RpcBlockchain, keys: Vec<String>) -> Result<String, bdk::Error> {
+fn build_med_descriptor(blockchain: &RpcBlockchain, keys: Vec<u8>) -> Result<String, bdk::Error> {
 	let four_years = blockchain.get_height().unwrap()+210379;
 	let desc = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
 }
 
 
-fn build_low_descriptor(blockchain: &RpcBlockchain, keys: Vec<String>) -> Result<String, bdk::Error> {
+fn build_low_descriptor(blockchain: &RpcBlockchain, keys: Vec<u8>) -> Result<String, bdk::Error> {
 	let desc = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
 }
