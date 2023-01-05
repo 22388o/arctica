@@ -218,6 +218,13 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 		Err(err) => return "ERROR could not store public key: ".to_string()+&err
 	}
 
+	//copy public key to setupCD dir
+	let output = Command::new("cp").args([&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_public_key".to_string()+&number), "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in generate store key pair with copying pubkey= {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
 	format!("SUCCESS generated and stored Private and Public Key Pair")
 }
 
