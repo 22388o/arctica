@@ -263,7 +263,6 @@ async fn recover_key_pair() -> String {
 		Ok(public_key) => public_key,
 		Err(err) => return "ERROR could not recover public key: ".to_string()+&err
 	};
-	// Use These
 	format!("SUCCESS recovered Private/Public Key Pair")
 }
 
@@ -1022,12 +1021,12 @@ async fn create_descriptor() -> String {
 	let mut key_array = Vec::new();
 
 	for i in 1..=7{
-		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))).expect(&("Error reading public_key".to_string()+&(i.to_string())));
+		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string())).as_bytes()).expect(&("Error reading public_key".to_string()+&(i.to_string())));
 		key_array.push(key);
 	}
 
 	for i in 1..=4{
-		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key".to_string()+&(i.to_string())));
+		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string())).as_bytes()).expect(&("Error reading time_machine_public_key".to_string()+&(i.to_string())));
 		key_array.push(key);
 	}
 
