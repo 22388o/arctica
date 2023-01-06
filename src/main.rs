@@ -289,7 +289,7 @@ fn build_low_descriptor(blockchain: &RpcBlockchain, keys: Vec<u8>) -> Result<Str
 // #[tauri::command]
 // fn generate_wallet(state: State<TauriState>) -> String {
 // 	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-// 	*state.1.lock().unwrap() = build_high_descriptor(&blockchain).expect("failed to bulid high lvl descriptor");
+// 	*state.1.lock().unwrap() = build_high_descriptor(&blockchain, ).expect("failed to bulid high lvl descriptor");
 // 	*state.2.lock().unwrap() = build_med_descriptor(&blockchain).expect("failed to bulid med lvl descriptor");
 // 	*state.3.lock().unwrap() = build_low_descriptor(&blockchain).expect("failed to bulid low lvl descriptor");
 // 	return "Completed With No Problems".to_string()
@@ -1032,6 +1032,10 @@ async fn create_descriptor() -> String {
 
 
 	println!("{:?}", key_array);
+
+	build_high_descriptor(&blockchain, key_array).expect("failed to bulid high lvl descriptor");
+	build_med_descriptor(&blockchain, key_array).expect("failed to bulid med lvl descriptor");
+	build_low_descriptor(&blockchain, key_array).expect("failed to bulid low lvl descriptor");
 	// let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard7.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
 	// if !output.status.success() {
 	// 	// Function Fails
