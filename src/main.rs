@@ -155,12 +155,12 @@ fn store_public_key(public_key: bitcoin::PublicKey, file_name: String) -> Result
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
-fn store_descriptor(descriptor: miniscript::Descriptor, file_name: String) -> Result<String, String> {
+fn store_descriptor(descriptor: String, file_name: String) -> Result<String, String> {
 	let mut fileRef = match std::fs::File::create(file_name) {
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
 	};
-	fileRef.write_all(descriptor);
+	fileRef.write_all(&descriptor.as_bytes());
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
@@ -1013,7 +1013,7 @@ async fn distribute_shards_sd7() -> String {
 }
 
 #[tauri::command]
-async fn create_descriptor() -> String {
+async fn create_descriptor(state: State<'_,TauriState>) -> String {
 	println!("creating descriptors from 7 xpubs & 4 time machine keys");
 	//convert all 11 public_keys in the ramdisk to an array vector
 	let mut key_array = Vec::new();
