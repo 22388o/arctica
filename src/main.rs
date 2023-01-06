@@ -160,7 +160,7 @@ fn store_descriptor(descriptor: miniscript::Descriptor, file_name: String) -> Re
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
 	};
-	fileRef.write_all(&descriptor.to_bytes());
+	fileRef.write_all(descriptor);
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
@@ -276,7 +276,6 @@ async fn recover_key_pair() -> String {
 }
 
 fn build_high_descriptor(blockchain: &RpcBlockchain, keys: Vec<String>) -> Result<String, bdk::Error> {
-	let file_dest = "/mnt/ramdisk/sensitive/high_descriptor"
 	let four_years = blockchain.get_height().unwrap()+210379;
 	let month = 4382;
 	let desc = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
@@ -285,7 +284,6 @@ fn build_high_descriptor(blockchain: &RpcBlockchain, keys: Vec<String>) -> Resul
 }
 
 fn build_med_descriptor(blockchain: &RpcBlockchain, keys: Vec<String>) -> Result<String, bdk::Error> {
-	let file_dest = "/mnt/ramdisk/sensitive/med_descriptor"
 	let four_years = blockchain.get_height().unwrap()+210379;
 	let desc = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
@@ -293,7 +291,6 @@ fn build_med_descriptor(blockchain: &RpcBlockchain, keys: Vec<String>) -> Result
 
 
 fn build_low_descriptor(blockchain: &RpcBlockchain, keys: Vec<String>) -> Result<String, bdk::Error> {
-	let file_dest = "/mnt/ramdisk/sensitive/low_descriptor"
 	let desc = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
 }
@@ -1015,44 +1012,42 @@ async fn distribute_shards_sd7() -> String {
 	format!("SUCCESS in distributing shards to SD 7")
 }
 
-//create array vector of pubkeys
-// fn file_to_vec(filename: String) -> io::Result<Vec<String>> {
-// 	let file_in = fs::File::open(filename)?;
-// 	let file_reader = BufReader::new(file_in);
-// 	Ok(file_reader.lines().filter_map(io::Result::ok).collect())
-// }
-
-//deprecated
 #[tauri::command]
 async fn create_descriptor() -> String {
 	println!("creating descriptors from 7 xpubs & 4 time machine keys");
-
 	//convert all 11 public_keys in the ramdisk to an array vector
-	// let key = file_to_vec("/mnt/ramdisk/CDROM/pubkeys/public_key1");
-	// assert!(key.len() == 1)
 	let mut key_array = Vec::new();
-
+	//push the 7 standard public keys into the key_array vector
 	for i in 1..=7{
 		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))).expect(&("Error reading public_key".to_string()+&(i.to_string())));
 		key_array.push(key);
 	}
-
+	//push the 4 time machine public keys into the key_array vector
 	for i in 1..=4{
 		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key".to_string()+&(i.to_string())));
 		key_array.push(key);
 	}
-
-
 	println!("{:?}", key_array);
 
-	build_high_descriptor(&blockchain, key_array).expect("failed to bulid high lvl descriptor");
-	build_med_descriptor(&blockchain, key_array).expect("failed to bulid med lvl descriptor");
-	build_low_descriptor(&blockchain, key_array).expect("failed to bulid low lvl descriptor");
-	// let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard7.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
-	// if !output.status.success() {
-	// 	// Function Fails
-	// 	return format!("ERROR in distributing shards to sd7 = {}", std::str::from_utf8(&output.stderr).unwrap());
-	// }
+	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+	//build the high security descriptor
+	let high_descriptor = build_high_descriptor(&blockchain, key_array).expect("Failed to build high level descriptor");
+	let high_file_dest = "/mnt/ramdisk/sensitive/high_descriptor".to_string();
+	//store the high security descriptor in the sensitive dir
+	store_descriptor(high_descriptor, high_file_dest);
+
+	//build the med security descriptor
+	let med_descriptor = build_med_descriptor(&blockchain, key_array).expect("Failed to build high level descriptor");
+	let med_file_dest = "/mnt/ramdisk/sensitive/med_descriptor".to_string();
+	//store the med security descriptor in the sensitive dir
+	store_descriptor(med_descriptor, med_file_dest);
+
+	//build the low security descriptor
+	let low_descriptor = build_low_descriptor(&blockchain, key_array).expect("Failed to build high level descriptor");
+	let low_file_dest = "/mnt/ramdisk/sensitive/low_descriptor".to_string();
+	//store the low security descriptor in the sensitive dir
+	store_descriptor(low_descriptor, low_file_dest);
+
 
 	format!("SUCCESS in creating descriptors")
 
