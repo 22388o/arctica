@@ -1016,36 +1016,49 @@ async fn distribute_shards_sd7() -> String {
 async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, String> {
 	println!("creating descriptors from 7 xpubs & 4 time machine keys");
 	//convert all 11 public_keys in the ramdisk to an array vector
+	println!("creating key array");
 	let mut key_array = Vec::new();
 	//push the 7 standard public keys into the key_array vector
+	println!("pushing 7 standard pubkeys into key array");
 	for i in 1..=7{
 		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))).expect(&("Error reading public_key".to_string()+&(i.to_string())));
 		key_array.push(key);
+		println!("pushed key");
 	}
 	//push the 4 time machine public keys into the key_array vector
+	println!("pushing 4 time machine pubkeys into key array");
 	for i in 1..=4{
 		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key".to_string()+&(i.to_string())));
 		key_array.push(key);
+		println!("pushed key");
 	}
+	println!("printing key array");
 	println!("{:?}", key_array);
 
+	println!("configuring blockchain");
 	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
 	//build the high security descriptor
+	println!("building high descriptor");
 	let high_descriptor = build_high_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
 	let high_file_dest = "/mnt/ramdisk/sensitive/high_descriptor".to_string();
 	//store the high security descriptor in the sensitive dir
+	println!("storing high descriptor");
 	store_descriptor(high_descriptor, high_file_dest);
 
 	//build the med security descriptor
+	println!("building med descriptor");
 	let med_descriptor = build_med_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
 	let med_file_dest = "/mnt/ramdisk/sensitive/med_descriptor".to_string();
 	//store the med security descriptor in the sensitive dir
+	println!("storing med descriptor");
 	store_descriptor(med_descriptor, med_file_dest);
 
 	//build the low security descriptor
+	println!("building low descriptor");
 	let low_descriptor = build_low_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
 	let low_file_dest = "/mnt/ramdisk/sensitive/low_descriptor".to_string();
 	//store the low security descriptor in the sensitive dir
+	println!("storing low descriptor");
 	store_descriptor(low_descriptor, low_file_dest);
 
 
