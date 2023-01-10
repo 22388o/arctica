@@ -29,6 +29,7 @@ use std::{thread, time::Duration};
 use std::path::Path;
 use std::process::Stdio;
 use std::io::BufReader;
+use std::any::type_name;
 
 struct TauriState(Mutex<RpcConfig>, Mutex<String>, Mutex<String>, Mutex<String>);
 
@@ -36,6 +37,11 @@ struct TauriState(Mutex<RpcConfig>, Mutex<String>, Mutex<String>, Mutex<String>)
 fn print_rust(data: &str) -> String {
 	println!("input = {}", data);
 	format!("completed with no problems")
+}
+
+//helper function
+fn type_of<T>(_: &T) -> &'static str{
+	type_name::<T>()
 }
 
 //helper function
@@ -142,7 +148,7 @@ fn store_private_key(private_key: bitcoin::PrivateKey, file_name: String) -> Res
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
 	};
-	fileRef.write_all(&private_key.to_bytes());
+	fileRef.write_all(&private_key.to_string().as_bytes());
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
@@ -151,7 +157,7 @@ fn store_public_key(public_key: bitcoin::PublicKey, file_name: String) -> Result
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
 	};
-	fileRef.write_all(&public_key.to_bytes());
+	fileRef.write_all(&public_key.to_string().as_bytes());
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
@@ -160,7 +166,7 @@ fn store_descriptor(descriptor: String, file_name: String) -> Result<String, Str
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
 	};
-	fileRef.write_all(&descriptor.as_bytes());
+	fileRef.write_all(&descriptor.to_string().as_bytes());
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
@@ -275,7 +281,7 @@ async fn recover_key_pair() -> String {
 	format!("SUCCESS recovered Private/Public Key Pair")
 }
 
-fn build_high_descriptor(blockchain: &RpcBlockchain, keys: &Vec<String>) -> Result<String, bdk::Error> {
+fn build_high_descriptor(blockchain: &RpcBlockchain, keys: &Vec<u8>) -> Result<String, bdk::Error> {
 	let four_years = blockchain.get_height().unwrap()+210379;
 	let month = 4382;
 	let desc = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
@@ -283,14 +289,14 @@ fn build_high_descriptor(blockchain: &RpcBlockchain, keys: &Vec<String>) -> Resu
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
 }
 
-fn build_med_descriptor(blockchain: &RpcBlockchain, keys: &Vec<String>) -> Result<String, bdk::Error> {
+fn build_med_descriptor(blockchain: &RpcBlockchain, keys: &Vec<u8>) -> Result<String, bdk::Error> {
 	let four_years = blockchain.get_height().unwrap()+210379;
 	let desc = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
 }
 
 
-fn build_low_descriptor(blockchain: &RpcBlockchain, keys: &Vec<String>) -> Result<String, bdk::Error> {
+fn build_low_descriptor(blockchain: &RpcBlockchain, keys: &Vec<u8>) -> Result<String, bdk::Error> {
 	let desc = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&desc).unwrap().to_string())
 }
@@ -1014,52 +1020,54 @@ async fn distribute_shards_sd7() -> String {
 
 #[tauri::command]
 async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, String> {
-	println!("creating descriptors from 7 xpubs & 4 time machine keys");
-	//convert all 11 public_keys in the ramdisk to an array vector
-	println!("creating key array");
-	let mut key_array = Vec::new();
-	//push the 7 standard public keys into the key_array vector
-	println!("pushing 7 standard pubkeys into key array");
-	for i in 1..=7{
-		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))).expect(&("Error reading public_key".to_string()+&(i.to_string())));
-		key_array.push(key);
-		println!("pushed key");
-	}
-	//push the 4 time machine public keys into the key_array vector
-	println!("pushing 4 time machine pubkeys into key array");
-	for i in 1..=4{
-		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key".to_string()+&(i.to_string())));
-		key_array.push(key);
-		println!("pushed key");
-	}
-	println!("printing key array");
-	println!("{:?}", key_array);
+	// println!("creating descriptors from 7 xpubs & 4 time machine keys");
+	// //convert all 11 public_keys in the ramdisk to an array vector
+	// println!("creating key array");
+	// let mut key_array = Vec::new();
+	// //push the 7 standard public keys into the key_array vector
+	// println!("pushing 7 standard pubkeys into key array");
+	// for i in 1..=7{
+	// 	let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))).expect(&("Error reading public_key".to_string()+&(i.to_string())));
+	// 	println!("printing key type");
+	// 	// println!("{}", type_of(&key));
+	// 	key_array.push(key.as_bytes());
+	// 	println!("pushed key");
+	// }
+	// //push the 4 time machine public keys into the key_array vector
+	// println!("pushing 4 time machine pubkeys into key array");
+	// for i in 1..=4{
+	// 	let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key".to_string()+&(i.to_string())));
+	// 	key_array.push(key.as_bytes());
+	// 	println!("pushed key");
+	// }
+	// println!("printing key array");
+	// println!("{:?}", key_array);
 
-	println!("configuring blockchain");
-	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-	//build the high security descriptor
-	println!("building high descriptor");
-	let high_descriptor = build_high_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
-	let high_file_dest = "/mnt/ramdisk/sensitive/high_descriptor".to_string();
-	//store the high security descriptor in the sensitive dir
-	println!("storing high descriptor");
-	store_descriptor(high_descriptor, high_file_dest);
+	// println!("configuring blockchain");
+	// let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+	// //build the high security descriptor
+	// println!("building high descriptor");
+	// let high_descriptor = build_high_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
+	// let high_file_dest = "/mnt/ramdisk/sensitive/high_descriptor".to_string();
+	// //store the high security descriptor in the sensitive dir
+	// println!("storing high descriptor");
+	// store_descriptor(high_descriptor, high_file_dest);
 
-	//build the med security descriptor
-	println!("building med descriptor");
-	let med_descriptor = build_med_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
-	let med_file_dest = "/mnt/ramdisk/sensitive/med_descriptor".to_string();
-	//store the med security descriptor in the sensitive dir
-	println!("storing med descriptor");
-	store_descriptor(med_descriptor, med_file_dest);
+	// //build the med security descriptor
+	// println!("building med descriptor");
+	// let med_descriptor = build_med_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
+	// let med_file_dest = "/mnt/ramdisk/sensitive/med_descriptor".to_string();
+	// //store the med security descriptor in the sensitive dir
+	// println!("storing med descriptor");
+	// store_descriptor(med_descriptor, med_file_dest);
 
-	//build the low security descriptor
-	println!("building low descriptor");
-	let low_descriptor = build_low_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
-	let low_file_dest = "/mnt/ramdisk/sensitive/low_descriptor".to_string();
-	//store the low security descriptor in the sensitive dir
-	println!("storing low descriptor");
-	store_descriptor(low_descriptor, low_file_dest);
+	// //build the low security descriptor
+	// println!("building low descriptor");
+	// let low_descriptor = build_low_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
+	// let low_file_dest = "/mnt/ramdisk/sensitive/low_descriptor".to_string();
+	// //store the low security descriptor in the sensitive dir
+	// println!("storing low descriptor");
+	// store_descriptor(low_descriptor, low_file_dest);
 
 
 	Ok(format!("SUCCESS in creating descriptors"))
