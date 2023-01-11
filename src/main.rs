@@ -346,7 +346,7 @@ async fn init_iso() -> String {
 	println!("unmounting stale writable and unbuntu mounts if appropriate");
 	//remove stale mount points if user has started arctica before
 	Command::new("sudo").args(["umount", &("/media/".to_string()+&get_user()+"/writable")]).output().unwrap();
-	Command::new("sudo").args(["umount", &("/media/".to_string()+&get_user()+"/'Ubuntu 22.04.1 LTS amd64'")]).output().unwrap();
+	Command::new("sudo").args(["umount", &("/media/".to_string()+&get_user()+"/Ubuntu 22.04.1 LTS amd64")]).output().unwrap();
 
 
 	println!("downloading kvm dependencies");
