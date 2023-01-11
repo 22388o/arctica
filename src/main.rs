@@ -343,6 +343,12 @@ async fn init_iso() -> String {
 	//remove writable if exists, developer failsafe
 	Command::new("sudo").args(["rm", "-r", "-f", &("/media/".to_string()+&get_user()+"/writable")]).output().unwrap();
 
+	println!("unmounting stale writable and unbuntu mounts if appropriate");
+	//remove stale mount points if user has started arctica before
+	Command::new("sudo").args(["umount", &("/media/".to_string()+&get_user()+"/writable")]);
+	Command::new("sudo").args(["umount", &("/media/".to_string()+&get_user()+"/'Ubuntu 22.04.1 LTS amd64")]);
+
+
 	println!("downloading kvm dependencies");
 	//download KVM deps
 	Command::new("sudo").args(["apt-get", "-y", "install", "qemu-system-x86", "qemu-kvm", "libvirt-clients", "libvirt-daemon-system", "bridge-utils"]).output().unwrap();
