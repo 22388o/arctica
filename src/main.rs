@@ -339,9 +339,12 @@ async fn test_function() -> String {
 async fn init_iso() -> String {
 	println!("obtaining & creating modified ubuntu iso");
 
-	println!("unmounting stale writable and unbuntu mounts if appropriate");
+	println!("removing stale writable");
+	//remove writable if exists, developer failsafe
+	Command::new("sudo").args(["rm", "-r", "-f", &("/media/".to_string()+&get_user()+"/writable")]).output().unwrap();
+
+	println!("unmounting stale unbuntu mount if appropriate");
 	//remove stale mount points if user has started arctica before
-	Command::new("sudo").args(["umount", &("/media/".to_string()+&get_user()+"/writable")]).output().unwrap();
 	Command::new("sudo").args(["umount", &("/media/".to_string()+&get_user()+"/Ubuntu 22.04.1 LTS amd64")]).output().unwrap();
 
 
