@@ -708,6 +708,7 @@ async fn create_setup_cd() -> String {
 
 }
 
+//copy the contents of the currently inserted CD to the ramdisk /mnt/ramdisk/CDROM
 #[tauri::command]
 async fn copy_cd_to_ramdisk() -> String {
 	//copy cd contents to ramdisk
@@ -727,6 +728,7 @@ async fn copy_cd_to_ramdisk() -> String {
 	format!("SUCCESS in coyping CD contents")
 }
 
+//pack up and encrypt the contents of the sensitive directory in ramdisk into an encrypted directory on the current SD card
 #[tauri::command]
 async fn packup() -> String {
 	println!("packing up sensitive info");
@@ -754,6 +756,7 @@ async fn packup() -> String {
 
 }
 
+//decrypt & unpack the contents of an encrypted directory on the current SD card into the sensitive directory in ramdisk
 #[tauri::command]
 async fn unpack() -> String {
 	println!("unpacking sensitive info");
@@ -792,6 +795,7 @@ async fn unpack() -> String {
 	format!("SUCCESS in unpack")
 }
 
+//create and mount the ramdisk directory for holding senstive data at /mnt/ramdisk
 #[tauri::command]
 async fn create_ramdisk() -> String {
 	println!("creating ramdisk");
@@ -816,6 +820,7 @@ async fn create_ramdisk() -> String {
 	format!("SUCCESS in Creating Ramdisk")
 }
 
+//read the config file of the currently inserted CD/DVD
 #[tauri::command]
 fn read_cd() -> std::string::String {
     // sleep for 4 seconds
@@ -838,6 +843,7 @@ fn read_cd() -> std::string::String {
     format!("{}", contents)
 }
 
+//used to combine recovered shards into an encryption/decryption masterkey
 #[tauri::command]
 async fn combine_shards() -> String {
 	println!("combining shards in /mnt/ramdisk/shards");
@@ -848,6 +854,7 @@ async fn combine_shards() -> String {
 	format!("{:?}", output)
 }
 
+//for updating config values from the front end
 #[tauri::command]
 async fn async_write(name: &str, value: &str) -> Result<String, String> {
     write(name.to_string(), value.to_string());
@@ -924,6 +931,7 @@ async fn refresh_setup_cd() -> String {
 	format!("SUCCESS in refreshing setupCD")
 }
 
+//The following "distribute_shards" fuctions are for distributing encryption key shards to each of the sd cards 2-7
 #[tauri::command]
 async fn distribute_shards_sd2() -> String {
 	//create local shards dir
@@ -1026,6 +1034,10 @@ async fn distribute_shards_sd7() -> String {
 	format!("SUCCESS in distributing shards to SD 7")
 }
 
+//create and store as files all 3 descriptors needed for Arctica.
+//High Descriptor is the time locked 5 of 11 with decay
+//Medium Descriptor is the 2 of 7
+//Low Descriptor is the 1 of 7
 #[tauri::command]
 async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, String> {
 	println!("creating descriptors from 7 xpubs & 4 time machine keys");
@@ -1050,14 +1062,18 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 		key_array.push(key);
 		println!("pushed key");
 	}
+
 	println!("printing key array");
 	println!("{:?}", key_array);
 
+	//create the descriptors directory inside of ramdisk
 	println!("Making descriptors dir");
 	Command::new("mkdir").args("/mnt/ramdisk/sensitive/descriptors").output().unwrap();
 
+	//define the blockchain param
 	println!("configuring blockchain");
 	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+	
 	//build the high security descriptor
 	println!("building high descriptor");
 	let high_descriptor = build_high_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
@@ -1087,14 +1103,7 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 
 }
 
-//deprecated
-#[tauri::command]
-async fn copy_descriptor() -> String {
-	fs::copy("/mnt/ramdisk/CDROM/descriptor.txt", "/mnt/ramdisk/sensitive/descriptor.txt");
-	format!("completed with no problems")
-	
-}
-
+//Create a backup directory of the currently inserted SD card
 #[tauri::command]
 async fn create_backup(number: String) -> String {
 	println!("creating backup directory of the current SD");
@@ -1128,6 +1137,7 @@ async fn create_backup(number: String) -> String {
 		format!("SUCCESS in creating backup of current SD")
 }
 
+//make the existing backup directory into an iso and burn to the currently inserted CD/DVD
 #[tauri::command]
 async fn make_backup(number: String) -> String {
 	println!("making backup iso of the current SD and burning to CD");
@@ -1156,6 +1166,7 @@ async fn make_backup(number: String) -> String {
 	format!("SUCCESS in making backup of current SD")
 }
 
+//start bitcoin core daemon
 #[tauri::command]
 async fn start_bitcoind() -> String {
 	println!("starting the bitcoin daemon");
@@ -1168,6 +1179,9 @@ async fn start_bitcoind() -> String {
 	format!("SUCCESS in starting bitcoin daemon")
 }
 
+//start bitcoin core daemon with networking disabled
+//this will prevent block sync
+//use this function when starting core daemon on any offline device
 #[tauri::command]
 async fn start_bitcoind_network_off() -> String {
 	println!("starting the bitcoin daemon with networking disabled");
@@ -1180,6 +1194,7 @@ async fn start_bitcoind_network_off() -> String {
 	format!("SUCCESS in starting bitcoin daemon with networking disabled")
 }
 
+//check the currently inserted CD for an encryption masterkey
 #[tauri::command]
 async fn check_for_masterkey() -> String {
 	println!("checking ramdisk for masterkey");
@@ -1238,6 +1253,7 @@ async fn create_recovery_cd() -> String {
 	format!("SUCCESS in creating recovery CD")
 }
 
+//copy the contents of the recovery CD to ramdisk
 #[tauri::command]
 async fn copy_recovery_cd() -> String {
 	Command::new("mkdir").args(["/mnt/ramdisk/shards"]).output().unwrap();
@@ -1245,6 +1261,7 @@ async fn copy_recovery_cd() -> String {
 	format!("success in copying recovery CD")
 }
 
+//calculate the number of encryption shards currently on the inserted CD/DVD
 #[tauri::command]
 async fn calculate_number_of_shards_cd() -> u32 {
 	let mut x = 0;
@@ -1254,6 +1271,7 @@ async fn calculate_number_of_shards_cd() -> u32 {
 	return x;
 }
 
+//calculate the number of encryption shards currently in the ramdisk
 #[tauri::command]
 async fn calculate_number_of_shards_ramdisk() -> u32 {
 	let mut x = 0;
@@ -1373,29 +1391,7 @@ async fn convert_to_transfer_cd() -> String {
 }
 
 
-// fn test() {
-
-// 	println!("obtaining pid");
-// 	//obtain pid
-// 	let file = "./pid.txt";
-// 	let pid = match fs::read_to_string(file){
-// 		Ok(data) => data.replace("\n", ""),
-// 		Err(err) => return println!("error {}", err.to_string())
-// 	};
-// 	println!("pid = {}", pid);
-	
-// 	println!("killing pid");
-// 	//kill pid
-// 	let output = Command::new("kill").args(["-9", &pid]).output().unwrap();
-// 	if !output.status.success() {
-// 		// Function Fails
-// 		println!("ERROR in init iso with killing pid = {}", std::str::from_utf8(&output.stderr).unwrap());
-// 	}
-	
-// }
-
 fn main() {
-	// test();
 	let user_pass: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
     let config: RpcConfig = RpcConfig {
 	    url: "127.0.0.1:8332".to_string(),
