@@ -1068,7 +1068,7 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 
 	//create the descriptors directory inside of ramdisk
 	println!("Making descriptors dir");
-	Command::new("mkdir").args("/mnt/ramdisk/sensitive/descriptors").output().unwrap();
+	Command::new("mkdir").args(["/mnt/ramdisk/sensitive/descriptors"]).output().unwrap();
 
 	//define the blockchain param
 	println!("configuring blockchain");
