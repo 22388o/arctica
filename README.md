@@ -34,13 +34,21 @@
 
 Dev notes:
 
-First time submodule install 
+First time installation
+
+To build arctica from source first install the latest rustup toolchain
+
+clone the git repo in your home directory
+
+`git clone https://github.com/wild-kard/arctica`
+
+Navigate into the arctica directory from your home directory
+
+`cd arctica`
+
+Run the first time submodule install 
 
 `git submodule update --init --recursive`
-
-returning customer submodule update
-
-`git submodule update --recursive --remote`
 
 Install tauri dependencies
 
@@ -70,3 +78,34 @@ run the application and start following the prompts
 `cargo run`
 
 WARNING: this software overwrites external storage media and CDs without much warning, I advise you only run arctica on a dedicated machine, remove any extraneous external storage media, and only use USB sticks or SD cards and CDs you don't mind having wiped. 
+
+Installing updates
+
+submodule updates
+
+`git submodule update --recursive --remote`
+
+navigate to the front end
+
+`cd arctica-frontend`
+
+compile front end
+
+`npm run build`
+
+return to the main directory
+
+`cd ..`
+
+pull down the latest for the backend
+
+`git pull`
+
+compile binary 
+
+`cargo build`
+
+
+run the app
+
+`cargo run`
