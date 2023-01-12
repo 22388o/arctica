@@ -1,7 +1,7 @@
 <template>
     <div class="container" style="margin-top: 3rem;">
       <h2>Arctica. A secure & private Bitcoin cold storage solution</h2>
-      <p><b>WARNING:</b> this software overwrites external storage media and CDs without much warning, I advise you only run arctica on a dedicated machine, remove any extraneous external storage media, and only use USB sticks or SD cards and CDs you don't mind having wiped. </p>
+      <p><b>WARNING: this software overwrites external storage media and CDs without much warning, I advise you only run arctica on a dedicated machine, remove any extraneous external storage media, and only use USB sticks or SD cards and CDs you don't mind having wiped.</b> </p>
       <p>NOTE: A spiritual successor to <a href="https://github.com/JWWeatherman/yeticold">Yeti Cold</a>. This project is currently in alpha and not reccomended to be used for storage of funds until a beta version is released. </p>
       <p>A comprehensive technial design document can be found <a href="https://docs.google.com/document/d/1_RZysHjRNKTzPG_xDWh8-EvLn57AOlBO3d9J-_0bSRQ/edit?usp=sharing">here</a> </p>
         <p> <a href="https://www.figma.com/file/KcE9byRVhSntYcTITn1OvY/Bitcoin-Wallet-UI-Kit-(Arctica)?node-id=3350%3A85090">User Experience Design Documents </a></p>
