@@ -520,6 +520,15 @@ async fn init_iso() -> String {
 		// Function Fails
 		return format!("ERROR in init iso with copying arctica.desktop = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+
+	println!("make arctica autostart at boot")
+	Command::new("mkdir").args([&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.config/autostart")]).output().unwrap();
+	let output = Command::new("sudo").args(["cp", &("/home/".to_string()+&get_user()+"/arctica/shortcut/Arctica.desktop"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.config/autostart")]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in init iso with copying arctica.desktop = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
 	
 	println!("making arctica binary an executable");
 	let output = Command::new("sudo").args(["chmod", "+x", &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
