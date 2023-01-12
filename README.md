@@ -76,7 +76,7 @@ compile backend (you must do this if building from source)
 
 run the application and start following the prompts
 
-`cargo run`
+`sudo cargo run`
 
 <b>Installing updates</b>
 
@@ -107,4 +107,4 @@ compile binary
 
 run the app
 
-`cargo run`
+`sudo cargo run`
