@@ -1425,7 +1425,6 @@ fn main() {
         distribute_shards_sd6,
         distribute_shards_sd7,
         create_descriptor,
-        copy_descriptor,
         create_backup,
         make_backup,
         start_bitcoind,
