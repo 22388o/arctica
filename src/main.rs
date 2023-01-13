@@ -522,7 +522,7 @@ async fn init_iso() -> String {
 	}
 
 	//this may need to be removed. Might be too memory intensive for the live system OS
-	println!("make arctica autostart at boot")
+	println!("make arctica autostart at boot");
 	Command::new("mkdir").args([&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.config/autostart")]).output().unwrap();
 	let output = Command::new("sudo").args(["cp", &("/home/".to_string()+&get_user()+"/arctica/shortcut/Arctica.desktop"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.config/autostart")]).output().unwrap();
 	if !output.status.success() {
