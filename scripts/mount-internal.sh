@@ -1,5 +1,9 @@
-#mount internal drive
+#the below internal drive configurations assume a default ubuntu install on the internal disk without any 
+#custom partitioning
+#mount internal drive if nvme
 udisksctl mount --block-device /dev/nvme0n1p2
+#mount internal drive if SATA
+udisksctl mount --block-device /dev/sda2
 #remove stale symlinks
 sudo chmod 777 /home/$USER/.bitcoin
 sudo unlink /home/$USER/.bitcoin/chainstate
