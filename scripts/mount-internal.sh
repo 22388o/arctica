@@ -34,7 +34,7 @@ HOST_USER=$(ls /media/$USER/$UUID/home)
 sudo chmod 777 /media/ubuntu/$UUID/home/$HOST_USER
 
 #make local internal bitcoin dotfile
-mkdir --parents /media/ubuntu/$UUID/.bitcoin/blocks /media/ubuntu/$UUID/.bitcoin/chainstate	
+sudo mkdir --parents /media/ubuntu/$UUID/.bitcoin/blocks /media/ubuntu/$UUID/.bitcoin/chainstate	
 
 #create symlinks
 ln -s /media/$USER/$UUID/home/$HOST_USER/.bitcoin/chainstate /home/$USER/.bitcoin
