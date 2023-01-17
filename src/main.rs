@@ -1113,6 +1113,18 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 
 }
 
+#[tauri::command]
+async fn copy_descriptor() -> String {
+	//copy descriptors from setupCD dump to sensitive dir
+	let output = Command::new("cp").args(["-r", "/mnt/ramdisk/CDROM/descriptors", "/mnt/ramdisk/sensitive"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in copying descriptors = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in copying descriptors")
+}
+
 //Create a backup directory of the currently inserted SD card
 #[tauri::command]
 async fn create_backup(number: String) -> String {
@@ -1155,11 +1167,9 @@ async fn make_backup(number: String) -> String {
 	Command::new("sleep").args(["4"]).output().unwrap();
 	//wipe the CD
 	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
-	let output = Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in making backup with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
+	//we don't mind if this fails, CD-Rs will fail this script always
+	Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
+
 	//burn setupCD iso to the backup CD
 	let output = Command::new("sudo").args(["wodim", "dev=/dev/sr0", "-v", "-data", &("/mnt/ramdisk/backup".to_string()+&number+".iso")]).output().unwrap();
 	if !output.status.success() {
@@ -1435,6 +1445,7 @@ fn main() {
         distribute_shards_sd6,
         distribute_shards_sd7,
         create_descriptor,
+		copy_descriptor,
         create_backup,
         make_backup,
         start_bitcoind,
