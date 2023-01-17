@@ -1108,6 +1108,10 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 	println!("storing low descriptor");
 	store_descriptor(low_descriptor, low_file_dest);
 
+	//copy descriptors to setup CD dir
+	Command::new("cp").args(["-r", "/mnt/ramdisk/sensitive/descriptors", "/mnt/ramdisk/CDROM/"]).output().unwrap();
+
+
 
 	Ok(format!("SUCCESS in creating descriptors"))
 
