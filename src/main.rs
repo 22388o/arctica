@@ -713,10 +713,6 @@ async fn create_setup_cd() -> String {
 //copy the contents of the currently inserted CD to the ramdisk /mnt/ramdisk/CDROM
 #[tauri::command]
 async fn copy_cd_to_ramdisk() -> String {
-	//mount CD if not auto mounted
-	//note: these lines are useless so long as read_cd is executing and finds nothing at /media/$USER/CDROM
-	// Command::new("sudo").args(["mkdir", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
-	// Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
 	//copy cd contents to ramdisk
 	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/CDROM"), "/mnt/ramdisk"]).output().unwrap();
 	if !output.status.success() {
@@ -831,6 +827,10 @@ async fn create_ramdisk() -> String {
 fn read_cd() -> std::string::String {
     // sleep for 4 seconds
 	Command::new("sleep").args(["4"]).output().unwrap();
+	//mount CD if not automounted
+	Command::new("sudo").args(["mkdir", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
+	Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
+	//check for config
     let config_file = "/media/".to_string()+&get_user()+"/CDROM/config.txt";
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
