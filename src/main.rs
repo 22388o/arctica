@@ -730,6 +730,19 @@ async fn copy_cd_to_ramdisk() -> String {
 	format!("SUCCESS in coyping CD contents")
 }
 
+//eject the current disc
+#[tauri::command]
+async fn eject_cd() -> String {
+	//copy cd contents to ramdisk
+	let output = Command::new("sudo").args(["eject", "/dev/sr0"]).output().unwrap();
+	if !output.status.success() {
+    	// Function Fails
+    	return format!("ERROR in ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+    }
+
+	format!("SUCCESS in ejecting CD")
+}
+
 //pack up and encrypt the contents of the sensitive directory in ramdisk into an encrypted directory on the current SD card
 #[tauri::command]
 async fn packup() -> String {
@@ -1428,6 +1441,7 @@ fn main() {
         create_setup_cd,
         read_cd,
         copy_cd_to_ramdisk,
+		eject_cd,
         init_iso,
         async_write,
         read,
