@@ -554,14 +554,6 @@ async fn init_iso() -> String {
 		return format!("ERROR in init iso with extracting bitcoin core = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	println!("making local internal bitcoin dotfile");
-	//make local internal bitcoin dotfile
-	let output = Command::new("mkdir").args(["--parents", &("/home/".to_string()+&get_user()+"/.bitcoin/blocks"), &("/home/".to_string()+&get_user()+"/.bitcoin/chainstate")]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in init iso with making local .bitcoin dir = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-
 	println!("create target device .bitcoin dir");
 	//create target device .bitcoin dir
 	let output = Command::new("mkdir").args([&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.bitcoin")]).output().unwrap();
@@ -874,6 +866,10 @@ async fn async_write(name: &str, value: &str) -> Result<String, String> {
 
 #[tauri::command]
 async fn mount_internal() -> String {
+	println!("making local internal bitcoin dotfile");
+	//make local internal bitcoin dotfile
+	Command::new("mkdir").args(["--parents", &("/home/".to_string()+&get_user()+"/.bitcoin/blocks"), &("/home/".to_string()+&get_user()+"/.bitcoin/chainstate")]).output().unwrap();
+	
 	println!("mounting internal storage and symlinking .bitcoin dirs");
 	let output = Command::new("bash")
 		.args(["/home/".to_string()+&get_user()+"/scripts/mount-internal.sh"])
