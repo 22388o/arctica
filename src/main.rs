@@ -713,6 +713,9 @@ async fn create_setup_cd() -> String {
 //copy the contents of the currently inserted CD to the ramdisk /mnt/ramdisk/CDROM
 #[tauri::command]
 async fn copy_cd_to_ramdisk() -> String {
+	//mount CD if not auto mounted
+	Command::new("sudo").args(["mkdir", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
+	Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")])
 	//copy cd contents to ramdisk
 	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/CDROM"), "/mnt/ramdisk"]).output().unwrap();
 	if !output.status.success() {
@@ -866,10 +869,6 @@ async fn async_write(name: &str, value: &str) -> Result<String, String> {
 
 #[tauri::command]
 async fn mount_internal() -> String {
-	println!("making local internal bitcoin dotfile");
-	//make local internal bitcoin dotfile
-	Command::new("mkdir").args(["--parents", &("/home/".to_string()+&get_user()+"/.bitcoin/blocks"), &("/home/".to_string()+&get_user()+"/.bitcoin/chainstate")]).output().unwrap();
-	
 	println!("mounting internal storage and symlinking .bitcoin dirs");
 	let output = Command::new("bash")
 		.args(["/home/".to_string()+&get_user()+"/scripts/mount-internal.sh"])
