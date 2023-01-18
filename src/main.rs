@@ -338,27 +338,35 @@ async fn get_address_high_wallet() -> String {
 }
 // bdk::wallet::Balance
 #[tauri::command]
-async fn get_balance_low_wallet() -> String {
+async fn get_balance_low_wallet() -> u64 {
 	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/low_descriptor").expect("Error reading reading low descriptor from file");
 	println!("desc = {}", desc);
 	let wallet: Wallet<MemoryDatabase> = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to build low lvl wallet");
-	return wallet.get_balance().expect("could not get low balance").to_string()
+	// let balance = wallet.get_balance().expect("could not get low balance");
+	// return get_total(balance)
+	return wallet.get_balance().expect("could not get low balance")
 }
 
 #[tauri::command]
-async fn get_balance_med_wallet() -> String {
+async fn get_balance_med_wallet() -> u64 {
 	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
 	println!("desc = {}", desc);
 	let wallet: Wallet<MemoryDatabase> = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to build med lvl wallet");
-	return wallet.get_balance().expect("could not get med balance").to_string()
+	// let balance = wallet.get_balance().expect("could not get med balance");
+	// return get_total(balance)
+	return wallet.get_balance().expect("could not get med balance")
+
 }
 
 #[tauri::command]
-async fn get_balance_high_wallet() -> String {
+async fn get_balance_high_wallet() -> u64 {
 	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/high_descriptor").expect("Error reading reading high descriptor from file");
 	println!("desc = {}", desc);
 	let wallet: Wallet<MemoryDatabase> = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to build high lvl wallet");
-	return wallet.get_balance().expect("could not get high balance").to_string()
+	// let balance = wallet.get_balance().expect("could not get high balance");
+	// return get_total(balance)
+	return wallet.get_balance().expect("could not get high balance")
+
 }
 
 
