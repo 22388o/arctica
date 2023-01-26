@@ -31,7 +31,7 @@ use std::process::Stdio;
 use std::io::BufReader;
 use std::any::type_name;
 
-struct TauriState(Mutex<RpcConfig>, Mutex<Wallet<MemoryDatabase>>, Mutex<Wallet<MemoryDatabase>>, Mutex<Wallet<MemoryDatabase>>);
+struct TauriState(Mutex<Option<RpcConfig>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>);
 
 //helper function
 fn print_rust(data: &str) -> String {
@@ -314,84 +314,63 @@ fn build_low_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::PublicKe
 // }
 
 #[tauri::command]
-async fn init_low_wallet(state: State<'_, TauriState>) -> String {
-	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/low_descriptor").expect("Error reading reading low descriptor from file");
-	println!("desc = {}", desc);
-	*state.1.lock().unwrap() = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).unwrap();
-	return "Completed initializing low wallet with no problems".to_string()
+fn init_low_wallet(state: State<'_, TauriState>) -> String {
+    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/low_descriptor").expect("Error reading reading low descriptor from file");
+    println!("desc = {}", desc);
+    *state.3.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
+    return "Completed initializing low wallet with no problems".to_string()
 }
 
 #[tauri::command]
-async fn init_med_wallet(state: State<'_, TauriState>) -> String {
-	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
-	println!("desc = {}", desc);
-	*state.2.lock().unwrap() = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).unwrap();
-	return "Completed initializing med wallet with no problems".to_string()
+fn init_med_wallet(state: State<'_, TauriState>) -> String {
+    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
+    println!("desc = {}", desc);
+    *state.2.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
+    return "Completed initializing med wallet with no problems".to_string()
 }
 
 #[tauri::command]
-async fn init_high_wallet(state: State<'_, TauriState>) -> String {
-	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/high_descriptor").expect("Error reading reading high descriptor from file");
-	println!("desc = {}", desc);
-	*state.3.lock().unwrap() = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).unwrap();
-	return "Completed initializing high wallet with no problems".to_string()
-}
-
-
-#[tauri::command]
-async fn get_address_low_wallet() -> String {
-	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/low_descriptor").expect("Error reading reading low descriptor from file");
-	println!("desc = {}", desc);
-	let wallet: Wallet<MemoryDatabase> = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to build low lvl wallet");
-	return wallet.get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string()
+fn init_high_wallet(state: State<'_, TauriState>) -> String {
+    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/high_descriptor").expect("Error reading reading high descriptor from file");
+    println!("desc = {}", desc);
+    *state.1.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
+    return "Completed initializing high wallet with no problems".to_string()
 }
 
 #[tauri::command]
-async fn get_address_med_wallet(state: State<'_, TauriState>) -> String {
-	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
-	println!("desc = {}", desc);
-	let wallet: &Wallet<MemoryDatabase> = &*state.1.lock().unwrap();
-	return wallet.get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string()
+fn get_address_low_wallet(state: State<'_, TauriState>) -> String {
+	return state.3.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
 }
 
 #[tauri::command]
-async fn get_address_high_wallet() -> String {
-	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/high_descriptor").expect("Error reading reading high descriptor from file");
-	println!("desc = {}", desc);
-	let wallet: Wallet<MemoryDatabase> = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to build high lvl wallet");
-	return wallet.get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string()
+fn get_address_med_wallet(state: State<'_, TauriState>) -> String {
+	return state.2.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
 }
-// bdk::wallet::Balance
+
 #[tauri::command]
-async fn get_balance_low_wallet() -> u64 {
-	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/low_descriptor").expect("Error reading reading low descriptor from file");
-	println!("desc = {}", desc);
-	let wallet: Wallet<MemoryDatabase> = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to build low lvl wallet");
-	let balance = wallet.get_balance().expect("could not get low balance");
+fn get_address_high_wallet(state: State<'_, TauriState>) -> String {
+	return state.1.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
+}
+
+#[tauri::command]
+fn get_balance_low_wallet(state: State<'_, TauriState>) -> u64 {
+	let balance = state.3.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
+    let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
+    return total
+}
+
+#[tauri::command]
+fn get_balance_med_wallet(state: State<'_, TauriState>) -> u64 {
+	let balance = state.2.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
+    let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
+    return total
+}
+
+#[tauri::command]
+fn get_balance_high_wallet(state: State<'_, TauriState>) -> u64 {
+	let balance = state.1.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
 	let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
 	return total
-}
-
-#[tauri::command]
-async fn get_balance_med_wallet(state: State<'_, TauriState>) -> u64 {
-	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
-	println!("desc = {}", desc);
-	let wallet: &Wallet<MemoryDatabase> = &*state.1.lock().unwrap();
-	let balance = wallet.get_balance().expect("could not get med balance");
-	let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
-	return total
-
-}
-
-#[tauri::command]
-async fn get_balance_high_wallet() -> u64 {
-	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/high_descriptor").expect("Error reading reading high descriptor from file");
-	println!("desc = {}", desc);
-	let wallet: Wallet<MemoryDatabase> = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("failed to build high lvl wallet");
-	let balance = wallet.get_balance().expect("could not get high balance");
-	let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
-	return total
-
 }
 
 
@@ -1167,7 +1146,7 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 
 	//define the blockchain param
 	println!("configuring blockchain");
-	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+	let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
 	
 	//build the high security descriptor
 	println!("building high descriptor");
@@ -1520,7 +1499,7 @@ fn main() {
 	// };
 
   	tauri::Builder::default()
-  	.manage(TauriState(Mutex::new(config), Mutex::new(Wallet), Mutex::new(Wallet), Mutex::new(Wallet)))
+  	.manage(TauriState(Mutex::new(Some(config)), Mutex::new(None), Mutex::new(None), Mutex::new(None)))
   	.invoke_handler(tauri::generate_handler![
         test_function,
         create_bootable_usb,
