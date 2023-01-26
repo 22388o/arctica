@@ -6,7 +6,10 @@
 use bitcoincore_rpc::RpcApi;
 use bitcoincore_rpc::Auth;
 use bitcoin;
-use bdk::{Wallet};
+use bitcoin::Address;
+use bitcoin::consensus::serialize;
+use bitcoin::psbt::PartiallySignedTransaction;
+use bdk::{FeeRate, Wallet, SyncOptions};
 use bdk::database::MemoryDatabase;
 use bdk::wallet::AddressIndex::New;
 use bitcoincore_rpc::Client;
@@ -167,6 +170,15 @@ fn store_descriptor(descriptor: String, file_name: String) -> Result<String, Str
 		Err(err) => return Err(err.to_string()),
 	};
 	fileRef.write_all(&descriptor.to_string().as_bytes());
+	Ok(format!("SUCCESS stored with no problems"))
+}
+
+fn store_psbt(psbt: &PartiallySignedTransaction, file_name: String) -> Result<String, String> {
+	let mut fileRef = match std::fs::File::create(file_name) {
+		Ok(file) => file,
+		Err(err) => return Err(err.to_string()),
+	};
+	fileRef.write_all(&psbt.to_string().as_bytes());
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
@@ -371,6 +383,25 @@ fn get_balance_high_wallet(state: State<'_, TauriState>) -> u64 {
 	let balance = state.1.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
 	let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
 	return total
+}
+
+#[tauri::command]
+fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amount: u64, fee: f32) -> Result<String, bdk::Error> {
+	Command::new("mkdir").args(["/mnt/ramdisk/psbt"]).output().unwrap();
+	let file_dest = "/mnt/ramdisk/psbt".to_string();
+	let wallet = state.2.lock().unwrap().as_mut().expect("wallet has not been init");
+	let (psbt, details) = {
+		let mut builder = wallet.build_tx();
+		builder
+			.add_recipient(Address::from_str(&recipient).unwrap().script_pubkey(), amount)
+			.enable_rbf()
+			.do_not_spend_change()
+			.fee_rate(FeeRate::from_sat_per_vb(fee as f32));
+		builder.finish()?
+	};
+
+	store_psbt(&psbt, file_dest);
+	Ok(format!("PSBT: {}, Transaction Details: {:#?}", psbt, details))
 }
 
 
@@ -1148,19 +1179,19 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 	println!("configuring blockchain");
 	let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
 	
-	//build the high security descriptor
+	//build the delayed wallet descriptor
 	println!("building high descriptor");
 	let high_descriptor = build_high_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
 	let high_file_dest = "/mnt/ramdisk/sensitive/descriptors/high_descriptor".to_string();
-	//store the high security descriptor in the sensitive dir
+	//store the delayed wallet descriptor in the sensitive dir
 	println!("storing high descriptor");
 	store_descriptor(high_descriptor, high_file_dest);
 
-	//build the med security descriptor
+	//build the immediate wallet descriptor
 	println!("building med descriptor");
 	let med_descriptor = build_med_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
 	let med_file_dest = "/mnt/ramdisk/sensitive/descriptors/med_descriptor".to_string();
-	//store the med security descriptor in the sensitive dir
+	//store the immediate wallet descriptor in the sensitive dir
 	println!("storing med descriptor");
 	store_descriptor(med_descriptor, med_file_dest);
 
@@ -1488,15 +1519,6 @@ fn main() {
 	    wallet_name: "wallet_name".to_string(),
 	    sync_params: None,
 	};
-	// let wallet: Wallet<MemoryDatabase> = Wallet { 
-	// 	descriptor: val, 
-	// 	change_descriptor: val, 
-	// 	signers: val, 
-	// 	change_signers: val, 
-	// 	network: val, 
-	// 	database: val, 
-	// 	secp: val 
-	// };
 
   	tauri::Builder::default()
   	.manage(TauriState(Mutex::new(Some(config)), Mutex::new(None), Mutex::new(None), Mutex::new(None)))
