@@ -1569,7 +1569,8 @@ fn main() {
 		get_address_high_wallet,
 		get_balance_low_wallet,
 		get_balance_med_wallet,
-		get_balance_high_wallet
+		get_balance_high_wallet,
+		generate_psbt_med_wallet,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
