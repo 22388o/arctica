@@ -404,14 +404,14 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 		match builder.finish() {
 			Ok(f) => f,
 			Err(e) => {
-				return Err(e.to_string())
+				return Ok(Err(e.to_string()))
 			}
 		}
 	};
 
 		match store_psbt(&psbt, file_dest) {
 		Ok(_) => {},
-		Err(err) => return "ERROR could not store PSBT: ".to_string()+&err
+		Err(err) => return Ok("ERROR could not store PSBT: ".to_string()+&err)
 		};
 
 	Ok(format!("PSBT: {}, Transaction Details: {:#?}", psbt, details))
