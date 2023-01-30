@@ -404,14 +404,14 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 		match builder.finish() {
 			Ok(f) => f,
 			Err(e) => {
-				return Ok(Err(e.to_string()))
+				return Err(e.to_string())
 			}
 		}
 	};
 
 		match store_psbt(&psbt, file_dest) {
 		Ok(_) => {},
-		Err(err) => return Ok("ERROR could not store PSBT: ".to_string()+&err)
+		Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
 		};
 
 	Ok(format!("PSBT: {}, Transaction Details: {:#?}", psbt, details))
@@ -1200,7 +1200,7 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 	println!("storing high descriptor");
 	match store_descriptor(high_descriptor, high_file_dest) {
 		Ok(_) => {},
-		Err(err) => return "ERROR could not store High Descriptor: ".to_string()+&err
+		Err(err) => return Err("ERROR could not store High Descriptor: ".to_string()+&err)
 	};
 	
 
@@ -1212,7 +1212,7 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 	println!("storing med descriptor");
 	match store_descriptor(med_descriptor, med_file_dest) {
 		Ok(_) => {},
-		Err(err) => return "ERROR could not store Med Descriptor: ".to_string()+&err
+		Err(err) => return Err("ERROR could not store Med Descriptor: ".to_string()+&err)
 	};
 
 	//build the low security descriptor
@@ -1223,7 +1223,7 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 	println!("storing low descriptor");
 	match store_descriptor(low_descriptor, low_file_dest) {
 		Ok(_) => {},
-		Err(err) => return "ERROR could not store Low Descriptor: ".to_string()+&err
+		Err(err) => return Err("ERROR could not store Low Descriptor: ".to_string()+&err)
 	};
 
 	//copy descriptors to setup CD dir
