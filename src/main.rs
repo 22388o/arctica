@@ -409,7 +409,11 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 		}
 	};
 
-	store_psbt(&psbt, file_dest).expect("error storing the psbt");
+		match store_psbt(&psbt, file_dest) {
+		Ok(_) => {},
+		Err(err) => return "ERROR could not store PSBT: ".to_string()+&err
+		};
+
 	Ok(format!("PSBT: {}, Transaction Details: {:#?}", psbt, details))
 }
 
@@ -1194,7 +1198,11 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 	let high_file_dest = "/mnt/ramdisk/sensitive/descriptors/high_descriptor".to_string();
 	//store the delayed wallet descriptor in the sensitive dir
 	println!("storing high descriptor");
-	store_descriptor(high_descriptor, high_file_dest);
+	match store_descriptor(high_descriptor, high_file_dest) {
+		Ok(_) => {},
+		Err(err) => return "ERROR could not store High Descriptor: ".to_string()+&err
+	};
+	
 
 	//build the immediate wallet descriptor
 	println!("building med descriptor");
@@ -1202,7 +1210,10 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 	let med_file_dest = "/mnt/ramdisk/sensitive/descriptors/med_descriptor".to_string();
 	//store the immediate wallet descriptor in the sensitive dir
 	println!("storing med descriptor");
-	store_descriptor(med_descriptor, med_file_dest);
+	match store_descriptor(med_descriptor, med_file_dest) {
+		Ok(_) => {},
+		Err(err) => return "ERROR could not store Med Descriptor: ".to_string()+&err
+	};
 
 	//build the low security descriptor
 	println!("building low descriptor");
@@ -1210,7 +1221,10 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 	let low_file_dest = "/mnt/ramdisk/sensitive/descriptors/low_descriptor".to_string();
 	//store the low security descriptor in the sensitive dir
 	println!("storing low descriptor");
-	store_descriptor(low_descriptor, low_file_dest);
+	match store_descriptor(low_descriptor, low_file_dest) {
+		Ok(_) => {},
+		Err(err) => return "ERROR could not store Low Descriptor: ".to_string()+&err
+	};
 
 	//copy descriptors to setup CD dir
 	Command::new("cp").args(["-r", "/mnt/ramdisk/sensitive/descriptors", "/mnt/ramdisk/CDROM/"]).output().unwrap();
