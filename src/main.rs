@@ -391,6 +391,8 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
 	let file_dest = "/mnt/ramdisk/psbt".to_string();
 	// let wallet = state.2.lock().unwrap().as_mut().expect("wallet has not been init");
+	//had difficulty bringing in state here and making it live long enough after unwrapping to use inside of builder
+	//re-initializing wallet for now below
 	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
 	let (psbt, details) = {
 		let mut builder = wallet.build_tx();
@@ -399,10 +401,15 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 			.enable_rbf()
 			.do_not_spend_change()
 			.fee_rate(FeeRate::from_sat_per_vb(fee as f32));
-		builder.finish()
+		match builder.finish() {
+			Ok(f) => f,
+			Err(e) => {
+				return Err(e.to_string())
+			}
+		}
 	};
 
-	store_psbt(&psbt, file_dest);
+	store_psbt(&psbt, file_dest).expect("error storing the psbt");
 	Ok(format!("PSBT: {}, Transaction Details: {:#?}", psbt, details))
 }
 
