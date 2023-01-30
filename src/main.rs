@@ -386,10 +386,12 @@ fn get_balance_high_wallet(state: State<'_, TauriState>) -> u64 {
 }
 
 #[tauri::command]
-fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amount: u64, fee: f32) -> Result<String, bdk::Error> {
+fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amount: u64, fee: f32) -> Result<String, String> {
 	Command::new("mkdir").args(["/mnt/ramdisk/psbt"]).output().unwrap();
+	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
 	let file_dest = "/mnt/ramdisk/psbt".to_string();
-	let wallet = state.2.lock().unwrap().as_mut().expect("wallet has not been init");
+	// let wallet = state.2.lock().unwrap().as_mut().expect("wallet has not been init");
+	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
 	let (psbt, details) = {
 		let mut builder = wallet.build_tx();
 		builder
@@ -397,7 +399,7 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 			.enable_rbf()
 			.do_not_spend_change()
 			.fee_rate(FeeRate::from_sat_per_vb(fee as f32));
-		builder.finish()?
+		builder.finish()
 	};
 
 	store_psbt(&psbt, file_dest);
