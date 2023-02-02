@@ -440,7 +440,6 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 		builder
 			.add_recipient(Address::from_str(&recipient).unwrap().script_pubkey(), amount)
 			.enable_rbf()
-			.do_not_spend_change()
 			.fee_rate(FeeRate::from_sat_per_vb(fee as f32))
 			.policy_path(path, KeychainKind::External);
 		match builder.finish() {
@@ -1642,7 +1641,6 @@ fn main() {
         convert_to_transfer_cd,
 		generate_store_key_pair,
 		generate_store_simulated_time_machine_key_pair,
-		recover_key_pair,
 		init_low_wallet,
 		init_med_wallet,
 		init_high_wallet,
