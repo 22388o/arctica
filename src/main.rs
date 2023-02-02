@@ -9,9 +9,13 @@ use bitcoin;
 use bitcoin::Address;
 use bitcoin::consensus::serialize;
 use bitcoin::psbt::PartiallySignedTransaction;
-use bdk::{FeeRate, Wallet, SyncOptions};
+use bdk::{FeeRate, Wallet, SyncOptions, KeychainKind};
 use bdk::database::MemoryDatabase;
 use bdk::wallet::AddressIndex::New;
+use bdk::descriptor::ExtractPolicy;
+use bdk::signer::SignersContainer;
+use bdk::descriptor::IntoWalletDescriptor;
+use bdk::descriptor::policy::BuildSatisfaction;
 use bitcoincore_rpc::Client;
 use bdk::blockchain::ConfigurableBlockchain;
 use bdk::blockchain::rpc::RpcBlockchain;
@@ -25,6 +29,7 @@ use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::str::FromStr;
+use std::collections::BTreeMap;
 use home::home_dir;
 use secp256k1::{rand, Secp256k1, SecretKey};
 use tauri::State;
@@ -316,14 +321,6 @@ fn build_low_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::PublicKe
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&descriptor).unwrap().to_string())
 }
 
-// #[tauri::command]
-// fn generate_wallet(state: State<TauriState>) -> String {
-// 	let blockchain = RpcBlockchain::from_config(&*state.0.lock().unwrap()).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-// 	*state.1.lock().unwrap() = build_high_descriptor(&blockchain, ).expect("failed to bulid high lvl descriptor");
-// 	*state.2.lock().unwrap() = build_med_descriptor(&blockchain).expect("failed to bulid med lvl descriptor");
-// 	*state.3.lock().unwrap() = build_low_descriptor(&blockchain).expect("failed to bulid low lvl descriptor");
-// 	return "Completed With No Problems".to_string()
-// }
 
 #[tauri::command]
 fn init_low_wallet(state: State<'_, TauriState>) -> String {
@@ -366,41 +363,62 @@ fn get_address_high_wallet(state: State<'_, TauriState>) -> String {
 
 #[tauri::command]
 fn get_balance_low_wallet(state: State<'_, TauriState>) -> u64 {
+	//retrieve the wallet from state and fetch the balance
 	let balance = state.3.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
+	//calculate the total wallet balance, including unconfirmed transactions
     let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
     return total
 }
 
 #[tauri::command]
 fn get_balance_med_wallet(state: State<'_, TauriState>) -> u64 {
+	//retrieve the wallet from state and fetch the balance
 	let balance = state.2.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
+	//calculate the total wallet balance, including unconfirmed transactions
     let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
     return total
 }
 
 #[tauri::command]
 fn get_balance_high_wallet(state: State<'_, TauriState>) -> u64 {
+	//retrieve the wallet from state and fetch the balance
 	let balance = state.1.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
+	//calculate the total wallet balance, including unconfirmed transactions
 	let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
 	return total
 }
 
 #[tauri::command]
 fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amount: u64, fee: f32) -> Result<String, String> {
+	//create the directory where the PSBT will live
 	Command::new("mkdir").args(["/mnt/ramdisk/psbt"]).output().unwrap();
+	//read the descriptor into memory
 	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
+	//declare the destination for the PSBT file
 	let file_dest = "/mnt/ramdisk/psbt".to_string();
-	// let wallet = state.2.lock().unwrap().as_mut().expect("wallet has not been init");
-	//had difficulty bringing in state here and making it live long enough after unwrapping to use inside of builder
-	//re-initializing wallet for now below
+	//init the wallet
 	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
+	//need to parse spend_policy below to find the correct policy IDs
+	let spend_policy = match wallet.policies(KeychainKind::External) {
+		Ok(f) => f,
+		Err(e) => {
+			return Err(e.to_string())
+		}
+	};
+	//init the policy path
+	let mut path = BTreeMap::new();
+	//insert the correct policy IDs here from spend_policy parsing, currently hard coded
+	path.insert("02z7vszq".to_string(), vec![0, 1]);
+
+	//build the transaction
 	let (psbt, details) = {
 		let mut builder = wallet.build_tx();
 		builder
 			.add_recipient(Address::from_str(&recipient).unwrap().script_pubkey(), amount)
 			.enable_rbf()
 			.do_not_spend_change()
-			.fee_rate(FeeRate::from_sat_per_vb(fee as f32));
+			.fee_rate(FeeRate::from_sat_per_vb(fee as f32))
+			.policy_path(path, KeychainKind::External);
 		match builder.finish() {
 			Ok(f) => f,
 			Err(e) => {
@@ -408,7 +426,7 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 			}
 		}
 	};
-
+	//store the transaction as a file
 		match store_psbt(&psbt, file_dest) {
 		Ok(_) => {},
 		Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
@@ -419,15 +437,13 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 
 
 #[tauri::command]
+//for testing only
 async fn test_function() -> String {
-	let file = File::create("/home/".to_string()+&get_user()+"/testfile.txt").unwrap();
-	let output = Command::new("echo").args(["file contents go here" ]).stdout(file).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in test function = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
+	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
+	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
+	let spend_policy = wallet.policies(KeychainKind::External);
 
-	format!("SUCCESS in test function")
+	format!("{:?}", spend_policy)
 }
 
 
@@ -500,7 +516,7 @@ async fn init_iso() -> String {
 	if !exists {
 		return format!("ERROR in running sed1, script completed but did not create iso");
 	}
-
+	//modify ubuntu iso to have a shorter timeout at boot screen
 	println!("modifying ubuntu iso timeout");
 	let output = Command::new("bash").args([&(get_home()+"/arctica/scripts/sed2.sh")]).output().unwrap();
 	if !output.status.success() {
@@ -516,7 +532,7 @@ async fn init_iso() -> String {
 	Command::new("sudo").args(["rm", "persistent-ubuntu1.iso"]).output().unwrap();
 
 	println!("fallocate persistent iso");
-	//fallocate persistent iso
+	//fallocate persistent iso, creates a 7GB image. Image size determines final storage space allocated to writable
 	let output = Command::new("fallocate").args(["-l", "7GiB", "persistent-ubuntu.iso"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
@@ -627,6 +643,7 @@ async fn init_iso() -> String {
 
 	
 	println!("making arctica binary an executable");
+	//make the binary an executable file
 	let output = Command::new("sudo").args(["chmod", "+x", &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
