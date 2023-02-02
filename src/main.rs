@@ -42,20 +42,27 @@ use std::any::type_name;
 struct TauriState(Mutex<Option<RpcConfig>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>);
 
 //helper function
+//only useful when running the application in a dev envrionment
+//prints & error messages must be passed to the front end in a promise when running from a precompiled binary
 fn print_rust(data: &str) -> String {
 	println!("input = {}", data);
 	format!("completed with no problems")
 }
 
 //helper function
+//determine the data type of the provided variable
 fn type_of<T>(_: &T) -> &'static str{
 	type_name::<T>()
 }
 
 //helper function
+//get the current user
 fn get_user() -> String {
 	home_dir().unwrap().to_str().unwrap().to_string().split("/").collect::<Vec<&str>>()[2].to_string()
 }
+
+//helper function
+//get the current $HOME path
 fn get_home() -> String {
 	home_dir().unwrap().to_str().unwrap().to_string()
 }
@@ -76,6 +83,8 @@ fn copy_shards_to_ramdisk() {
 	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard11.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
 }
 
+//helper function
+//update the config.txt with the provided params
 fn write(name: String, value:String) {
 	let mut config_file = home_dir().expect("could not get home directory");
     config_file.push("config.txt");
@@ -118,6 +127,8 @@ fn write(name: String, value:String) {
 
 
 #[tauri::command]
+//current the config currently in $HOME
+//conditional logic that determines application state is set by the front end after reading is completed
 fn read() -> std::string::String {
     let mut config_file = home_dir().expect("could not get home directory");
     println!("{}", config_file.display());
@@ -139,18 +150,24 @@ fn read() -> std::string::String {
     format!("{}", contents)
 }
 
+//helper function
+//used to generate an XPRIV
 fn generate_private_key() -> Result<bitcoin::PrivateKey, bitcoin::Error> {
 	let secp = Secp256k1::new();
 	let secret_key = SecretKey::new(&mut rand::thread_rng());
 	Ok(bitcoin::PrivateKey::new(secret_key, bitcoin::Network::Bitcoin))
 }
 
+//helper function
+//used to derive an XPUB from an XPRIV
 fn derive_public_key(private_key: bitcoin::PrivateKey) -> Result<bitcoin::PublicKey, bitcoin::Error>  {
 	let secp = Secp256k1::new();
 	let secret_key = SecretKey::new(&mut rand::thread_rng());
 	Ok(bitcoin::PublicKey::from_private_key(&secp, &private_key))
 }
 
+//helper function
+//used to store the XPRIV as a file
 fn store_private_key(private_key: bitcoin::PrivateKey, file_name: String) -> Result<String, String> {
 	let mut fileRef = match std::fs::File::create(file_name) {
 		Ok(file) => file,
@@ -160,6 +177,8 @@ fn store_private_key(private_key: bitcoin::PrivateKey, file_name: String) -> Res
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
+//helper function
+//used to store the XPUB as a file
 fn store_public_key(public_key: bitcoin::PublicKey, file_name: String) -> Result<String, String> {
 	let mut fileRef = match std::fs::File::create(file_name) {
 		Ok(file) => file,
@@ -169,6 +188,8 @@ fn store_public_key(public_key: bitcoin::PublicKey, file_name: String) -> Result
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
+//helper function
+//used to store the miniscript descriptor as a file
 fn store_descriptor(descriptor: String, file_name: String) -> Result<String, String> {
 	let mut fileRef = match std::fs::File::create(file_name) {
 		Ok(file) => file,
@@ -178,6 +199,8 @@ fn store_descriptor(descriptor: String, file_name: String) -> Result<String, Str
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
+//helper function
+//used to store the generated PSBT as a file
 fn store_psbt(psbt: &PartiallySignedTransaction, file_name: String) -> Result<String, String> {
 	let mut fileRef = match std::fs::File::create(file_name) {
 		Ok(file) => file,
@@ -188,6 +211,7 @@ fn store_psbt(psbt: &PartiallySignedTransaction, file_name: String) -> Result<St
 }
 
 #[tauri::command]
+//generates a public and private key pair and stores them as a text file
 async fn generate_store_key_pair(number: String) -> String {
 	//number corresponds to currentSD here and is provided by the front end
 	let private_key_file = "/mnt/ramdisk/sensitive/private_key".to_string()+&number;
@@ -259,7 +283,7 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 	format!("SUCCESS generated and stored Private and Public Key Pair")
 }
 
-//deprecated
+//deprecated, can be removed
 fn recover_private_key(file_name: String) -> Result<bitcoin::PrivateKey, String> {
 	let private_key_string = match fs::read_to_string(file_name) {
 		Ok(data) => data,
@@ -272,7 +296,7 @@ fn recover_private_key(file_name: String) -> Result<bitcoin::PrivateKey, String>
 	Ok(private_key)
 }
 
-//deprecated
+//deprecated, can be removed
 fn recover_public_key(file_name: String) -> Result<bitcoin::PublicKey, String> {
 	let public_key_string = match fs::read_to_string(file_name) {
 		Ok(data) => data,
@@ -285,22 +309,8 @@ fn recover_public_key(file_name: String) -> Result<bitcoin::PublicKey, String> {
 	Ok(public_key)
 }
 
-//deprecated
-#[tauri::command]
-async fn recover_key_pair() -> String {
-	let private_key_file = "/mnt/ramdisk/sensitive/private_key.txt".to_string();
-	let public_key_file = "/mnt/ramdisk/sensitive/private_key.txt".to_string();
-	let private_key = match recover_private_key(private_key_file) {
-		Ok(private_key) => private_key,
-		Err(err) => return "ERROR could not recover private key: ".to_string()+&err
-	};
-	let public_key = match recover_public_key(public_key_file) {
-		Ok(public_key) => public_key,
-		Err(err) => return "ERROR could not recover public key: ".to_string()+&err
-	};
-	format!("SUCCESS recovered Private/Public Key Pair")
-}
-
+//helper function
+//builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
 fn build_high_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::PublicKey>) -> Result<String, bdk::Error> {
 	let four_years = blockchain.get_height().unwrap()+210379;
 	let month = 4382;
@@ -309,13 +319,16 @@ fn build_high_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::PublicK
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&descriptor).unwrap().to_string())
 }
 
+//helper function
+//builds the medium security descriptor, 2 of 7 thresh with decay. 
 fn build_med_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::PublicKey>) -> Result<String, bdk::Error> {
 	let four_years = blockchain.get_height().unwrap()+210379;
 	let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&descriptor).unwrap().to_string())
 }
 
-
+//helper function
+//builds the low security descriptor, 1 of 7 thresh, used for tripwire
 fn build_low_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::PublicKey>) -> Result<String, bdk::Error> {
 	let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
 	Ok(miniscript::Descriptor::<bitcoin::PublicKey>::from_str(&descriptor).unwrap().to_string())
@@ -323,6 +336,7 @@ fn build_low_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::PublicKe
 
 
 #[tauri::command]
+//initialize the low security descriptor into a wallet held in state
 fn init_low_wallet(state: State<'_, TauriState>) -> String {
     let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/low_descriptor").expect("Error reading reading low descriptor from file");
     println!("desc = {}", desc);
@@ -331,6 +345,7 @@ fn init_low_wallet(state: State<'_, TauriState>) -> String {
 }
 
 #[tauri::command]
+//initialize the medium security descriptor into a wallet held in state
 fn init_med_wallet(state: State<'_, TauriState>) -> String {
     let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
     println!("desc = {}", desc);
@@ -339,6 +354,7 @@ fn init_med_wallet(state: State<'_, TauriState>) -> String {
 }
 
 #[tauri::command]
+//initialize the high security descriptor into a wallet held in state
 fn init_high_wallet(state: State<'_, TauriState>) -> String {
     let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/high_descriptor").expect("Error reading reading high descriptor from file");
     println!("desc = {}", desc);
@@ -347,21 +363,25 @@ fn init_high_wallet(state: State<'_, TauriState>) -> String {
 }
 
 #[tauri::command]
+//get a new address for the tripwire wallet
 fn get_address_low_wallet(state: State<'_, TauriState>) -> String {
 	return state.3.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
 }
 
 #[tauri::command]
+//get a new address for the immediate wallet
 fn get_address_med_wallet(state: State<'_, TauriState>) -> String {
 	return state.2.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
 }
 
 #[tauri::command]
+//get a new address for the delayed wallet
 fn get_address_high_wallet(state: State<'_, TauriState>) -> String {
 	return state.1.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
 }
 
 #[tauri::command]
+//calculate the current balance of the tripwire wallet
 fn get_balance_low_wallet(state: State<'_, TauriState>) -> u64 {
 	//retrieve the wallet from state and fetch the balance
 	let balance = state.3.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
@@ -371,6 +391,7 @@ fn get_balance_low_wallet(state: State<'_, TauriState>) -> u64 {
 }
 
 #[tauri::command]
+//calculate the current balance of the immediate wallet
 fn get_balance_med_wallet(state: State<'_, TauriState>) -> u64 {
 	//retrieve the wallet from state and fetch the balance
 	let balance = state.2.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
@@ -380,6 +401,7 @@ fn get_balance_med_wallet(state: State<'_, TauriState>) -> u64 {
 }
 
 #[tauri::command]
+//calculate the current balance of the delayed wallet
 fn get_balance_high_wallet(state: State<'_, TauriState>) -> u64 {
 	//retrieve the wallet from state and fetch the balance
 	let balance = state.1.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
@@ -389,6 +411,8 @@ fn get_balance_high_wallet(state: State<'_, TauriState>) -> u64 {
 }
 
 #[tauri::command]
+//generate a PSBT for the immediate wallet
+//will require additional logic to spend when under decay threshold
 fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amount: u64, fee: f32) -> Result<String, String> {
 	//create the directory where the PSBT will live
 	Command::new("mkdir").args(["/mnt/ramdisk/psbt"]).output().unwrap();
@@ -651,7 +675,7 @@ async fn init_iso() -> String {
 	}
 
 	println!("copying scripts library");
-	//copy over scripts library. 
+	//copy over scripts directory and its contents. 
 	let output = Command::new("cp").args(["-r", &("/home/".to_string()+&get_user()+"/arctica/scripts"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
@@ -687,12 +711,17 @@ async fn init_iso() -> String {
 }
 
 //initial flash of all 7 SD cards
+//creates a bootable usb stick or SD card that will boot into an ubuntu live system when inserted into a computer
 #[tauri::command]
 async fn create_bootable_usb(number: String, setup: String) -> String {
+	//write device type to config, values provided by front end
     write("type".to_string(), "sdcard".to_string());
+	//write sd number to config, values provided by front end
     write("sdNumber".to_string(), number.to_string());
+	//write current setup step to config, values provided by front end
     write("setupStep".to_string(), setup.to_string());
 	println!("creating bootable ubuntu device = {} {}", number, setup);
+
 	// sleep for 4 seconds
 	Command::new("sleep").args(["4"]).output().unwrap();
 	//remove old config from iso
@@ -998,6 +1027,8 @@ async fn async_write(name: &str, value: &str) -> Result<String, String> {
 }
 
 #[tauri::command]
+//mount the internal storage drive at /media/$USER/$UUID
+//and symlinks internal .bitcoin/chainstate and ./bitcoin/blocks
 async fn mount_internal() -> String {
 	println!("mounting internal storage and symlinking .bitcoin dirs");
 	let output = Command::new("bash")
@@ -1008,6 +1039,7 @@ async fn mount_internal() -> String {
 }
 
 #[tauri::command]
+//install dependencies manually from files on each of the offline SD cards (2-7)
 async fn install_sd_deps() -> String {
 	println!("installing deps required by SD card");
 	//these are required on all 7 SD cards
@@ -1033,6 +1065,7 @@ async fn install_sd_deps() -> String {
 }
 
 #[tauri::command]
+//blank and rewrite the currently inserted disc with the contents of /mnt/ramdisk/CDROM
 async fn refresh_setup_cd() -> String {
 	//create iso from setupCD dir
 	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/setupCD.iso", "/mnt/ramdisk/CDROM"]).output().unwrap();
@@ -1170,9 +1203,9 @@ async fn distribute_shards_sd7() -> String {
 }
 
 //create and store as files all 3 descriptors needed for Arctica.
-//High Descriptor is the time locked 5 of 11 with decay
-//Medium Descriptor is the 2 of 7
-//Low Descriptor is the 1 of 7
+//High Descriptor is the time locked 5 of 11 with decay (4 keys will eventually go to BPS)
+//Medium Descriptor is the 2 of 7 with decay
+//Low Descriptor is the 1 of 7 and will be used for the tripwire
 #[tauri::command]
 async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, String> {
 	println!("creating descriptors from 7 xpubs & 4 time machine keys");
@@ -1253,6 +1286,7 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 }
 
 #[tauri::command]
+//copy the descriptors obtained from the setupCD to the currently inserted SD card $HOME
 async fn copy_descriptor() -> String {
 	//copy descriptors from setupCD dump to sensitive dir
 	let output = Command::new("cp").args(["-r", "/mnt/ramdisk/CDROM/descriptors", "/mnt/ramdisk/sensitive"]).output().unwrap();
@@ -1367,6 +1401,7 @@ async fn check_for_masterkey() -> String {
 }
 
 #[tauri::command]
+//this fn is used to store decryption shards gathered from various SD cards to eventually be reconstituted into a masterkey when attempting to log in manually
 async fn create_recovery_cd() -> String {
 	println!("creating recovery CD for manual decrypting");
 	//create transferCD config
@@ -1413,6 +1448,7 @@ async fn create_recovery_cd() -> String {
 }
 
 //copy the contents of the recovery CD to ramdisk
+//may be redundant with copy_cd_to_ramdisk?
 #[tauri::command]
 async fn copy_recovery_cd() -> String {
 	Command::new("mkdir").args(["/mnt/ramdisk/shards"]).output().unwrap();
@@ -1501,7 +1537,11 @@ async fn collect_shards() -> String {
 	
 }
 
+
 #[tauri::command]
+//convert the currently inserted CD to a transfer CD which contains a masterkey
+//will likely rework these features, seems like there is little need to differentiate between transfer CD and recovery CD
+//a transfer CD without a PSBT onboard should just be treated like a recovery CD
 async fn convert_to_transfer_cd() -> String {
 	println!("converting completed recovery cd to transfer cd with masterkey");
 	//create transferCD target dir
@@ -1551,6 +1591,7 @@ async fn convert_to_transfer_cd() -> String {
 
 
 fn main() {
+	//establish RPC creds
 	let user_pass: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
     let config: RpcConfig = RpcConfig {
 	    url: "127.0.0.1:8332".to_string(),
@@ -1561,6 +1602,7 @@ fn main() {
 	};
 
   	tauri::Builder::default()
+	//export all tauri functions to be handled by the front end
   	.manage(TauriState(Mutex::new(Some(config)), Mutex::new(None), Mutex::new(None), Mutex::new(None)))
   	.invoke_handler(tauri::generate_handler![
         test_function,
