@@ -124,6 +124,13 @@ fn write(name: String, value:String) {
     file.write_all(newfile.as_bytes()).expect("Could not rewrite file");
 }
 
+//helper function
+//return the policy id of the provided wallet
+fn get_policy_id(wallet: Wallet<MemoryDatabase>) -> String {
+	if let Ok(Some(spend_policy)) = wallet.policies(KeychainKind::External){
+		format!("{}", spend_policy.id.to_string()) } else {todo!()}
+}
+
 
 
 #[tauri::command]
@@ -413,6 +420,7 @@ fn get_balance_high_wallet(state: State<'_, TauriState>) -> u64 {
 #[tauri::command]
 //generate a PSBT for the immediate wallet
 //will require additional logic to spend when under decay threshold
+//currently only generates a PSBT for Key 1 and Key 2, which are SD 1 and SD 2 respectively
 fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amount: u64, fee: f32) -> Result<String, String> {
 	//create the directory where the PSBT will live
 	Command::new("mkdir").args(["/mnt/ramdisk/psbt"]).output().unwrap();
@@ -422,17 +430,13 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 	let file_dest = "/mnt/ramdisk/psbt".to_string();
 	//init the wallet
 	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
-	//need to parse spend_policy below to find the correct policy IDs
-	let spend_policy = match wallet.policies(KeychainKind::External) {
-		Ok(f) => f,
-		Err(e) => {
-			return Err(e.to_string())
-		}
-	};
+	//need to parse spend_policy below to find the correct policy ID
+	let policy_id = get_policy_id(wallet)
 	//init the policy path
 	let mut path = BTreeMap::new();
-	//insert the correct policy IDs here from spend_policy parsing, currently hard coded
-	path.insert("02z7vszq".to_string(), vec![0, 1]);
+	//insert the correct policy IDs here from spend_policy parsing
+	//vector corresponds to an index of the keys used in the descriptor, index 0: SD 1, index 1: SD 2
+	path.insert(policy_id.to_string(), vec![0, 1]);
 
 	//build the transaction
 	let (psbt, details) = {
@@ -462,11 +466,7 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 #[tauri::command]
 //for testing only
 async fn test_function() -> String {
-	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
-	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
-	let spend_policy = wallet.policies(KeychainKind::External);
-
-	format!("{:?}", spend_policy)
+	format!("testing")
 }
 
 
