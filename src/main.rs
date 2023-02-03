@@ -10,6 +10,7 @@ use bitcoin::Address;
 use bitcoin::consensus::serialize;
 use bitcoin::psbt::PartiallySignedTransaction;
 use bdk::{FeeRate, Wallet, SyncOptions, KeychainKind};
+use bdk::{Balance, TransactionDetails};
 use bdk::database::MemoryDatabase;
 use bdk::wallet::AddressIndex::New;
 use bdk::descriptor::ExtractPolicy;
@@ -418,6 +419,15 @@ fn get_balance_high_wallet(state: State<'_, TauriState>) -> u64 {
 }
 
 #[tauri::command]
+//retrieve the current transaction history for the immediate wallet
+fn get_transactions_med_wallet(state: State<'_, TauriState>) -> Vec<TransactionDetails> {
+	//retrieve the wallet from state and fetch the transactions
+	let transactions = state.2.lock().unwrap().as_mut().expect("wallet has not been init").list_transactions(true).expect("could not get transactions");
+	//calculate the total wallet balance, including unconfirmed transactions
+	return transactions
+}
+
+#[tauri::command]
 //generate a PSBT for the immediate wallet
 //will require additional logic to spend when under decay threshold
 //currently only generates a PSBT for Key 1 and Key 2, which are SD 1 and SD 2 respectively
@@ -428,10 +438,11 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
 	//declare the destination for the PSBT file
 	let file_dest = "/mnt/ramdisk/psbt".to_string();
-	//init the wallet
+	//init the wallet, doing it twice because the value moves after getting_policy_id, there is probably a better way
 	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
+	let wallet1 = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
 	//need to parse spend_policy below to find the correct policy ID
-	let policy_id = get_policy_id(wallet)
+	let policy_id = get_policy_id(wallet1);
 	//init the policy path
 	let mut path = BTreeMap::new();
 	//insert the correct policy IDs here from spend_policy parsing
@@ -1650,6 +1661,7 @@ fn main() {
 		get_balance_low_wallet,
 		get_balance_med_wallet,
 		get_balance_high_wallet,
+		get_transactions_med_wallet,
 		generate_psbt_med_wallet,
         ])
     .run(tauri::generate_context!())
