@@ -354,12 +354,20 @@ fn init_low_wallet(state: State<'_, TauriState>) -> String {
 
 #[tauri::command]
 //initialize the medium security descriptor into a wallet held in state
-fn init_med_wallet(state: State<'_, TauriState>) -> String {
+async fn init_med_wallet(state: State<'_, TauriState>) -> Result<String, String> {
     let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
     println!("desc = {}", desc);
     *state.2.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
-    return "Completed initializing med wallet with no problems".to_string()
-}
+	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
+	let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+			match wallet.sync(&blockchain, SyncOptions::default()) {
+			Ok(f) => f,
+			Err(e) => {
+				return Err(e.to_string())
+			}
+		}
+	Ok(format!("Completed initializing med wallet with no problems"))
+}	
 
 #[tauri::command]
 //initialize the high security descriptor into a wallet held in state
@@ -368,6 +376,20 @@ fn init_high_wallet(state: State<'_, TauriState>) -> String {
     println!("desc = {}", desc);
     *state.1.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
     return "Completed initializing high wallet with no problems".to_string()
+}
+
+#[tauri::command]
+async fn sync_med_wallet() -> Result<String, String> {
+	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
+	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
+	let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+	match wallet.sync(&blockchain, SyncOptions::default()) {
+		Ok(f) => f,
+		Err(e) => {
+			return Err(e.to_string())
+		}
+	}
+Ok(format!("Completed syncing immediate wallet with no problems"))
 }
 
 #[tauri::command]
@@ -420,11 +442,18 @@ fn get_balance_high_wallet(state: State<'_, TauriState>) -> u64 {
 
 #[tauri::command]
 //retrieve the current transaction history for the immediate wallet
-fn get_transactions_med_wallet(state: State<'_, TauriState>) -> Vec<TransactionDetails> {
+fn get_transactions_med_wallet(state: State<'_, TauriState>) -> String {
 	//retrieve the wallet from state and fetch the transactions
-	let transactions = state.2.lock().unwrap().as_mut().expect("wallet has not been init").list_transactions(true).expect("could not get transactions");
+	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
+	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
+	// let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+	// wallet.sync(&blockchain, SyncOptions::default()).expect("could not sync");
+
+	// let wallet1 = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
+	// let transactions = state.2.lock().unwrap().as_mut().expect("wallet has not been init").list_transactions(true).expect("could not get transactions");
+	let transactions = wallet.list_transactions(true).expect("could not get transactions");
 	//calculate the total wallet balance, including unconfirmed transactions
-	return transactions
+	format!("{:?}", transactions)
 }
 
 #[tauri::command]
@@ -439,10 +468,10 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 	//declare the destination for the PSBT file
 	let file_dest = "/mnt/ramdisk/psbt".to_string();
 	//init the wallet, doing it twice because the value moves after getting_policy_id, there is probably a better way
-	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
 	let wallet1 = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
 	//need to parse spend_policy below to find the correct policy ID
 	let policy_id = get_policy_id(wallet1);
+	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
 	//init the policy path
 	let mut path = BTreeMap::new();
 	//insert the correct policy IDs here from spend_policy parsing
@@ -1266,7 +1295,7 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 
 	//build the immediate wallet descriptor
 	println!("building med descriptor");
-	let med_descriptor = build_med_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
+	let med_descriptor = build_med_descriptor(&blockchain, &key_array).expect("Failed to build med level descriptor");
 	let med_file_dest = "/mnt/ramdisk/sensitive/descriptors/med_descriptor".to_string();
 	//store the immediate wallet descriptor in the sensitive dir
 	println!("storing med descriptor");
@@ -1277,7 +1306,7 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 
 	//build the low security descriptor
 	println!("building low descriptor");
-	let low_descriptor = build_low_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
+	let low_descriptor = build_low_descriptor(&blockchain, &key_array).expect("Failed to build low level descriptor");
 	let low_file_dest = "/mnt/ramdisk/sensitive/descriptors/low_descriptor".to_string();
 	//store the low security descriptor in the sensitive dir
 	println!("storing low descriptor");
@@ -1655,6 +1684,7 @@ fn main() {
 		init_low_wallet,
 		init_med_wallet,
 		init_high_wallet,
+		sync_med_wallet,
 		get_address_low_wallet,
 		get_address_med_wallet,
 		get_address_high_wallet,
