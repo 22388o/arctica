@@ -40,7 +40,7 @@ use std::process::Stdio;
 use std::io::BufReader;
 use std::any::type_name;
 
-struct TauriState(Mutex<Option<RpcConfig>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>);
+struct TauriState(Mutex<Option<RpcConfig>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<RpcConfig>>);
 
 //helper function
 //only useful when running the application in a dev envrionment
@@ -379,7 +379,13 @@ fn init_high_wallet(state: State<'_, TauriState>) -> String {
 }
 
 #[tauri::command]
-async fn sync_med_wallet() -> Result<String, String> {
+async fn sync_med_wallet(state: State<'_, TauriState>) -> Result<String, String> {
+	//create a wallet dir in ramdisk
+	Command::new("mkdir").args(["/mnt/ramdisk/immediate_wallet"]).output().unwrap();
+	//open file permissions
+	Command::new("sudo").args(["chmod", "-R" "777", "/mnt/ramdisk/immediate_wallet"]).output().unwrap();
+	//symlink wallet dir
+	Command::new("ln").args(["-s", &(get_home()+"/.bitcoin/immediate_wallet"), "mnt/ramdisk/immediate_wallet"]).output().unwrap();
 	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
 	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
 	let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
@@ -1632,17 +1638,24 @@ async fn convert_to_transfer_cd() -> String {
 fn main() {
 	//establish RPC creds
 	let user_pass: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
-    let config: RpcConfig = RpcConfig {
+    let config_immediate: RpcConfig = RpcConfig {
 	    url: "127.0.0.1:8332".to_string(),
 	    auth: user_pass,
 	    network: bdk::bitcoin::Network::Bitcoin,
-	    wallet_name: "wallet_name".to_string(),
+	    wallet_name: "immediate_wallet".to_string(),
+	    sync_params: None,
+	};
+	let config_delayed: RpcConfig = RpcConfig {
+	    url: "127.0.0.1:8332".to_string(),
+	    auth: user_pass,
+	    network: bdk::bitcoin::Network::Bitcoin,
+	    wallet_name: "delayed_wallet".to_string(),
 	    sync_params: None,
 	};
 
   	tauri::Builder::default()
 	//export all tauri functions to be handled by the front end
-  	.manage(TauriState(Mutex::new(Some(config)), Mutex::new(None), Mutex::new(None), Mutex::new(None)))
+  	.manage(TauriState(Mutex::new(Some(config_immediate)), Mutex::new(None), Mutex::new(None), Mutex::new(None), Mutex::new(Some(config_delayed)) )
   	.invoke_handler(tauri::generate_handler![
         test_function,
         create_bootable_usb,
