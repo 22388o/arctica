@@ -33,6 +33,10 @@ HOST_USER=$(ls /media/$USER/$UUID/home)
 #open file permissions for local host
 sudo chmod 777 /media/ubuntu/$UUID/home/$HOST_USER
 
+#remove stale bitcoin dirs if they exist
+sudo rm -r /home/$USER/.bitcoin/chainstate
+sudo rm -r /home/$USER/.bitcoin/blocks
+
 #make local internal bitcoin dotfile
 sudo mkdir --parents /media/ubuntu/$UUID/home/$HOST_USER/.bitcoin/blocks /media/ubuntu/$UUID/home/$HOST_USER/.bitcoin/chainstate	
 
