@@ -511,6 +511,17 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 	Ok(format!("PSBT: {}, Transaction Details: {:#?}", psbt, details))
 }
 
+#[tauri::command]
+async fn sync_status() -> String {
+	let status = Command::new(&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoin-cli")).args(["getblockchaininfo"]).output().unwrap();
+	let blocks: u8 = status.stderr[1]; //.trim().parse().expect("wanted a number");
+	let headers: u8 = status.stderr[2]; //.trim().parse().expect("wanted a number");
+	let percentage = (blocks / headers) * 100;
+	format!("{}", percentage.to_string())
+	// format!("{}", std::str::from_utf8(&status.stderr).unwrap())
+	// format!("{:?}", status.stderr)
+}
+
 
 #[tauri::command]
 //for testing only
@@ -1710,6 +1721,7 @@ fn main() {
 		get_balance_high_wallet,
 		get_transactions_med_wallet,
 		generate_psbt_med_wallet,
+		sync_status,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
