@@ -15,20 +15,21 @@ sudo unlink /home/$USER/.bitcoin/blocks
 PLACEHOLDER=$(ls /media/$USER)
 strarr=($PLACEHOLDER)
 
+
+#loop through every item in /media/$USER and pass writable and CDROM to obtain the UUID
 for val in "${strarr[@]}";
 do
-    if	[ "$val" = "writable" ]
+    if	[[ ${#val} -eq 36 ]]
     then
-            echo pass
-    elif  [ "$val" = "CDROM" ]
-    then
-            echo pass
-    else
             echo $val
             UUID=$val
+    else
+            echo pass $val
     fi
 
 done
+
+#define the username of the internal storage device
 HOST_USER=$(ls /media/$USER/$UUID/home)
 #open file permissions for local host
 sudo chmod 777 /media/ubuntu/$UUID/home/$HOST_USER

@@ -514,12 +514,10 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 #[tauri::command]
 async fn sync_status() -> String {
 	let status = Command::new(&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoin-cli")).args(["getblockchaininfo"]).output().unwrap();
-	let blocks: u8 = status.stderr[1]; //.trim().parse().expect("wanted a number");
-	let headers: u8 = status.stderr[2]; //.trim().parse().expect("wanted a number");
+	let blocks: u8 = status.stderr[1]; 
+	let headers: u8 = status.stderr[2]; 
 	let percentage = (blocks / headers) * 100;
 	format!("{}", percentage.to_string())
-	// format!("{}", std::str::from_utf8(&status.stderr).unwrap())
-	// format!("{:?}", status.stderr)
 }
 
 
