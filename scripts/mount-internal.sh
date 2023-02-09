@@ -16,7 +16,7 @@ PLACEHOLDER=$(ls /media/$USER)
 strarr=($PLACEHOLDER)
 
 
-#loop through every item in /media/$USER and pass writable and CDROM to obtain the UUID
+#loop through every item in /media/$USER and check the value length. If it's 36 characters can assume UUID and assign value.
 for val in "${strarr[@]}";
 do
     if	[[ ${#val} -eq 36 ]]
