@@ -520,6 +520,32 @@ async fn sync_status() -> String {
 	format!("{}", percentage.to_string())
 }
 
+#[tauri::command]
+async fn sync_status_emitter(window:tauri::Window) -> Result<(),()> {
+	let mut progress = 0;
+	while progress < 100 {
+	let status = Command::new(&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoin-cli")).args(["getblockchaininfo"]).output().unwrap();
+		//do not emit if the daemon is still spooling or is busy verifying prior to starting sync
+		if status.stderr.contains('error'){
+			std::thread::sleep(std::time::Duration ::from_secs(10));
+		}
+		//if status does not contain errors, calculate sync percentage and emit window event
+		else{
+			let blocks: u8 = status.stderr[1]; 
+			let headers: u8 = status.stderr[2]; 
+			let percentage = (blocks / headers) * 100;
+			progress = percentage;
+			window.emit("progress", progress).unwrap();
+			std::thread::sleep(std::time::Duration ::from_secs(10));
+			// progress = /compute with header/
+			window.emit("progress", progress).unwrap();
+		}
+
+	}
+	window.emit("progress", 100).unwrap();
+	Ok(())
+	}
+
 
 #[tauri::command]
 //for testing only
@@ -1730,6 +1756,7 @@ fn main() {
 		get_transactions_med_wallet,
 		generate_psbt_med_wallet,
 		sync_status,
+		sync_status_emitter
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
