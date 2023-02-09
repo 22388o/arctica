@@ -1419,7 +1419,6 @@ async fn make_backup(number: String) -> String {
 //start bitcoin core daemon
 #[tauri::command]
 async fn start_bitcoind() -> String {
-	println!("starting the bitcoin daemon");
 	let output = Command::new(&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoind")).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
@@ -1434,7 +1433,6 @@ async fn start_bitcoind() -> String {
 //use this function when starting core daemon on any offline device
 #[tauri::command]
 async fn start_bitcoind_network_off() -> String {
-	println!("starting the bitcoin daemon with networking disabled");
 	let output = Command::new(&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoind")).args(["-networkactive=0"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
@@ -1442,6 +1440,17 @@ async fn start_bitcoind_network_off() -> String {
 	}
 
 	format!("SUCCESS in starting bitcoin daemon with networking disabled")
+}
+
+#[tauri::command]
+async fn disable_networking() -> String {
+	let output = Command::new("sudo").args(["nmcli", "networking", "off"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS disabling networking")
 }
 
 //check the currently inserted CD for an encryption masterkey
@@ -1698,6 +1707,7 @@ fn main() {
         make_backup,
         start_bitcoind,
         start_bitcoind_network_off,
+		disable_networking,
         check_for_masterkey,
         create_recovery_cd,
         copy_recovery_cd,
