@@ -1153,14 +1153,14 @@ async fn mount_internal() -> String {
 	//remove stale .bitcoin data dirs if they exist
 	let a = std::path::Path::new(&(get_home()+"/.bitcoin/chainstate")).exists();
     if a == true{
-		let output = Command::new("sudo").args(["rm", "-r", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
+		let output = Command::new("sudo").args(["rm", "-r", "-f", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
 		if !output.status.success() {
 		return format!("ERROR in removing stale ./bitcoin/chainstate dir {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 	}
 	let b = std::path::Path::new(&(get_home()+"/.bitcoin/blocks")).exists();
     if b == true{
-		let output = Command::new("sudo").args(["rm", "-r", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
+		let output = Command::new("sudo").args(["rm", "-r", "-f", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
 		if !output.status.success() {
 		return format!("ERROR in removing stale ./bitcoin/blocks dir {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
