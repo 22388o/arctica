@@ -1110,18 +1110,6 @@ async fn async_write(name: &str, value: &str) -> Result<String, String> {
     Ok(format!("completed with no problems"))
 }
 
-// #[tauri::command]
-//mount the internal storage drive at /media/$USER/$UUID
-//and symlinks internal .bitcoin/chainstate and ./bitcoin/blocks
-// async fn mount_internal() -> String {
-// 	println!("mounting internal storage and symlinking .bitcoin dirs");
-// 	let output = Command::new("bash")
-// 		.args([get_home()+"/scripts/mount-internal.sh"])
-// 		.output()
-// 		.expect("failed to execute process");
-// 	format!("{:?}", output)
-// }
-
 #[tauri::command]
 //mount the internal storage drive at /media/$USER/$UUID
 //and symlinks internal .bitcoin/chainstate and ./bitcoin/blocks
@@ -1192,7 +1180,7 @@ async fn mount_internal() -> String {
 	} 
 	let host_user = std::str::from_utf8(&host.stdout).unwrap().trim();
 	//open the file permissions for local host user dir
-	let output = Command::new("sudo").args(["chmod", "-r", "777", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string()))]).output().unwrap();
+	let output = Command::new("sudo").args(["chmod", "777", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string()))]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in opening internal storage dir file permissions {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
@@ -1215,9 +1203,9 @@ async fn mount_internal() -> String {
 		return format!("ERROR in symlinking internal .bitcoin/chainstate dir {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 	//open file permissions of internal storage dotfile dirs
-	let output = Command::new("sudo").args(["chmod", "-r", "777", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin")]).output().unwrap();
+	let output = Command::new("sudo").args(["chmod", "777", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin")]).output().unwrap();
 	if !output.status.success() {
-		return format!("ERROR in opening filepermissions of internal storage .bitcoin dirs {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in opening file permissions of internal storage .bitcoin dirs {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 	format!("SUCCESS in mounting the internal drive and symlinking .bitcoin data dirs")
 }
