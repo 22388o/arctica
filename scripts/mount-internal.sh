@@ -5,7 +5,13 @@ udisksctl mount --block-device /dev/nvme0n1p2
 #mount internal drive if SATA
 udisksctl mount --block-device /dev/sda2
 #remove stale symlinks
-sudo chmod 777 /home/$USER/.bitcoin
+#this unlink corrupts the chainstate if core is currently running
+#/home/user/bitcoin23/bin/bitcoin-cli stop
+#sleep 20 (or query bitcoin-cli until shutdown is done)
+#when querying bitcoin-cli while bitcoind is not running receive the following error: 
+#error: timeout on transient error: Could not connect to the server 127.0.0.1:8332
+#Make sure the bitcoind server is running and that you are connvecting to the correct RPC port. 
+sudo chmod -r 777 /home/$USER/.bitcoin
 sudo unlink /home/$USER/.bitcoin/chainstate
 sudo unlink /home/$USER/.bitcoin/blocks
 

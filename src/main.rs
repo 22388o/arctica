@@ -512,37 +512,28 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 }
 
 #[tauri::command]
-async fn sync_status() -> String {
-	let status = Command::new(&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoin-cli")).args(["getblockchaininfo"]).output().unwrap();
-	let blocks: u8 = status.stderr[1]; 
-	let headers: u8 = status.stderr[2]; 
-	let percentage = (blocks / headers) * 100;
-	format!("{}", percentage.to_string())
-}
-
-#[tauri::command]
 async fn sync_status_emitter(window:tauri::Window) -> Result<(),()> {
 	let mut progress = 0;
 	while progress < 100 {
-	let status = Command::new(&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoin-cli")).args(["getblockchaininfo"]).output().unwrap();
+	let status = Command::new(&(get_home()+"/bitcoin-23.0/bin/bitcoin-cli")).args(["getblockchaininfo"]).output().unwrap();
 		//do not emit if the daemon is still spooling or is busy verifying prior to starting sync
-		if status.stderr.contains('error'){
-			std::thread::sleep(std::time::Duration ::from_secs(10));
-		}
-		//if status does not contain errors, calculate sync percentage and emit window event
-		else{
+		// if status.stderr.contains("error"){
+		// 	std::thread::sleep(std::time::Duration ::from_secs(10));
+		// }
+		// //if status does not contain errors, calculate sync percentage and emit window event
+		// else{
 			let blocks: u8 = status.stderr[1]; 
 			let headers: u8 = status.stderr[2]; 
 			let percentage = (blocks / headers) * 100;
 			progress = percentage;
-			window.emit("progress", progress).unwrap();
+			// window.emit("progress", progress).unwrap();
 			std::thread::sleep(std::time::Duration ::from_secs(10));
 			// progress = /compute with header/
 			window.emit("progress", progress).unwrap();
-		}
+		// }
 
 	}
-	window.emit("progress", 100).unwrap();
+	window.emit("progress", progress).unwrap();
 	Ok(())
 	}
 
@@ -648,7 +639,7 @@ async fn init_iso() -> String {
 
 	println!("booting iso with kvm");
 	//boot kvm to establish persistence
-	let output = Command::new("kvm").args(["-m", "2048", &("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso"), "-daemonize", "-pidfile", "pid.txt", "-cpu", "host", "-display", "none"]).output().unwrap();
+	let output = Command::new("kvm").args(["-m", "2048", &(get_home()+"/arctica/persistent-ubuntu.iso"), "-daemonize", "-pidfile", "pid.txt", "-cpu", "host", "-display", "none"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with kvm = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -676,7 +667,7 @@ async fn init_iso() -> String {
 
 	println!("mount persistent iso");
 	//mount persistent iso at /media/$USER/writable/upper/
-	let output = Command::new("udisksctl").args(["loop-setup", "-f", &("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso")]).output().unwrap();
+	let output = Command::new("udisksctl").args(["loop-setup", "-f", &(get_home()+"/arctica/persistent-ubuntu.iso")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with mounting persistent iso = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -700,19 +691,19 @@ async fn init_iso() -> String {
 
 	println!("Copying dependencies");
 	//copying over dependencies genisoimage
-	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
+	let output = Command::new("cp").args([&(get_home()+"/arctica/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with copying genisoimage = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//copying over dependencies ssss
-	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/ssss_0.5-5_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
+	let output = Command::new("cp").args([&(get_home()+"/arctica/ssss_0.5-5_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with copying ssss = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//copying over dependencies wodim
-	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
+	let output = Command::new("cp").args([&(get_home()+"/arctica/wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with copying wodim = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -721,7 +712,7 @@ async fn init_iso() -> String {
 
 	println!("copying arctica binary");
 	//copy over artica binary and make executable
-	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/target/debug/app"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/arctica")]).output().unwrap();
+	let output = Command::new("cp").args([&(get_home()+"/arctica/target/debug/app"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/arctica")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with copying arctica binary = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1041,26 +1032,36 @@ async fn unpack() -> String {
 //create and mount the ramdisk directory for holding senstive data at /mnt/ramdisk
 #[tauri::command]
 async fn create_ramdisk() -> String {
-	println!("creating ramdisk");
+	let a = std::path::Path::new("/mnt/ramdisk").exists();
+    if a == true{
+		return format!("Ramdisk already exists");
+	}
+	else{
+		let output = Command::new("sudo").args(["mkdir", "/mnt/ramdisk"]).output().unwrap();
+		if !output.status.success() {
+		return format!("ERROR in making /mnt/ramdisk dir {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+		let output = Command::new("sudo").args(["mount", "-t", "ramfs", "-o", "size=250M", "ramfs", "/mnt/ramdisk"]).output().unwrap();
+		if !output.status.success() {
+			// Function Fails
+			return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
 
-	Command::new("sudo").args(["mkdir", "/mnt/ramdisk"]).output().unwrap();
+		let output = Command::new("sudo").args(["chmod", "777", "/mnt/ramdisk"]).output().unwrap();
+		if !output.status.success() {
+			// Function Fails
+			return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
 
-	let output = Command::new("sudo").args(["mount", "-t", "ramfs", "-o", "size=250M", "ramfs", "/mnt/ramdisk"]).output().unwrap();
-	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
-
-	let output = Command::new("sudo").args(["chmod", "777", "/mnt/ramdisk"]).output().unwrap();
-	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
-
-	//make the target dir for encrypted payload to or from SD cards
-	Command::new("mkdir").args(["/mnt/ramdisk/sensitive"]).output().unwrap();
+		//make the target dir for encrypted payload to or from SD cards
+		let output = Command::new("mkdir").args(["/mnt/ramdisk/sensitive"]).output().unwrap();
+		if !output.status.success() {
+			// Function Fails
+			return format!("ERROR in Creating /mnt/ramdiskamdisk/sensitive = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
 
 	format!("SUCCESS in Creating Ramdisk")
+	}
 }
 
 //read the config file of the currently inserted CD/DVD
@@ -1109,16 +1110,116 @@ async fn async_write(name: &str, value: &str) -> Result<String, String> {
     Ok(format!("completed with no problems"))
 }
 
+// #[tauri::command]
+//mount the internal storage drive at /media/$USER/$UUID
+//and symlinks internal .bitcoin/chainstate and ./bitcoin/blocks
+// async fn mount_internal() -> String {
+// 	println!("mounting internal storage and symlinking .bitcoin dirs");
+// 	let output = Command::new("bash")
+// 		.args(["/home/".to_string()+&get_user()+"/scripts/mount-internal.sh"])
+// 		.output()
+// 		.expect("failed to execute process");
+// 	format!("{:?}", output)
+// }
+
 #[tauri::command]
 //mount the internal storage drive at /media/$USER/$UUID
 //and symlinks internal .bitcoin/chainstate and ./bitcoin/blocks
+//the below internal drive configurations assume a default ubuntu install on the internal disk without any custom partitioning
 async fn mount_internal() -> String {
-	println!("mounting internal storage and symlinking .bitcoin dirs");
-	let output = Command::new("bash")
-		.args(["/home/".to_string()+&get_user()+"/scripts/mount-internal.sh"])
-		.output()
-		.expect("failed to execute process");
-	format!("{:?}", output)
+	//mount internal drive if nvme
+	Command::new("udisksctl").args(["mount", "--block-device", "/dev/nvme0n1p2"]).output().unwrap();
+	//mount internal drive if SATA
+	Command::new("udisksctl").args(["mount", "--block-device", "/dev/sda2"]).output().unwrap();
+	//open local .bitcoin dir file permissions
+	let output = Command::new("sudo").args(["chmod", "777", &(get_home()+"/.bitcoin")]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in opening local .bitcoin file permissions {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
+	//Attempt to shut down bitcoin core. Whether succeed or fail, unlink stale symlinks.
+	let output = Command::new(&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoin-cli")).args(["stop"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails, core is not running go ahead and unlink
+		//we don't mind if these fail
+		Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
+		Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
+	}else{
+		//function succeeds, core is running, wait 10s for daemon to stop and then unlink
+		Command::new("sleep").args(["10"]).output().unwrap();
+		//we don't mind if these fail
+		Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
+		Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
+	}
+	//remove stale .bitcoin data dirs if they exist
+	let a = std::path::Path::new(&("/home/".to_string()+&get_user()+"/.bitcoin/chainstate")).exists();
+    if a == true{
+		let output = Command::new("sudo").args(["rm", "-r", &("/home/".to_string()+&get_user()+"/.bitcoin/chainstate")]).output().unwrap();
+		if !output.status.success() {
+		return format!("ERROR in removing stale ./bitcoin/chainstate dir {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+	}
+	let b = std::path::Path::new(&("/home/".to_string()+&get_user()+"/.bitcoin/blocks")).exists();
+    if b == true{
+		let output = Command::new("sudo").args(["rm", "-r", &("/home/".to_string()+&get_user()+"/.bitcoin/blocks")]).output().unwrap();
+		if !output.status.success() {
+		return format!("ERROR in removing stale ./bitcoin/blocks dir {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+	}
+	//Obtain the internal storage device UUID that was mounted earlier
+	let devices = Command::new(&("ls")).args([&("/media/".to_string()+&get_user())]).output().unwrap();
+		if !devices.status.success() {
+		return format!("ERROR in parsing /media/user {}", std::str::from_utf8(&devices.stderr).unwrap());
+	} 
+	//convert the list of devices above into a vector of results
+	let devices_output = std::str::from_utf8(&devices.stdout).unwrap();
+	let split = devices_output.split('\n');
+	let devices_vec: Vec<_> = split.collect();
+	//loop through the vector and check the character count of each entry to obtain the uuid which is 36 characters
+	let mut uuid = "none";
+	for i in devices_vec{
+		if i.chars().count() == 36{
+			uuid = i.trim();
+		} 
+	}
+	//failure condition if a valid UUID is not found in the above conditional
+	if uuid == "none"{
+		return format!("ERROR could not find a valid UUID in /media/$user");
+	}
+	//obtain the user of the internal storage device
+	let host = Command::new(&("ls")).args([&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home")]).output().unwrap();
+	if !host.status.success() {
+		return format!("ERROR in parsing /media/user/uuid/home {}", std::str::from_utf8(&host.stderr).unwrap());
+	} 
+	let host_user = std::str::from_utf8(&host.stdout).unwrap().trim();
+	//open the file permissions for local host user dir
+	let output = Command::new("sudo").args(["chmod", "-r", "777", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string()))]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in opening internal storage dir file permissions {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
+	//make internal storage bitcoin dotfiles at /media/ubuntu/$UUID/home/$HOST_USER/.bitcoin/blocks & /media/ubuntu/$UUID/home/$HOST_USER/.bitcoin/chainstate
+	let c = std::path::Path::new(&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string())+"/.bitcoin/blocks")).exists();
+	let d = std::path::Path::new(&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string())+"/.bitcoin/chainstate")).exists();
+    if c == false && d == false{
+		let output = Command::new("sudo").args(["mkdir", "--parents", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string())+"/.bitcoin/blocks"), &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string())+"/.bitcoin/chainstate") ]).output().unwrap();
+		if !output.status.success() {
+		return format!("ERROR in removing stale ./bitcoin/chainstate dir {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+	}
+	//create the symlinks between local .bitcoin data dirs and internal storage dotfiles
+	let output = Command::new("ln").args(["-s", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string())+"/.bitcoin/blocks"), &("/home/".to_string()+&get_user()+"/.bitcoin")]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in symlinking internal .bitcoin/blocks dir {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
+	let output = Command::new("ln").args(["-s", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string())+"/.bitcoin/chainstate"), &("/home/".to_string()+&get_user()+"/.bitcoin")]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in symlinking internal .bitcoin/chainstate dir {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
+	//open file permissions of internal storage dotfile dirs
+	let output = Command::new("sudo").args(["chmod", "-r", "777", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string())+"/.bitcoin")]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in opening filepermissions of internal storage .bitcoin dirs {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
+	format!("SUCCESS in mounting the internal drive and symlinking .bitcoin data dirs")
 }
 
 #[tauri::command]
@@ -1755,7 +1856,6 @@ fn main() {
 		get_balance_high_wallet,
 		get_transactions_med_wallet,
 		generate_psbt_med_wallet,
-		sync_status,
 		sync_status_emitter
         ])
     .run(tauri::generate_context!())
