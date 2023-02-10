@@ -718,13 +718,13 @@ async fn init_iso() -> String {
 		return format!("ERROR in init iso with copying arctica binary = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	println!("copying arctica icon");
-	let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/arctica/icons/arctica.jpeg"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/arctica.jpeg")]).output().unwrap();
+	let output = Command::new("cp").args([&(get_home()+"/arctica/icons/arctica.jpeg"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/arctica.jpeg")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with copying binary jpeg = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	println!("making arctica a .desktop file");
-	let output = Command::new("sudo").args(["cp", &("/home/".to_string()+&get_user()+"/arctica/shortcut/Arctica.desktop"), &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
+	let output = Command::new("sudo").args(["cp", &(get_home()+"/arctica/shortcut/Arctica.desktop"), &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with copying arctica.desktop = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -733,7 +733,7 @@ async fn init_iso() -> String {
 	//keeping this commented out for dev work due to regular binary swapping
 	// println!("make arctica autostart at boot");
 	// Command::new("mkdir").args([&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.config/autostart")]).output().unwrap();
-	// let output = Command::new("sudo").args(["cp", &("/home/".to_string()+&get_user()+"/arctica/shortcut/Arctica.desktop"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.config/autostart")]).output().unwrap();
+	// let output = Command::new("sudo").args(["cp", &(get_home()+"/arctica/shortcut/Arctica.desktop"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.config/autostart")]).output().unwrap();
 	// if !output.status.success() {
 	// 	// Function Fails
 	// 	return format!("ERROR in init iso with copying arctica.desktop = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -750,7 +750,7 @@ async fn init_iso() -> String {
 
 	println!("copying scripts library");
 	//copy over scripts directory and its contents. 
-	let output = Command::new("cp").args(["-r", &("/home/".to_string()+&get_user()+"/arctica/scripts"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
+	let output = Command::new("cp").args(["-r", &(get_home()+"/arctica/scripts"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with copying scripts dir = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -758,7 +758,7 @@ async fn init_iso() -> String {
 
 	println!("extracting bitcoin core");
 	//extract bitcoin core
-	let output = Command::new("tar").args(["-xzf", &("/home/".to_string()+&get_user()+"/arctica/bitcoin-23.0-x86_64-linux-gnu.tar.gz"), "-C", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
+	let output = Command::new("tar").args(["-xzf", &(get_home()+"/arctica/bitcoin-23.0-x86_64-linux-gnu.tar.gz"), "-C", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with extracting bitcoin core = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -801,7 +801,7 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
 	//remove old config from iso
 	Command::new("sudo").args(["rm", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/config.txt")]).output().unwrap();
 	//copy new config
-	let output = Command::new("sudo").args(["cp", &("/home/".to_string()+&get_user()+"/config.txt"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
+	let output = Command::new("sudo").args(["cp", &(get_home()+"/config.txt"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in creating bootable with copying current config = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -813,7 +813,7 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
 		return format!("ERROR in creating bootable with opening file permissions = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//remove current working config from local
-	let output = Command::new("sudo").args(["rm", &("/home/".to_string()+&get_user()+"/config.txt")]).output().unwrap();
+	let output = Command::new("sudo").args(["rm", &(get_home()+"/config.txt")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in creating bootable with removing current working config = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -821,7 +821,7 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
 	//burn iso with mkusb
 	let mkusb_child = Command::new("printf").args(["%s\n", "n", "y", "g", "y"]).stdout(Stdio::piped()).spawn().unwrap();
 	println!("received stdout, piping to mkusb");
-	let mkusb_child_two = Command::new("mkusb").args([&("/home/".to_string()+&get_user()+"/arctica/persistent-ubuntu.iso")]).stdin(Stdio::from(mkusb_child.stdout.unwrap())).stdout(Stdio::piped()).spawn().unwrap();
+	let mkusb_child_two = Command::new("mkusb").args([&(get_home()+"/arctica/persistent-ubuntu.iso")]).stdin(Stdio::from(mkusb_child.stdout.unwrap())).stdout(Stdio::piped()).spawn().unwrap();
 	println!("mkusb finished creating output");
 	let output = mkusb_child_two.wait_with_output().unwrap();
 	if !output.status.success() {
@@ -835,7 +835,7 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
 async fn create_setup_cd() -> String {
 	println!("creating setup CD");
 	//create local shards dir
-	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
 
 	//install sd dependencies for genisoimage
 	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
@@ -867,12 +867,12 @@ async fn create_setup_cd() -> String {
 	//NOTE: EVENTUALLY THE APPROPRIATE SHARDS NEED TO GO TO THE BPS HERE
 
 	//copy first 2 shards to SD 1
-	let output = Command::new("sudo").args(["cp", "/mnt/ramdisk/shards/shard1.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("sudo").args(["cp", "/mnt/ramdisk/shards/shard1.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in copying shard1.txt in create setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
-	let output = Command::new("sudo").args(["cp", "/mnt/ramdisk/shards/shard11.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("sudo").args(["cp", "/mnt/ramdisk/shards/shard11.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in copying shard11.txt in create setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -967,7 +967,7 @@ async fn eject_cd() -> String {
 async fn packup() -> String {
 	println!("packing up sensitive info");
 	//remove stale encrypted dir
-	Command::new("sudo").args(["rm", &("/home/".to_string()+&get_user()+"/encrypted.gpg")]).output().unwrap();
+	Command::new("sudo").args(["rm", &(get_home()+"/encrypted.gpg")]).output().unwrap();
 
 	//remove stale tarball
 	Command::new("sudo").args(["rm", "/mnt/ramdisk/unecrypted.tar"]).output().unwrap();
@@ -980,7 +980,7 @@ async fn packup() -> String {
     }
 
 	//encrypt the sensitive directory tarball 
-	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/CDROM/masterkey", "--output", &("/home/".to_string()+&get_user()+"/encrypted.gpg"), "--symmetric", "/mnt/ramdisk/unencrypted.tar"]).output().unwrap();
+	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/CDROM/masterkey", "--output", &(get_home()+"/encrypted.gpg"), "--symmetric", "/mnt/ramdisk/unencrypted.tar"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in packup = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1000,7 +1000,7 @@ async fn unpack() -> String {
 
 
 	//decrypt sensitive directory
-	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/CDROM/masterkey", "--output", "/mnt/ramdisk/decrypted.out", "-d", &("/home/".to_string()+&get_user()+"/encrypted.gpg")]).output().unwrap();
+	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/CDROM/masterkey", "--output", "/mnt/ramdisk/decrypted.out", "-d", &(get_home()+"/encrypted.gpg")]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1096,7 +1096,7 @@ fn read_cd() -> std::string::String {
 async fn combine_shards() -> String {
 	println!("combining shards in /mnt/ramdisk/shards");
 	let output = Command::new("bash")
-		.args(["/home/".to_string()+&get_user()+"/scripts/combine-shards.sh"])
+		.args([get_home()+"/scripts/combine-shards.sh"])
 		.output()
 		.expect("failed to execute process");
 	format!("{:?}", output)
@@ -1116,7 +1116,7 @@ async fn async_write(name: &str, value: &str) -> Result<String, String> {
 // async fn mount_internal() -> String {
 // 	println!("mounting internal storage and symlinking .bitcoin dirs");
 // 	let output = Command::new("bash")
-// 		.args(["/home/".to_string()+&get_user()+"/scripts/mount-internal.sh"])
+// 		.args([get_home()+"/scripts/mount-internal.sh"])
 // 		.output()
 // 		.expect("failed to execute process");
 // 	format!("{:?}", output)
@@ -1137,7 +1137,7 @@ async fn mount_internal() -> String {
 		return format!("ERROR in opening local .bitcoin file permissions {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 	//Attempt to shut down bitcoin core. Whether succeed or fail, unlink stale symlinks.
-	let output = Command::new(&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoin-cli")).args(["stop"]).output().unwrap();
+	let output = Command::new(&(get_home()+"/bitcoin-23.0/bin/bitcoin-cli")).args(["stop"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails, core is not running go ahead and unlink
 		//we don't mind if these fail
@@ -1151,16 +1151,16 @@ async fn mount_internal() -> String {
 		Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
 	}
 	//remove stale .bitcoin data dirs if they exist
-	let a = std::path::Path::new(&("/home/".to_string()+&get_user()+"/.bitcoin/chainstate")).exists();
+	let a = std::path::Path::new(&(get_home()+"/.bitcoin/chainstate")).exists();
     if a == true{
-		let output = Command::new("sudo").args(["rm", "-r", &("/home/".to_string()+&get_user()+"/.bitcoin/chainstate")]).output().unwrap();
+		let output = Command::new("sudo").args(["rm", "-r", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
 		if !output.status.success() {
 		return format!("ERROR in removing stale ./bitcoin/chainstate dir {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 	}
-	let b = std::path::Path::new(&("/home/".to_string()+&get_user()+"/.bitcoin/blocks")).exists();
+	let b = std::path::Path::new(&(get_home()+"/.bitcoin/blocks")).exists();
     if b == true{
-		let output = Command::new("sudo").args(["rm", "-r", &("/home/".to_string()+&get_user()+"/.bitcoin/blocks")]).output().unwrap();
+		let output = Command::new("sudo").args(["rm", "-r", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
 		if !output.status.success() {
 		return format!("ERROR in removing stale ./bitcoin/blocks dir {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
@@ -1192,30 +1192,30 @@ async fn mount_internal() -> String {
 	} 
 	let host_user = std::str::from_utf8(&host.stdout).unwrap().trim();
 	//open the file permissions for local host user dir
-	let output = Command::new("sudo").args(["chmod", "-r", "777", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string()))]).output().unwrap();
+	let output = Command::new("sudo").args(["chmod", "-r", "777", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string()))]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in opening internal storage dir file permissions {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 	//make internal storage bitcoin dotfiles at /media/ubuntu/$UUID/home/$HOST_USER/.bitcoin/blocks & /media/ubuntu/$UUID/home/$HOST_USER/.bitcoin/chainstate
-	let c = std::path::Path::new(&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string())+"/.bitcoin/blocks")).exists();
-	let d = std::path::Path::new(&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string())+"/.bitcoin/chainstate")).exists();
+	let c = std::path::Path::new(&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin/blocks")).exists();
+	let d = std::path::Path::new(&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin/chainstate")).exists();
     if c == false && d == false{
-		let output = Command::new("sudo").args(["mkdir", "--parents", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string())+"/.bitcoin/blocks"), &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string())+"/.bitcoin/chainstate") ]).output().unwrap();
+		let output = Command::new("sudo").args(["mkdir", "--parents", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin/blocks"), &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin/chainstate") ]).output().unwrap();
 		if !output.status.success() {
 		return format!("ERROR in removing stale ./bitcoin/chainstate dir {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 	}
 	//create the symlinks between local .bitcoin data dirs and internal storage dotfiles
-	let output = Command::new("ln").args(["-s", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string())+"/.bitcoin/blocks"), &("/home/".to_string()+&get_user()+"/.bitcoin")]).output().unwrap();
+	let output = Command::new("ln").args(["-s", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin/blocks"), &(get_home()+"/.bitcoin")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in symlinking internal .bitcoin/blocks dir {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
-	let output = Command::new("ln").args(["-s", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string())+"/.bitcoin/chainstate"), &("/home/".to_string()+&get_user()+"/.bitcoin")]).output().unwrap();
+	let output = Command::new("ln").args(["-s", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin/chainstate"), &(get_home()+"/.bitcoin")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in symlinking internal .bitcoin/chainstate dir {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 	//open file permissions of internal storage dotfile dirs
-	let output = Command::new("sudo").args(["chmod", "-r", "777", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home"+&(host_user.to_string())+"/.bitcoin")]).output().unwrap();
+	let output = Command::new("sudo").args(["chmod", "-r", "777", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in opening filepermissions of internal storage .bitcoin dirs {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
@@ -1287,15 +1287,15 @@ async fn refresh_setup_cd() -> String {
 #[tauri::command]
 async fn distribute_shards_sd2() -> String {
 	//create local shards dir
-	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
 
-	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard2.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard2.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd2 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard10.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard10.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd2 = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1307,15 +1307,15 @@ async fn distribute_shards_sd2() -> String {
 #[tauri::command]
 async fn distribute_shards_sd3() -> String {
 	//create local shards dir
-	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
 
-	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard3.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard3.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd3 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard9.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard9.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd3 = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1327,15 +1327,15 @@ async fn distribute_shards_sd3() -> String {
 #[tauri::command]
 async fn distribute_shards_sd4() -> String {
 	//create local shards dir
-	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
 
-	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard4.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard4.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd4 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard8.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard8.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd4 = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1347,9 +1347,9 @@ async fn distribute_shards_sd4() -> String {
 #[tauri::command]
 async fn distribute_shards_sd5() -> String {
 	//create local shards dir
-	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
 
-	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard5.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard5.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd5 = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1361,9 +1361,9 @@ async fn distribute_shards_sd5() -> String {
 #[tauri::command]
 async fn distribute_shards_sd6() -> String {
 	//create local shards dir
-	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
 
-	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard6.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard6.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd6 = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1375,9 +1375,9 @@ async fn distribute_shards_sd6() -> String {
 #[tauri::command]
 async fn distribute_shards_sd7() -> String {
 	//create local shards dir
-	Command::new("mkdir").args([&("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
 
-	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard7.txt", &("/home/".to_string()+&get_user()+"/shards")]).output().unwrap();
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard7.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in distributing shards to sd7 = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1489,19 +1489,19 @@ async fn create_backup(number: String) -> String {
 		//make backup dir for iso
 		Command::new("mkdir").args(["/mnt/ramdisk/backup"]).output().unwrap();
 		//Copy shards to backup
-		let output = Command::new("cp").args(["-r", &("/home/".to_string()+&get_user()+"/shards"), "/mnt/ramdisk/backup"]).output().unwrap();
+		let output = Command::new("cp").args(["-r", &(get_home()+"/shards"), "/mnt/ramdisk/backup"]).output().unwrap();
 		if !output.status.success() {
 			// Function Fails
 			return format!("ERROR in creating backup with copying shards = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 		//Copy sensitive dir
-		let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/encrypted.gpg"), "/mnt/ramdisk/backup"]).output().unwrap();
+		let output = Command::new("cp").args([&(get_home()+"/encrypted.gpg"), "/mnt/ramdisk/backup"]).output().unwrap();
 		if !output.status.success() {
 			// Function Fails
 			return format!("ERROR in creating backup with copying sensitive dir= {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 		//copy config
-		let output = Command::new("cp").args([&("/home/".to_string()+&get_user()+"/config.txt"), "/mnt/ramdisk/backup"]).output().unwrap();
+		let output = Command::new("cp").args([&(get_home()+"/config.txt"), "/mnt/ramdisk/backup"]).output().unwrap();
 		if !output.status.success() {
 			// Function Fails
 			return format!("ERROR in creating backup with copying config.txt= {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1546,7 +1546,7 @@ async fn make_backup(number: String) -> String {
 //start bitcoin core daemon
 #[tauri::command]
 async fn start_bitcoind() -> String {
-	let output = Command::new(&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoind")).output().unwrap();
+	let output = Command::new(&(get_home()+"/bitcoin-23.0/bin/bitcoind")).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in starting bitcoin daemon = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1560,7 +1560,7 @@ async fn start_bitcoind() -> String {
 //use this function when starting core daemon on any offline device
 #[tauri::command]
 async fn start_bitcoind_network_off() -> String {
-	let output = Command::new(&("/home/".to_string()+&get_user()+"/bitcoin-23.0/bin/bitcoind")).args(["-networkactive=0"]).output().unwrap();
+	let output = Command::new(&(get_home()+"/bitcoin-23.0/bin/bitcoind")).args(["-networkactive=0"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
