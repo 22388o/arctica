@@ -240,8 +240,7 @@ async fn generate_store_key_pair(number: String) -> String {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store public key: ".to_string()+&err
 	}
-
-	//make the pubkey dir in the setupCD staging area
+	//make the pubkey dir in the setupCD staging area if it does not already exist
 	let a = std::path::Path::new("/mnt/ramdisk/CDROM/pubkeys").exists();
     if a == false{
 		let output = Command::new("mkdir").args(["--parents", "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
@@ -249,7 +248,6 @@ async fn generate_store_key_pair(number: String) -> String {
 		return format!("ERROR in creating /mnt/ramdisk/CDROM/pubkeys dir {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 	}
-
 	//copy public key to setupCD dir
 	let output = Command::new("cp").args([&("/mnt/ramdisk/sensitive/public_key".to_string()+&number), "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
 	if !output.status.success() {
@@ -264,7 +262,7 @@ async fn generate_store_key_pair(number: String) -> String {
 //the pubkeys will be shared with the user instead. 4 Time machine Keys are needed so this function will be run 4 times in total.
 #[tauri::command]
 async fn generate_store_simulated_time_machine_key_pair(number: String) -> String {
-	//make the time machine key dir in the setupCD staging area
+	//make the time machine key dir in the setupCD staging area if it does not already exist
 	let a = std::path::Path::new("/mnt/ramdisk/CDROM/timemachinekeys").exists();
     if a == false{
 		let output = Command::new("mkdir").args(["--parents", "/mnt/ramdisk/CDROM/timemachinekeys"]).output().unwrap();
@@ -379,12 +377,30 @@ fn init_high_wallet(state: State<'_, TauriState>) -> String {
 
 #[tauri::command]
 async fn sync_med_wallet(state: State<'_, TauriState>) -> Result<String, String> {
-	//create a wallet dir in ramdisk
-	Command::new("mkdir").args(["/mnt/ramdisk/immediate_wallet"]).output().unwrap();
+	//create a wallet dir in ramdisk if it does not exist
+	let a = std::path::Path::new("/mnt/ramdisk/immediate_wallet").exists();
+    if a == true{
+		//remove the stale dir
+		let output = Command::new("sudo").args(["rm", "-r", "/mnt/ramdisk/immediate_wallet"]).output().unwrap();
+		if !output.status.success() {
+		return format!("ERROR in removing /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+	}
+	//create the new dir
+	let output = Command::new("mkdir").args(["/mnt/ramdisk/immediate_wallet"]).output().unwrap();
+	if !output.status.success() {
+	return format!("ERROR in creating /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 	//open file permissions
-	Command::new("sudo").args(["chmod", "-R", "777", "/mnt/ramdisk/immediate_wallet"]).output().unwrap();
+	let output = Command::new("sudo").args(["chmod", "-R", "777", "/mnt/ramdisk/immediate_wallet"]).output().unwrap();
+	if !output.status.success() {
+	return format!("ERROR in opening file permissions at /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 	//symlink wallet dir
-	Command::new("ln").args(["-s", &(get_home()+"/.bitcoin/immediate_wallet"), "mnt/ramdisk/immediate_wallet"]).output().unwrap();
+	let output = Command::new("ln").args(["-s", &(get_home()+"/.bitcoin/immediate_wallet"), "mnt/ramdisk/immediate_wallet"]).output().unwrap();
+	if !output.status.success() {
+	return format!("ERROR in symlinking /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 	//import the descriptor
 	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
 	//define the wallet
@@ -469,8 +485,15 @@ fn get_transactions_med_wallet(state: State<'_, TauriState>) -> String {
 //will require additional logic to spend when under decay threshold
 //currently only generates a PSBT for Key 1 and Key 2, which are SD 1 and SD 2 respectively
 fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amount: u64, fee: f32) -> Result<String, String> {
-	//create the directory where the PSBT will live
-	Command::new("mkdir").args(["/mnt/ramdisk/psbt"]).output().unwrap();
+	//create the directory where the PSBT will live if it does not exist
+	let a = std::path::Path::new("/mnt/ramdisk/psbt").exists();
+    if a == false{
+		//remove the stale dir
+		let output = 	Command::new("mkdir").args(["/mnt/ramdisk/psbt"]).output().unwrap();
+		if !output.status.success() {
+		return format!("ERROR in creating /mnt/ramdisk/psbt dir {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+	}
 	//read the descriptor into memory
 	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
 	//declare the destination for the PSBT file
@@ -1031,6 +1054,7 @@ async fn unpack() -> String {
 //create and mount the ramdisk directory for holding senstive data at /mnt/ramdisk
 #[tauri::command]
 async fn create_ramdisk() -> String {
+	//check if the ramdisk already exists
 	let a = std::path::Path::new("/mnt/ramdisk").exists();
     if a == true{
 		return format!("Ramdisk already exists");
