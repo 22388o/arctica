@@ -1055,8 +1055,9 @@ async fn unpack() -> String {
 #[tauri::command]
 async fn create_ramdisk() -> String {
 	//check if the ramdisk already exists
-	let a = std::path::Path::new("/mnt/ramdisk").exists();
-    if a == true{
+	let a = std::path::Path::new("/mnt/ramdisk/sensitive").exists();
+	let b = std::path::Path::new("/mnt/ramdisk/CDROM").exists();
+    if a == true || b == true{
 		return format!("Ramdisk already exists");
 	}
 	else{
