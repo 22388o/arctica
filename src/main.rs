@@ -316,19 +316,6 @@ fn recover_private_key(file_name: String) -> Result<bitcoin::PrivateKey, String>
 	Ok(private_key)
 }
 
-//deprecated, can be removed
-fn recover_public_key(file_name: String) -> Result<bitcoin::PublicKey, String> {
-	let public_key_string = match fs::read_to_string(file_name) {
-		Ok(data) => data,
-		Err(err) => return Err(err.to_string())
-	};
-	let public_key = match bitcoin::PublicKey::from_slice(public_key_string.as_bytes()) {
-		Ok(public_key) => public_key,
-		Err(err) => return Err(err.to_string())
-	};
-	Ok(public_key)
-}
-
 //helper function
 //builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
 fn build_high_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::PublicKey>) -> Result<String, bdk::Error> {
