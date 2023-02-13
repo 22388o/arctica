@@ -241,8 +241,14 @@ async fn generate_store_key_pair(number: String) -> String {
 		Err(err) => return "ERROR could not store public key: ".to_string()+&err
 	}
 
-	//make the pubkey dir in the setupCD staging area, can fail or succeed
-	Command::new("mkdir").args(["--parents", "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
+	//make the pubkey dir in the setupCD staging area
+	let a = std::path::Path::new("/mnt/ramdisk/CDROM/pubkeys").exists();
+    if a == false{
+		let output = Command::new("mkdir").args(["--parents", "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
+		if !output.status.success() {
+		return format!("ERROR in creating /mnt/ramdisk/CDROM/pubkeys dir {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+	}
 
 	//copy public key to setupCD dir
 	let output = Command::new("cp").args([&("/mnt/ramdisk/sensitive/public_key".to_string()+&number), "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
@@ -258,8 +264,14 @@ async fn generate_store_key_pair(number: String) -> String {
 //the pubkeys will be shared with the user instead. 4 Time machine Keys are needed so this function will be run 4 times in total.
 #[tauri::command]
 async fn generate_store_simulated_time_machine_key_pair(number: String) -> String {
-	//make the time machine key dir in the setupCD staging area, can fail or succeed
-	Command::new("mkdir").args(["--parents", "/mnt/ramdisk/CDROM/timemachinekeys"]).output().unwrap();
+	//make the time machine key dir in the setupCD staging area
+	let a = std::path::Path::new("/mnt/ramdisk/CDROM/timemachinekeys").exists();
+    if a == false{
+		let output = Command::new("mkdir").args(["--parents", "/mnt/ramdisk/CDROM/timemachinekeys"]).output().unwrap();
+		if !output.status.success() {
+		return format!("ERROR in creating /mnt/ramdisk/CDROM/timemachinekeys dir {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+	}
 
 	//number param is provided by the front end
 	let private_key_file = "/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&number;
@@ -1132,8 +1144,8 @@ async fn mount_internal() -> String {
 		Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
 		Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
 	}else{
-		//function succeeds, core is running, wait 10s for daemon to stop and then unlink
-		Command::new("sleep").args(["10"]).output().unwrap();
+		//function succeeds, core is running, wait 15s for daemon to stop and then unlink
+		Command::new("sleep").args(["15"]).output().unwrap();
 		//we don't mind if these fail
 		Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
 		Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
