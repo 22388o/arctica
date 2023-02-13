@@ -383,23 +383,23 @@ async fn sync_med_wallet(state: State<'_, TauriState>) -> Result<String, String>
 		//remove the stale dir
 		let output = Command::new("sudo").args(["rm", "-r", "/mnt/ramdisk/immediate_wallet"]).output().unwrap();
 		if !output.status.success() {
-		return format!("ERROR in removing /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap());
+		return Ok(format!("ERROR in removing /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
 		}
 	}
 	//create the new dir
 	let output = Command::new("mkdir").args(["/mnt/ramdisk/immediate_wallet"]).output().unwrap();
 	if !output.status.success() {
-	return format!("ERROR in creating /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap());
+	return Ok(format!("ERROR in creating /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
 	}
 	//open file permissions
 	let output = Command::new("sudo").args(["chmod", "-R", "777", "/mnt/ramdisk/immediate_wallet"]).output().unwrap();
 	if !output.status.success() {
-	return format!("ERROR in opening file permissions at /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap());
+	return Ok(format!("ERROR in opening file permissions at /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
 	}
 	//symlink wallet dir
 	let output = Command::new("ln").args(["-s", &(get_home()+"/.bitcoin/immediate_wallet"), "mnt/ramdisk/immediate_wallet"]).output().unwrap();
 	if !output.status.success() {
-	return format!("ERROR in symlinking /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap());
+	return Ok(format!("ERROR in symlinking /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
 	}
 	//import the descriptor
 	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
@@ -491,7 +491,7 @@ fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amoun
 		//remove the stale dir
 		let output = 	Command::new("mkdir").args(["/mnt/ramdisk/psbt"]).output().unwrap();
 		if !output.status.success() {
-		return format!("ERROR in creating /mnt/ramdisk/psbt dir {}", std::str::from_utf8(&output.stderr).unwrap());
+		return Ok(format!("ERROR in creating /mnt/ramdisk/psbt dir {}", std::str::from_utf8(&output.stderr).unwrap()));
 		}
 	}
 	//read the descriptor into memory
