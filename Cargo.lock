@@ -61,7 +61,7 @@ dependencies = [
  "bitcoin",
  "bitcoincore-rpc",
  "home",
- "miniscript",
+ "miniscript 8.0.0",
  "secp256k1",
  "serde",
  "serde_json",
@@ -146,9 +146,8 @@ dependencies = [
 
 [[package]]
 name = "bdk"
-version = "0.24.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c50e3f08fbcd7eb34f11e066a1353986d583f1f87af70f7cd50bff9fce97c817"
+version = "0.27.0"
+source = "git+https://github.com/rajarshimaitra/bdk.git?branch=rpc-fix#66eb9586f447b579775c8af43549acbf247678be"
 dependencies = [
  "async-trait",
  "bdk-macros",
@@ -158,7 +157,7 @@ dependencies = [
  "getrandom 0.2.6",
  "js-sys",
  "log",
- "miniscript",
+ "miniscript 9.0.0",
  "rand 0.8.5",
  "serde",
  "serde_json",
@@ -1617,6 +1616,15 @@ name = "miniscript"
 version = "8.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f4975078076f0b7b914a3044ad7432d2a7fcec38edb855afdc672e24ca35b69"
+dependencies = [
+ "bitcoin",
+]
+
+[[package]]
+name = "miniscript"
+version = "9.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "123a10aae81d0712ecc09b780f6f0ae0b0f506a5c4c912974725760d59ba073e"
 dependencies = [
  "bitcoin",
  "serde",
@@ -3234,6 +3242,18 @@ dependencies = [
  "memchr",
  "num_cpus",
  "pin-project-lite",
+ "tokio-macros",
+]
+
+[[package]]
+name = "tokio-macros"
+version = "1.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d266c00fde287f55d3f1c3e96c500c362a2b8c695076ec180f27918820bc6df8"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
