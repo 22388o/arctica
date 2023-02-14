@@ -1061,16 +1061,26 @@ async fn create_ramdisk() -> String {
 		return format!("Ramdisk already exists");
 	}
 	else{
+		//ramdisk is empty but the filepath exists
+		let c = std::path::Path::new("/mnt/ramdisk").exists();
+		if c == true{
+			let output = Command::new("sudo").args(["rm", "-r", "/mnt/ramdisk"]).output().unwrap();
+			if !output.status.success() {
+				return format!("Error in removing stale /mnt/ramdisk")
+			}
+		}
+		//create the ramdisk
 		let output = Command::new("sudo").args(["mkdir", "/mnt/ramdisk"]).output().unwrap();
 		if !output.status.success() {
 		return format!("ERROR in making /mnt/ramdisk dir {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
+		//allocate the RAM for ramdisk 
 		let output = Command::new("sudo").args(["mount", "-t", "ramfs", "-o", "size=250M", "ramfs", "/mnt/ramdisk"]).output().unwrap();
 		if !output.status.success() {
 			// Function Fails
 			return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
-
+		//open ramdisk file permissions
 		let output = Command::new("sudo").args(["chmod", "777", "/mnt/ramdisk"]).output().unwrap();
 		if !output.status.success() {
 			// Function Fails
