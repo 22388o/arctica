@@ -132,6 +132,29 @@ fn get_policy_id(wallet: Wallet<MemoryDatabase>) -> String {
 		format!("{}", spend_policy.id.to_string()) } else {todo!()}
 }
 
+//helper function
+//check for the presence of an internal storage uuid and if one is mounted, return it
+fn get_uuid() -> String {
+	//Obtain the internal storage device UUID if mounted
+	let devices = Command::new(&("ls")).args([&("/media/".to_string()+&get_user())]).output().unwrap();
+	if !devices.status.success() {
+	return format!("ERROR in parsing /media/user");
+	} 
+	//convert the list of devices above into a vector of results
+	let devices_output = std::str::from_utf8(&devices.stdout).unwrap();
+	let split = devices_output.split('\n');
+	let devices_vec: Vec<_> = split.collect();
+	//loop through the vector and check the character count of each entry to obtain the uuid which is 36 characters
+	let mut uuid = "none";
+	for i in devices_vec{
+		if i.chars().count() == 36{
+			uuid = i.trim();
+		} 
+	}
+	//if a valid uuid is not found, this function returns the string: "none"
+	format!("{}", uuid)
+}
+
 
 
 #[tauri::command]
@@ -1158,31 +1181,6 @@ async fn async_write(name: &str, value: &str) -> Result<String, String> {
     Ok(format!("completed with no problems"))
 }
 
-//helper function
-fn get_uuid() -> String {
-	//Obtain the internal storage device UUID that was mounted earlier
-	let devices = Command::new(&("ls")).args([&("/media/".to_string()+&get_user())]).output().unwrap();
-	if !devices.status.success() {
-	return format!("ERROR in parsing /media/user");
-	} 
-	//convert the list of devices above into a vector of results
-	let devices_output = std::str::from_utf8(&devices.stdout).unwrap();
-	let split = devices_output.split('\n');
-	let devices_vec: Vec<_> = split.collect();
-	//loop through the vector and check the character count of each entry to obtain the uuid which is 36 characters
-	let mut uuid = "none";
-	for i in devices_vec{
-		if i.chars().count() == 36{
-			uuid = i.trim();
-		} 
-	}
-	//failure condition if a valid UUID is not found in the above conditional
-	// if uuid == "none"{
-	// 	return Ok(format!("ERROR could not find a valid UUID in /media/$user"));
-	// }
-	format!("{}", uuid)
-}
-
 #[tauri::command]
 //mount the internal storage drive at /media/$USER/$UUID
 //and symlinks internal .bitcoin/chainstate and ./bitcoin/blocks
@@ -1234,37 +1232,18 @@ async fn mount_internal() -> String {
 			return format!("ERROR in removing stale ./bitcoin/blocks dir {}", std::str::from_utf8(&output.stderr).unwrap());
 			}
 		}
-		// //start of UUID code block
-		// //Obtain the internal storage device UUID that was mounted earlier
-		// let devices = Command::new(&("ls")).args([&("/media/".to_string()+&get_user())]).output().unwrap();
-		// 	if !devices.status.success() {
-		// 	return format!("ERROR in parsing /media/user {}", std::str::from_utf8(&devices.stderr).unwrap());
-		// } 
-		// //convert the list of devices above into a vector of results
-		// let devices_output = std::str::from_utf8(&devices.stdout).unwrap();
-		// let split = devices_output.split('\n');
-		// let devices_vec: Vec<_> = split.collect();
-		// //loop through the vector and check the character count of each entry to obtain the uuid which is 36 characters
-		// let mut uuid = "none";
-		// for i in devices_vec{
-		// 	if i.chars().count() == 36{
-		// 		uuid = i.trim();
-		// 	} 
-		// }
-		// //failure condition if a valid UUID is not found in the above conditional
-		// if uuid == "none"{
-		// 	return format!("ERROR could not find a valid UUID in /media/$user");
-		// }
-		
-		//end of UUID code block
+		//obtain the UUID of the currently mounted internal storage drive
 		uuid = get_uuid();
+		//error in get_uuid()
 		if uuid == "ERROR in parsing /media/user" {
 			return format!("Error in parsing /media/user to get uuid")
 		}
+		//no uuid found
 		else if uuid == "none" {
 			return format!("ERROR could not find a valid UUID in /media/$user");
 		}
-		//obtain the user of the internal storage device
+
+		//obtain the username of the internal storage device
 		let host = Command::new(&("ls")).args([&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home")]).output().unwrap();
 		if !host.status.success() {
 			return format!("ERROR in parsing /media/user/uuid/home {}", std::str::from_utf8(&host.stderr).unwrap());
@@ -1299,7 +1278,9 @@ async fn mount_internal() -> String {
 			return format!("ERROR in opening file permissions of internal storage .bitcoin dirs {}", std::str::from_utf8(&output.stderr).unwrap());
 		} 
 		format!("SUCCESS in mounting the internal drive and symlinking .bitcoin data dirs")
-	} else {
+	}//in the following condition, get_uuid() returns a valid uuid.
+	// So we can assume that the user has already run the mount_internal function in a previous session 
+	else {
 		format!("SUCCESS internal drive is already mounted, assuming proper symlinks exist")
 	}
 }
