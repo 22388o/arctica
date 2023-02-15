@@ -507,11 +507,6 @@ fn get_transactions_med_wallet(state: State<'_, TauriState>) -> String {
 	//retrieve the wallet from state and fetch the transactions
 	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
 	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
-	// let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-	// wallet.sync(&blockchain, SyncOptions::default()).expect("could not sync");
-
-	// let wallet1 = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
-	// let transactions = state.2.lock().unwrap().as_mut().expect("wallet has not been init").list_transactions(true).expect("could not get transactions");
 	let transactions = wallet.list_transactions(true).expect("could not get transactions");
 	//calculate the total wallet balance, including unconfirmed transactions
 	format!("{:?}", transactions)
@@ -839,6 +834,16 @@ async fn init_iso() -> String {
 		// Function Fails
 		return format!("ERROR in init iso, with creating bitcoin.conf = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+
+	let start_time = Command::new("date").args(["+%s"]).output().unwrap();
+	let start_time_output = std::str::from_utf8(&start_time.stdout).unwrap();
+	println!("capturing and storing current unix timestamp");
+	//capture and store current unix timestamp
+	let mut fileRef = match std::fs::File::create(&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/start_time")) {
+		Ok(file) => file,
+		Err(err) => return format!("Could not create start time file"),
+	};
+	fileRef.write_all(&start_time_output.to_string().as_bytes());
 
 	format!("SUCCESS in init_iso")
 }
@@ -1758,6 +1763,7 @@ async fn collect_shards() -> String {
 	//this entire function is currently broken until a solution for the below recursive copy is discovered
 	//collect shards from sd card for export to transfer CD
 	//cp -r /home/$USER/shards/asterisk /mnt/ramdisk/CDROM/shards
+	//this can be solved by pushing the list results of the shards directory into a vector, and looping through the vector to copy the proper files one at a time. 
 
 	//maybe use this from copy_recovery_cd if needed
 	// Command::new("mkdir").args(["/mnt/ramdisk/shards"]).output().unwrap();
@@ -1850,6 +1856,7 @@ fn main() {
 	//establish RPC creds
 	let user_pass_immediate: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
 	let user_pass_delayed: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
+	let sync_time = "sync time";
     let config_immediate: RpcConfig = RpcConfig {
 	    url: "127.0.0.1:8332".to_string(),
 	    auth: user_pass_immediate,
