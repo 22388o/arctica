@@ -1664,8 +1664,15 @@ async fn check_for_masterkey() -> String {
 
 #[tauri::command]
 //this fn is used to store decryption shards gathered from various SD cards to eventually be reconstituted into a masterkey when attempting to log in manually
-async fn create_recovery_cd() -> String {
-	println!("creating recovery CD for manual decrypting");
+async fn recovery_initiate() -> String {
+	//create the CDROM dir if it does not already exist
+	let a = std::path::Path::new("/mnt/ramdisk/CDROM").exists();
+	if a == false{
+		let output = Command::new("mkdir").args(["/mnt/ramdisk/CDROM"]).output().unwrap();
+		if !output.status.success() {
+		return format!("ERROR in creating recovery CD, with making CDROM dir = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	}
 	//create transferCD config
 	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
 	let output = Command::new("echo").args(["type=transfercd" ]).stdout(file).output().unwrap();
@@ -1674,7 +1681,7 @@ async fn create_recovery_cd() -> String {
 		return format!("ERROR in creating recovery CD, with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//collect shards from SD card for export to transfer CD
-	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/shards"), "/mnt/ramdisk/CDROM/shards"]).output().unwrap();
+	let output = Command::new("cp").args(["-R", &(get_home()+"/shards"), "/mnt/ramdisk/CDROM/shards"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in creating recovery CD with copying shards from SD = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1685,7 +1692,7 @@ async fn create_recovery_cd() -> String {
 		// Function Fails
 		return format!("ERROR creating recovery CD with creating ISO = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-	//wipe the CD
+	//wipe the CD 
 	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
 	let output = Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
 	if !output.status.success() {
@@ -1938,7 +1945,7 @@ fn main() {
         start_bitcoind_network_off,
 		disable_networking,
         check_for_masterkey,
-        create_recovery_cd,
+        recovery_initiate,
         copy_recovery_cd,
         calculate_number_of_shards_cd,
 		calculate_number_of_shards_ramdisk,
