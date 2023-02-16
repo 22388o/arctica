@@ -975,14 +975,12 @@ async fn create_setup_cd() -> String {
 	//burn setupCD iso to the setupCD
 	let output = Command::new("sudo").args(["wodim", "dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/setupCD.iso"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in refreshing setupCD with burning iso = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
 	//eject the disc
 	let output = Command::new("eject").args(["/dev/sr0"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -994,16 +992,23 @@ async fn create_setup_cd() -> String {
 #[tauri::command]
 async fn copy_cd_to_ramdisk() -> String {
 	//mount CD if not automounted
-	Command::new("sudo").args(["mkdir", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
-	Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
-
+	let a = std::path::Path::new(&("/media/".to_string()+&get_user()+"/CDROM")).exists();
+	if a == false{
+		let output = Command::new("sudo").args(["mkdir", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
+			if !output.status.success() {
+		return format!("ERROR in copy_cd_to_ramdisk, error making /media/user/CDROM dir = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+		let output = Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
+		if !output.status.success() {
+			return format!("ERROR in copy_cd_to_ramdisk, error mounting /dev/sr0 = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+	}
 	//copy cd contents to ramdisk
 	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/CDROM"), "/mnt/ramdisk"]).output().unwrap();
 	if !output.status.success() {
     	// Function Fails
     	return format!("ERROR in copying CD contents = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
-
 	//open up permissions
 	let output = Command::new("sudo").args(["chmod", "-R", "777", "/mnt/ramdisk/CDROM"]).output().unwrap();
 	if !output.status.success() {
@@ -1097,7 +1102,7 @@ async fn unpack() -> String {
 //create and mount the ramdisk directory for holding senstive data at /mnt/ramdisk
 #[tauri::command]
 async fn create_ramdisk() -> String {
-	//check if the ramdisk already exists
+	//check if the ramdisk already exists and has been used by Arctica this session
 	let a = std::path::Path::new("/mnt/ramdisk/sensitive").exists();
 	let b = std::path::Path::new("/mnt/ramdisk/CDROM").exists();
     if a == true || b == true{
