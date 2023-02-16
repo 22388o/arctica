@@ -17,8 +17,7 @@ tauri-build = { version = "1.0.0-rc.9" }
 
 [dependencies]
 tokio = "1.14.1"
-bdk = { git = "https://github.com/rajarshimaitra/bdk.git", branch = "rpc-fix", features=["rpc"] }
-bitcoincore-rpc = "0.16.0"
+bdk = { Version= "0.24.0", features=["rpc"] }bitcoincore-rpc = "0.16.0"
 bitcoin = "0.29.2"
 miniscript = "8.0.0"
 secp256k1 = "0.24.1"
