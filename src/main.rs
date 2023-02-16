@@ -39,6 +39,7 @@ use std::path::Path;
 use std::process::Stdio;
 use std::io::BufReader;
 use std::any::type_name;
+use std::num::ParseIntError;
 
 struct TauriState(Mutex<Option<RpcConfig>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<RpcConfig>>);
 
@@ -858,7 +859,7 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
     write("sdNumber".to_string(), number.to_string());
 	//write current setup step to config, values provided by front end
     write("setupStep".to_string(), setup.to_string());
-	println!("creating bootable ubuntu device = {} {}", number, setup);
+	println!("creating bootable ubuntu device writing config...SD {} Setupstep {}", number, setup);
 
 	// sleep for 4 seconds
 	Command::new("sleep").args(["4"]).output().unwrap();
@@ -1851,25 +1852,58 @@ async fn convert_to_transfer_cd() -> String {
 	format!("SUCCESS in converting to transfer CD")
 }
 
+// fn retrieve_start_time() -> Result<u64, ParseIntError> {
+// 	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
+// 	let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
+// 	if start_time_complete == true{
+// 		start_time.parse() 
+// 		//need to handle this ParseIntError tokio traceback
+// 	 else{
+// 		return Ok(0)
+// 	}
+// }
+// }
+
+fn retrieve_start_time() -> u64 {
+	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
+	let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
+	if start_time_complete == true{
+		let result = match start_time.trim().parse() {
+			Ok(result) => 
+			// println!("{}", result),
+			return result,
+			Err(..) => 
+			// println!("0"),
+			return 0
+		};
+	}
+		//need to handle this ParseIntError tokio traceback
+	 else{
+		return 0
+	}
+}
 
 fn main() {
 	//establish RPC creds
 	let user_pass_immediate: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
 	let user_pass_delayed: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
-	let sync_time = "sync time";
-    let config_immediate: RpcConfig = RpcConfig {
+	//if start_time unix timestamp is available, set start time param, otherwise set to 0 (genesis block)
+	let sync_time_immediate: bdk::blockchain::rpc::RpcSyncParams = bdk::blockchain::rpc::RpcSyncParams {start_script_count: 0, start_time: retrieve_start_time(), force_start_time: true, poll_rate_sec: 1};
+	let sync_time_delayed: bdk::blockchain::rpc::RpcSyncParams = bdk::blockchain::rpc::RpcSyncParams {start_script_count: 0, start_time: retrieve_start_time(), force_start_time: true, poll_rate_sec: 1};
+	
+	let config_immediate: RpcConfig = RpcConfig {
 	    url: "127.0.0.1:8332".to_string(),
 	    auth: user_pass_immediate,
 	    network: bdk::bitcoin::Network::Bitcoin,
 	    wallet_name: "immediate_wallet".to_string(),
-	    sync_params: None,
+	    sync_params: Some(sync_time_immediate),
 	};
 	let config_delayed: RpcConfig = RpcConfig {
 	    url: "127.0.0.1:8332".to_string(),
 	    auth: user_pass_delayed,
 	    network: bdk::bitcoin::Network::Bitcoin,
 	    wallet_name: "delayed_wallet".to_string(),
-	    sync_params: None,
+	    sync_params: Some(sync_time_delayed),
 	};
 
   	tauri::Builder::default()
