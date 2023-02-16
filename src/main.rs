@@ -1149,13 +1149,8 @@ async fn create_ramdisk() -> String {
 //read the config file of the currently inserted CD/DVD
 #[tauri::command]
 fn read_cd() -> std::string::String {
-    // sleep for 4 seconds
-	Command::new("sleep").args(["4"]).output().unwrap();
-	//mount CD if not automounted
-	Command::new("sudo").args(["mkdir", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
-	Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
 	//check for config
-    let config_file = "/media/".to_string()+&get_user()+"/CDROM/config.txt";
+    let config_file = "/mnt/ramdisk/CDROM/config.txt";
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
         Err(_) => {
