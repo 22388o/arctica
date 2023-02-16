@@ -1870,16 +1870,13 @@ fn retrieve_start_time() -> u64 {
 	if start_time_complete == true{
 		let result = match start_time.trim().parse() {
 			Ok(result) => 
-			// println!("{}", result),
 			return result,
 			Err(..) => 
-			// println!("0"),
-			return 0
+			return 1676511266
 		};
 	}
-		//need to handle this ParseIntError tokio traceback
 	 else{
-		return 0
+		return 1676511266
 	}
 }
 
@@ -1887,7 +1884,8 @@ fn main() {
 	//establish RPC creds
 	let user_pass_immediate: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
 	let user_pass_delayed: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
-	//if start_time unix timestamp is available, set start time param, otherwise set to 0 (genesis block)
+	//if start_time unix timestamp is available, set start time param to the time of arctica install, otherwise set to 1676511266 (current time - 2 months from when I implemented this feature)
+	//1676511266 is a safe, arbitrary default value since arctica wallets are so particular to the software that creates them. No reason to scan all the way back to genesis.
 	let sync_time_immediate: bdk::blockchain::rpc::RpcSyncParams = bdk::blockchain::rpc::RpcSyncParams {start_script_count: 0, start_time: retrieve_start_time(), force_start_time: true, poll_rate_sec: 1};
 	let sync_time_delayed: bdk::blockchain::rpc::RpcSyncParams = bdk::blockchain::rpc::RpcSyncParams {start_script_count: 0, start_time: retrieve_start_time(), force_start_time: true, poll_rate_sec: 1};
 	
