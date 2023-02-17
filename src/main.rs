@@ -1743,7 +1743,7 @@ async fn collect_shards() -> String {
 	//obtain a list of all of the filenames in $HOME/shards
 	let shards = Command::new(&("ls")).args([&(get_home()+"/shards")]).output().unwrap();
 	if !shards.status.success() {
-	return format!("ERROR in parsing $HOME/shards");
+	return format!("ERROR in collect_shards() with parsing $HOME/shards");
 	} 
 	//convert the list of shards into a vector of results
 	let shards_output = std::str::from_utf8(&shards.stdout).unwrap();
@@ -1753,7 +1753,7 @@ async fn collect_shards() -> String {
 	for i in shards_vec{
 		let output = Command::new("cp").args([&(get_home()+"/shards"+&(i.to_string())), "/mnt/ramdisk/CDROM/shards"]).output().unwrap();
 		if !output.status.success() {
-			return format!("Error in copying shards")
+			return format!("Error in collect_shards() with copying shards")
 		}
 		} 
 	format!("SUCCESS in collecting shards")
