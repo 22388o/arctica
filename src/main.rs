@@ -1752,54 +1752,20 @@ async fn collect_shards() -> String {
 }
 
 #[tauri::command]
-//convert the currently inserted CD to a transfer CD which contains a masterkey
-//will likely rework these features, seems like there is little need to differentiate between transfer CD and recovery CD
-//a transfer CD without a PSBT onboard should just be treated like a recovery CD
+//convert the completed recovery CD to a Transfer CD via config file
 async fn convert_to_transfer_cd() -> String {
-	println!("converting completed recovery cd to transfer cd with masterkey");
-	//create transferCD target dir
-	Command::new("mkdir").args(["/mnt/ramdisk/CDROM"]).output().unwrap();
+	//remove stale config
+	let output = Command::new("sudo").args(["rm", "/mnt/ramdisk/CDROM/config.txt"]).output().unwrap();
+	if !output.status.success() {
+		return format!("Error in convert to transfer CD with removing stale config = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 	//create transferCD config
 	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
 	let output = Command::new("echo").args(["type=transfercd" ]).stdout(file).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in converting to transfer CD, with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-	//this is a deprecated script as masterkey no longer lives in /ramdisk but instead lives in /ramdisk/CDROM. Revise. 
-	//collect masterkey from cd dump and prepare for transfer to transfercd
-	let output = Command::new("cp").args(["/mnt/ramdisk/masterkey", "/mnt/ramdisk/CDROM"]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in coverting to transfer CD, with copying masterkey = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-	//create iso from transferCD dir
-	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/CDROM"]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in converting to transfer CD, with copying masterkey = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-	//wipe the CD
-	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
-	let output = Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR converting to transfer CD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-	//burn transferCD iso to the transfer CD
-	let output = Command::new("sudo").args(["wodim", "dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/transferCD.iso"]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR refreshing setupCD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-	//eject the disc
-	let output = Command::new("eject").args(["/dev/sr0"]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-
-	format!("SUCCESS in converting to transfer CD")
+	format!("SUCCESS in converting config to transfer CD")
 }
 
 // fn retrieve_start_time() -> Result<u64, ParseIntError> {
