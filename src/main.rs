@@ -1737,67 +1737,27 @@ async fn calculate_number_of_shards_ramdisk() -> u32 {
 }
 
 
-//broken
 #[tauri::command]
 async fn collect_shards() -> String {
 	println!("collecting shards");
-	//create transferCD target dir
-	Command::new("mkdir").args(["--parents", "/mnt/ramdisk/CDROM/shards"]).output().unwrap();
-	//stage transferCD target dir with current CD content
-	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/CDROM"), "/mnt/ramdisk"]).output().unwrap();
-	if !output.status.success() {
-    	// Function Fails
-    	return format!("ERROR in collecting shards with copying CDROM contents = {}", std::str::from_utf8(&output.stderr).unwrap());
-    }
-
-    
-	//create transferCD config
-	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
-	let output = Command::new("echo").args(["type=transfercd" ]).stdout(file).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in converting to transfer CD, with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-
-	//this entire function is currently broken until a solution for the below recursive copy is discovered
-	//collect shards from sd card for export to transfer CD
-	//cp -r /home/$USER/shards/asterisk /mnt/ramdisk/CDROM/shards
-	//this can be solved by pushing the list results of the shards directory into a vector, and looping through the vector to copy the proper files one at a time. 
-
-	//maybe use this from copy_recovery_cd if needed
-	// Command::new("mkdir").args(["/mnt/ramdisk/shards"]).output().unwrap();
-	// copy_shards_to_ramdisk();
-
-	//create iso from transferCD dir
-	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/CDROM"]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR converting to transfer CD with creating ISO = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-	//wipe the CD
-	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
-	let output = Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR converting to transfer CD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-	//burn transferCD iso to the transfer CD
-	let output = Command::new("sudo").args(["wodim", "dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/transferCD.iso"]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR converting to transfer CD with burning CD = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-	//eject the disc
-	let output = Command::new("eject").args(["/dev/sr0"]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-
+	//obtain a list of all of the filenames in $HOME/shards
+	let shards = Command::new(&("ls")).args([&(get_home()+"/shards")]).output().unwrap();
+	if !shards.status.success() {
+	return format!("ERROR in parsing $HOME/shards");
+	} 
+	//convert the list of shards into a vector of results
+	let shards_output = std::str::from_utf8(&shards.stdout).unwrap();
+	let split = shards_output.split('\n');
+	let shards_vec: Vec<_> = split.collect();
+	//iterate through the vector and copy each file to /mnt/ramdisk/CDROM/shards
+	for i in shards_vec{
+		let output = Command::new("cp").args([&(get_home()+"/shards"+&(i.to_string())), "/mnt/ramdisk/CDROM/shards"]).output().unwrap();
+		if !output.status.success() {
+			return format!("Error in copying shards")
+		}
+		} 
 	format!("SUCCESS in collecting shards")
-	
 }
-
 
 #[tauri::command]
 //convert the currently inserted CD to a transfer CD which contains a masterkey
