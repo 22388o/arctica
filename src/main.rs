@@ -1716,19 +1716,11 @@ async fn recovery_initiate() -> String {
 	format!("SUCCESS in creating recovery CD")
 }
 
-//calculate the number of encryption shards currently on the inserted CD/DVD
-#[tauri::command]
-async fn calculate_number_of_shards_cd() -> u32 {
-	let mut x = 0;
-    for file in fs::read_dir("/mnt/ramdisk/CDROM/shards").unwrap() {
-		x = x + 1;
-	}
-	return x;
-}
+
 
 //calculate the number of encryption shards currently in the ramdisk
 #[tauri::command]
-async fn calculate_number_of_shards_ramdisk() -> u32 {
+async fn calculate_number_of_shards() -> u32 {
 	let mut x = 0;
     for file in fs::read_dir("/mnt/ramdisk/CDROM/shards").unwrap() {
 		x = x + 1;
@@ -1897,8 +1889,7 @@ fn main() {
 		disable_networking,
         check_for_masterkey,
         recovery_initiate,
-        calculate_number_of_shards_cd,
-		calculate_number_of_shards_ramdisk,
+        calculate_number_of_shards,
         collect_shards,
         convert_to_transfer_cd,
 		generate_store_key_pair,
