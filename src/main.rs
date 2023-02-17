@@ -1673,9 +1673,9 @@ async fn recovery_initiate() -> String {
 		return format!("ERROR in creating recovery CD, with making CDROM dir = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	}
-	//create transferCD config
+	//create recoveryCD config, this informs the front end on BOOT whether or not the user is attempting to manually recover login or attempting to sign a PSBT
 	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
-	let output = Command::new("echo").args(["type=transfercd" ]).stdout(file).output().unwrap();
+	let output = Command::new("echo").args(["type=recoverycd" ]).stdout(file).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in creating recovery CD, with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1716,20 +1716,11 @@ async fn recovery_initiate() -> String {
 	format!("SUCCESS in creating recovery CD")
 }
 
-//copy the contents of the recovery CD to ramdisk
-//may be redundant with copy_cd_to_ramdisk?
-#[tauri::command]
-async fn copy_recovery_cd() -> String {
-	Command::new("mkdir").args(["/mnt/ramdisk/shards"]).output().unwrap();
-	copy_shards_to_ramdisk();
-	format!("success in copying recovery CD")
-}
-
 //calculate the number of encryption shards currently on the inserted CD/DVD
 #[tauri::command]
 async fn calculate_number_of_shards_cd() -> u32 {
 	let mut x = 0;
-    for file in fs::read_dir("/media/".to_string()+&get_user()+"/CDROM/shards").unwrap() {
+    for file in fs::read_dir("/mnt/ramdisk/CDROM/shards").unwrap() {
 		x = x + 1;
 	}
 	return x;
@@ -1946,7 +1937,6 @@ fn main() {
 		disable_networking,
         check_for_masterkey,
         recovery_initiate,
-        copy_recovery_cd,
         calculate_number_of_shards_cd,
 		calculate_number_of_shards_ramdisk,
         collect_shards,

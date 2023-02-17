@@ -147,7 +147,7 @@ dependencies = [
 [[package]]
 name = "bdk"
 version = "0.27.0"
-source = "git+https://github.com/rajarshimaitra/bdk.git?branch=rpc-fix#66eb9586f447b579775c8af43549acbf247678be"
+source = "git+https://github.com/rajarshimaitra/bdk.git?branch=rpc-fix#e1229c36d0ac86de7b68f19ff64f56d95c02a076"
 dependencies = [
  "async-trait",
  "bdk-macros",
