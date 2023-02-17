@@ -1319,12 +1319,12 @@ async fn install_sd_deps() -> String {
 
 #[tauri::command]
 //blank and rewrite the currently inserted disc with the contents of /mnt/ramdisk/CDROM
-async fn refresh_setup_cd() -> String {
-	//create iso from setupCD dir
-	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/setupCD.iso", "/mnt/ramdisk/CDROM"]).output().unwrap();
+async fn refresh_cd() -> String {
+	//create iso from CD dir
+	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/CDROM"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return format!("ERROR refreshing setupCD with genisoimage = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR refreshing CD with genisoimage = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
 	//wipe the CD
@@ -1332,24 +1332,24 @@ async fn refresh_setup_cd() -> String {
 	let output = Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return format!("ERROR refreshing setupCD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR refreshing CD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
 	//burn setupCD iso to the setupCD
-	let output = Command::new("sudo").args(["wodim", "dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/setupCD.iso"]).output().unwrap();
+	let output = Command::new("sudo").args(["wodim", "dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/transferCD.iso"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return format!("ERROR in refreshing setupCD with burning iso = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in refreshing CD with burning iso = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
 	//eject the disc
 	let output = Command::new("eject").args(["/dev/sr0"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
-		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in refreshing CD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	format!("SUCCESS in refreshing setupCD")
+	format!("SUCCESS in refreshing CD")
 }
 
 //The following "distribute_shards" fuctions are for distributing encryption key shards to each of the sd cards 2-7
@@ -1873,7 +1873,7 @@ fn main() {
         packup,
         unpack,
         install_sd_deps,
-        refresh_setup_cd,
+        refresh_cd,
         distribute_shards_sd2,
         distribute_shards_sd3,
         distribute_shards_sd4,
@@ -1889,6 +1889,7 @@ fn main() {
 		disable_networking,
         check_for_masterkey,
         recovery_initiate,
+		recovery_additional,
         calculate_number_of_shards,
         collect_shards,
         convert_to_transfer_cd,
