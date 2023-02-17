@@ -1855,7 +1855,6 @@ fn main() {
 		disable_networking,
         check_for_masterkey,
         recovery_initiate,
-		recovery_additional,
         calculate_number_of_shards,
         collect_shards,
         convert_to_transfer_cd,
