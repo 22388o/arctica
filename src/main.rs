@@ -9,6 +9,9 @@ use bitcoin;
 use bitcoin::Address;
 use bitcoin::consensus::serialize;
 use bitcoin::psbt::PartiallySignedTransaction;
+use bitcoin::util::bip32::ExtendedPubKey;
+use bitcoin::util::bip32::ExtendedPrivKey;
+use miniscript::DescriptorPublicKey;
 use bdk::{FeeRate, Wallet, SyncOptions, KeychainKind};
 use bdk::{Balance, TransactionDetails};
 use bdk::database::MemoryDatabase;
@@ -33,6 +36,7 @@ use std::str::FromStr;
 use std::collections::BTreeMap;
 use home::home_dir;
 use secp256k1::{rand, Secp256k1, SecretKey};
+use secp256k1::rand::Rng;
 use tauri::State;
 use std::{thread, time::Duration};
 use std::path::Path;
@@ -184,23 +188,24 @@ fn read() -> std::string::String {
 
 //helper function
 //used to generate an XPRIV
-fn generate_private_key() -> Result<bitcoin::ExtendedPrivateKey, bitcoin::Error> {
+fn generate_private_key() -> Result<bitcoin::util::bip32::ExtendedPrivKey, bitcoin::util::bip32::Error> {
 	let secp = Secp256k1::new();
-	let secret_key = SecretKey::new(&mut rand::thread_rng());
-	Ok(bitcoin::ExtendedPrivateKey::new(secret_key, bitcoin::Network::Bitcoin))
+	// let secret_key: u8 = rand::thread_rng().gen();
+	let seed = [rand::thread_rng().gen()];
+	Ok(bitcoin::util::bip32::ExtendedPrivKey::new_master(bitcoin::Network::Bitcoin, &seed).unwrap())
 }
 
 //helper function
 //used to derive an XPUB from an XPRIV
-fn derive_public_key(private_key: bitcoin::ExtendedPrivateKey) -> Result<bitcoin::ExtendedPublicKey, bitcoin::Error>  {
+fn derive_public_key(private_key: bitcoin::util::bip32::ExtendedPrivKey) -> Result<bitcoin::util::bip32::ExtendedPubKey, bitcoin::Error>  {
 	let secp = Secp256k1::new();
 	let secret_key = SecretKey::new(&mut rand::thread_rng());
-	Ok(bitcoin::ExtendedPublicKey::from_private_key(&secp, &private_key))
+	Ok(bitcoin::util::bip32::ExtendedPubKey::from_priv(&secp, &private_key))
 }
 
 //helper function
 //used to store the XPRIV as a file
-fn store_private_key(private_key: bitcoin::ExtendedPrivateKey, file_name: String) -> Result<String, String> {
+fn store_private_key(private_key: bitcoin::util::bip32::ExtendedPrivKey, file_name: String) -> Result<String, String> {
 	let mut fileRef = match std::fs::File::create(file_name) {
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
@@ -211,7 +216,7 @@ fn store_private_key(private_key: bitcoin::ExtendedPrivateKey, file_name: String
 
 //helper function
 //used to store the XPUB as a file
-fn store_public_key(public_key: bitcoin::ExtendedPublicKey, file_name: String) -> Result<String, String> {
+fn store_public_key(public_key: bitcoin::util::bip32::ExtendedPubKey, file_name: String) -> Result<String, String> {
 	let mut fileRef = match std::fs::File::create(file_name) {
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
@@ -250,8 +255,9 @@ async fn generate_store_key_pair(number: String) -> String {
 	let public_key_file = "/mnt/ramdisk/sensitive/public_key".to_string()+&number;
 	let private_key = match generate_private_key() {
 		Ok(private_key) => private_key,
-		Err(err) => return "ERROR could not generate private_key: ".to_string()+&err.to_string()
-	};
+		Err(err) => return "ERROR could not generate private key: ".to_string()+&err.to_string()
+	}; 
+
 	let public_key = match derive_public_key(private_key) {
 		Ok(public_key) => public_key,
 		Err(err) => return "ERROR could not dervie public key: ".to_string()+&err.to_string()
@@ -298,9 +304,9 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 	//number param is provided by the front end
 	let private_key_file = "/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&number;
 	let public_key_file = "/mnt/ramdisk/CDROM/timemachinekeys/time_machine_public_key".to_string()+&number;
-	let private_key = match generate_private_key() {
+	let private_key = match generate_private_key(){
 		Ok(private_key) => private_key,
-		Err(err) => return "ERROR could not generate private_key: ".to_string()+&err.to_string()
+		Err(err) => return "ERROR could not generate private key: ".to_string()+&err.to_string()
 	};
 	let public_key = match derive_public_key(private_key) {
 		Ok(public_key) => public_key,
@@ -327,27 +333,27 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 
 //helper function
 //builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
-fn build_high_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::ExtendedPublicKey>) -> Result<String, bdk::Error> {
+fn build_high_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::util::bip32::ExtendedPubKey>) -> Result<String, bdk::Error> {
 	let four_years = blockchain.get_height().unwrap()+210379;
 	let month = 4382;
 	let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 	println!("DESC: {}", descriptor);
-	Ok(miniscript::Descriptor::<bitcoin::ExtendedPublicKey>::from_str(&descriptor).unwrap().to_string())
+	Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap().to_string())
 }
 
 //helper function
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
-fn build_med_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::ExtendedPublicKey>) -> Result<String, bdk::Error> {
+fn build_med_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::util::bip32::ExtendedPubKey>) -> Result<String, bdk::Error> {
 	let four_years = blockchain.get_height().unwrap()+210379;
 	let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
-	Ok(miniscript::Descriptor::<bitcoin::ExtendedPublicKey>::from_str(&descriptor).unwrap().to_string())
+	Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap().to_string())
 }
 
 //helper function
 //builds the low security descriptor, 1 of 7 thresh, used for tripwire
-fn build_low_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::ExtendedPublicKey>) -> Result<String, bdk::Error> {
+fn build_low_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::util::bip32::ExtendedPubKey>) -> Result<String, bdk::Error> {
 	let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
-	Ok(miniscript::Descriptor::<bitcoin::ExtendedPublicKey>::from_str(&descriptor).unwrap().to_string())
+	Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap().to_string())
 }
 
 
@@ -1456,7 +1462,7 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 	println!("pushing 7 standard pubkeys into key array");
 	for i in 1..=7{
 		let key_str = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))).expect(&("Error reading public_key from file".to_string()+&(i.to_string())));
-		let key = bitcoin::ExtendedPublicKey::from_str(&key_str).expect(&("Error reading public_key from string".to_string()+&(i.to_string())));
+		let key = bitcoin::util::bip32::ExtendedPubKey::from_str(&key_str).expect(&("Error reading public_key from string".to_string()+&(i.to_string())));
 		println!("printing key type");
 		// println!("{}", type_of(&key));
 		key_array.push(key);
@@ -1466,7 +1472,7 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 	println!("pushing 4 time machine pubkeys into key array");
 	for i in 1..=4{
 		let key_str = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key from file".to_string()+&(i.to_string())));
-		let key = bitcoin::ExtendedPublicKey::from_str(&key_str).expect(&("Error reading time_machine_public_key from string".to_string()+&(i.to_string())));
+		let key = bitcoin::util::bip32::ExtendedPubKey::from_str(&key_str).expect(&("Error reading time_machine_public_key from string".to_string()+&(i.to_string())));
 		key_array.push(key);
 		println!("pushed key");
 	}
