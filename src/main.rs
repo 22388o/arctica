@@ -189,9 +189,9 @@ fn read() -> std::string::String {
 //helper function
 //used to generate an XPRIV
 fn generate_private_key() -> Result<bitcoin::util::bip32::ExtendedPrivKey, bitcoin::util::bip32::Error> {
-	let secp = Secp256k1::new();
-	// let secret_key: u8 = rand::thread_rng().gen();
-	let seed = [rand::thread_rng().gen()];
+	//generate a random slice of bytes to use as a seed
+	let seed = rand::thread_rng().gen::<[u8; 32]>();
+	//derive Xpriv
 	Ok(bitcoin::util::bip32::ExtendedPrivKey::new_master(bitcoin::Network::Bitcoin, &seed).unwrap())
 }
 
