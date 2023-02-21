@@ -12,20 +12,20 @@ use bitcoin::psbt::PartiallySignedTransaction;
 use bitcoin::util::bip32::ExtendedPubKey;
 use bitcoin::util::bip32::ExtendedPrivKey;
 use miniscript::DescriptorPublicKey;
-use bdk::{FeeRate, Wallet, SyncOptions, KeychainKind};
-use bdk::{Balance, TransactionDetails};
-use bdk::database::MemoryDatabase;
-use bdk::wallet::AddressIndex::New;
-use bdk::descriptor::ExtractPolicy;
-use bdk::signer::SignersContainer;
-use bdk::descriptor::IntoWalletDescriptor;
-use bdk::descriptor::policy::BuildSatisfaction;
+////use bdk::{FeeRate, Wallet, SyncOptions, KeychainKind};
+////use bdk::{Balance, TransactionDetails};
+////use bdk::database::MemoryDatabase;
+////use bdk::wallet::AddressIndex::New;
+////use bdk::descriptor::ExtractPolicy;
+////use bdk::signer::SignersContainer;
+////use bdk::descriptor::IntoWalletDescriptor;
+////use bdk::descriptor::policy::BuildSatisfaction;
 use bitcoincore_rpc::Client;
-use bdk::blockchain::ConfigurableBlockchain;
-use bdk::blockchain::rpc::RpcBlockchain;
-use bdk::blockchain::rpc::RpcConfig;
-use bdk::blockchain::Blockchain;
-use bdk::blockchain::GetHeight;
+////use bdk::blockchain::ConfigurableBlockchain;
+////use bdk::blockchain::rpc::RpcBlockchain;
+////use bdk::blockchain::rpc::RpcConfig;
+////use bdk::blockchain::Blockchain;
+////use bdk::blockchain::GetHeight;
 use std::sync::{Arc, Mutex};
 use std::ops::Deref;
 use std::process::Command;
@@ -44,8 +44,9 @@ use std::process::Stdio;
 use std::io::BufReader;
 use std::any::type_name;
 use std::num::ParseIntError;
+use hex;
 
-struct TauriState(Mutex<Option<RpcConfig>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<Wallet<MemoryDatabase>>>, Mutex<Option<RpcConfig>>);
+struct TauriState(Mutex<Option<Client>>);
 
 //helper function
 //only useful when running the application in a dev envrionment
@@ -130,12 +131,13 @@ fn write(name: String, value:String) {
     file.write_all(newfile.as_bytes()).expect("Could not rewrite file");
 }
 
+//TODO: wallet refactor
 //helper function
 //return the policy id of the provided wallet
-fn get_policy_id(wallet: Wallet<MemoryDatabase>) -> String {
-	if let Ok(Some(spend_policy)) = wallet.policies(KeychainKind::External){
-		format!("{}", spend_policy.id.to_string()) } else {todo!()}
-}
+////fn get_policy_id(wallet: Wallet<MemoryDatabase>) -> String {
+////    if let Ok(Some(spend_policy)) = wallet.policies(KeychainKind::External){
+////        format!("{}", spend_policy.id.to_string()) } else {todo!()}
+////}
 
 //helper function
 //check for the presence of an internal storage uuid and if one is mounted, return it
@@ -188,40 +190,29 @@ fn read() -> std::string::String {
 
 //helper function
 //used to generate an XPRIV
-fn generate_private_key() -> Result<bitcoin::util::bip32::ExtendedPrivKey, bitcoin::util::bip32::Error> {
-	//generate a random slice of bytes to use as a seed
-	let seed = rand::thread_rng().gen::<[u8; 32]>();
-	//derive Xpriv
-	Ok(bitcoin::util::bip32::ExtendedPrivKey::new_master(bitcoin::Network::Bitcoin, &seed).unwrap())
+fn generate_keypair() -> Result<(String, String), bitcoin::Error> {
+	let secp = Secp256k1::new();
+    let seed = SecretKey::new(&mut rand::thread_rng()).secret_bytes();
+    let xpriv = bitcoin::util::bip32::ExtendedPrivKey::new_master(bitcoin::Network::Bitcoin, &seed).unwrap();
+	let xpub = bitcoin::util::bip32::ExtendedPubKey::from_priv(&secp, &xpriv);
+	Ok((bitcoin::util::base58::check_encode_slice(&xpriv.encode()), bitcoin::util::base58::check_encode_slice(&xpub.encode())))
 }
 
 //helper function
 //used to derive an XPUB from an XPRIV
 fn derive_public_key(private_key: bitcoin::util::bip32::ExtendedPrivKey) -> Result<bitcoin::util::bip32::ExtendedPubKey, bitcoin::Error>  {
 	let secp = Secp256k1::new();
-	let secret_key = SecretKey::new(&mut rand::thread_rng());
 	Ok(bitcoin::util::bip32::ExtendedPubKey::from_priv(&secp, &private_key))
 }
 
 //helper function
 //used to store the XPRIV as a file
-fn store_private_key(private_key: bitcoin::util::bip32::ExtendedPrivKey, file_name: String) -> Result<String, String> {
+fn store_string(string: String, file_name: String) -> Result<String, String> {
 	let mut fileRef = match std::fs::File::create(file_name) {
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
 	};
-	fileRef.write_all(&private_key.to_string().as_bytes());
-	Ok(format!("SUCCESS stored with no problems"))
-}
-
-//helper function
-//used to store the XPUB as a file
-fn store_public_key(public_key: bitcoin::util::bip32::ExtendedPubKey, file_name: String) -> Result<String, String> {
-	let mut fileRef = match std::fs::File::create(file_name) {
-		Ok(file) => file,
-		Err(err) => return Err(err.to_string()),
-	};
-	fileRef.write_all(&public_key.to_string().as_bytes());
+	fileRef.write_all(&string.as_bytes());
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
@@ -238,14 +229,15 @@ fn store_descriptor(descriptor: String, file_name: String) -> Result<String, Str
 
 //helper function
 //used to store the generated PSBT as a file
-fn store_psbt(psbt: &PartiallySignedTransaction, file_name: String) -> Result<String, String> {
-	let mut fileRef = match std::fs::File::create(file_name) {
-		Ok(file) => file,
-		Err(err) => return Err(err.to_string()),
-	};
-	fileRef.write_all(&psbt.to_string().as_bytes());
-	Ok(format!("SUCCESS stored with no problems"))
-}
+//TODO: wallet refactor
+////fn store_psbt(psbt: &PartiallySignedTransaction, file_name: String) -> Result<String, String> {
+////    let mut fileRef = match std::fs::File::create(file_name) {
+////        Ok(file) => file,
+////        Err(err) => return Err(err.to_string()),
+////    };
+////    fileRef.write_all(&psbt.to_string().as_bytes());
+////    Ok(format!("SUCCESS stored with no problems"))
+////}
 
 #[tauri::command]
 //generates a public and private key pair and stores them as a text file
@@ -253,20 +245,17 @@ async fn generate_store_key_pair(number: String) -> String {
 	//number corresponds to currentSD here and is provided by the front end
 	let private_key_file = "/mnt/ramdisk/sensitive/private_key".to_string()+&number;
 	let public_key_file = "/mnt/ramdisk/sensitive/public_key".to_string()+&number;
-	let private_key = match generate_private_key() {
-		Ok(private_key) => private_key,
-		Err(err) => return "ERROR could not generate private key: ".to_string()+&err.to_string()
+
+    let (xpriv, xpub) = match generate_keypair() {
+		Ok((xpriv, xpub)) => (xpriv, xpub),
+		Err(err) => return "ERROR could not generate keypair: ".to_string()+&err.to_string()
 	}; 
 
-	let public_key = match derive_public_key(private_key) {
-		Ok(public_key) => public_key,
-		Err(err) => return "ERROR could not dervie public key: ".to_string()+&err.to_string()
-	};
-	match store_private_key(private_key, private_key_file) {
+	match store_string(xpriv, private_key_file) {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store private key: ".to_string()+&err
 	}
-	match store_public_key(public_key, public_key_file) {
+	match store_string(xpub, public_key_file) {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store public key: ".to_string()+&err
 	}
@@ -304,19 +293,15 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 	//number param is provided by the front end
 	let private_key_file = "/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&number;
 	let public_key_file = "/mnt/ramdisk/CDROM/timemachinekeys/time_machine_public_key".to_string()+&number;
-	let private_key = match generate_private_key(){
-		Ok(private_key) => private_key,
-		Err(err) => return "ERROR could not generate private key: ".to_string()+&err.to_string()
+	let (xpriv, xpub) = match generate_keypair() {
+		Ok((xpriv, xpub)) => (xpriv, xpub),
+		Err(err) => return "ERROR could not generate keypair: ".to_string()+&err.to_string()
 	};
-	let public_key = match derive_public_key(private_key) {
-		Ok(public_key) => public_key,
-		Err(err) => return "ERROR could not dervie public key: ".to_string()+&err.to_string()
-	};
-	match store_private_key(private_key, private_key_file) {
+	match store_string(xpriv, private_key_file) {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store private key: ".to_string()+&err
 	}
-	match store_public_key(public_key, public_key_file) {
+	match store_string(xpub, public_key_file) {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store public key: ".to_string()+&err
 	}
@@ -331,233 +316,236 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 	format!("SUCCESS generated and stored Private and Public Key Pair")
 }
 
+//TODO: wallet refactor
 //helper function
 //builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
-fn build_high_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::util::bip32::ExtendedPubKey>) -> Result<String, bdk::Error> {
-	let four_years = blockchain.get_height().unwrap()+210379;
-	let month = 4382;
-	let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
-	println!("DESC: {}", descriptor);
-	Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap().to_string())
+fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<String, bitcoin::Error> {
+    let four_years = blockchain.get_blockchain_info().unwrap().blocks+210379;
+    let month = 4382;
+    let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+    println!("DESC: {}", descriptor);
+    Ok(miniscript::Descriptor::<DescriptorPrivateKey>::from_str(&descriptor).unwrap().to_string())
 }
 
 //helper function
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
-fn build_med_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::util::bip32::ExtendedPubKey>) -> Result<String, bdk::Error> {
-	let four_years = blockchain.get_height().unwrap()+210379;
-	let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
-	Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap().to_string())
+fn build_med_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<String, bitcoin::Error> {
+    let four_years = blockchain.get_blockchain_info().unwrap().blocks+210379;
+    let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
+    Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap().to_string())
 }
 
 //helper function
 //builds the low security descriptor, 1 of 7 thresh, used for tripwire
-fn build_low_descriptor(blockchain: &RpcBlockchain, keys: &Vec<bitcoin::util::bip32::ExtendedPubKey>) -> Result<String, bdk::Error> {
-	let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
-	Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap().to_string())
+fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<String, bitcoin::Error> {
+    let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
+    Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap().to_string())
 }
 
 
-#[tauri::command]
-//initialize the low security descriptor into a wallet held in state
-fn init_low_wallet(state: State<'_, TauriState>) -> String {
-    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/low_descriptor").expect("Error reading reading low descriptor from file");
-    println!("desc = {}", desc);
-    *state.3.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
-    return "Completed initializing low wallet with no problems".to_string()
-}
+////#[tauri::command]
+//////initialize the low security descriptor into a wallet held in state
+////fn init_low_wallet(state: State<'_, TauriState>) -> String {
+////    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/low_descriptor").expect("Error reading reading low descriptor from file");
+////    println!("desc = {}", desc);
+////    *state.3.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
+////    return "Completed initializing low wallet with no problems".to_string()
+////}
 
-#[tauri::command]
-//initialize the medium security descriptor into a wallet held in state
-async fn init_med_wallet(state: State<'_, TauriState>) -> Result<String, String> {
-    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
-    println!("desc = {}", desc);
-    *state.2.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
-	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
-	let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-			match wallet.sync(&blockchain, SyncOptions::default()) {
-			Ok(f) => f,
-			Err(e) => {
-				return Err(e.to_string())
-			}
-		}
-	Ok(format!("Completed initializing med wallet with no problems"))
-}	
+////#[tauri::command]
+//////initialize the medium security descriptor into a wallet held in state
+////async fn init_med_wallet(state: State<'_, TauriState>) -> Result<String, String> {
+////    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
+////    println!("desc = {}", desc);
+////    *state.2.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
+////    let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
+////    let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+////            match wallet.sync(&blockchain, SyncOptions::default()) {
+////            Ok(f) => f,
+////            Err(e) => {
+////                return Err(e.to_string())
+////            }
+////        }
+////    Ok(format!("Completed initializing med wallet with no problems"))
+////}	
 
-#[tauri::command]
-//initialize the high security descriptor into a wallet held in state
-fn init_high_wallet(state: State<'_, TauriState>) -> String {
-    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/high_descriptor").expect("Error reading reading high descriptor from file");
-    println!("desc = {}", desc);
-    *state.1.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
-    return "Completed initializing high wallet with no problems".to_string()
-}
+//TODO: wallet refactor
+////#[tauri::command]
+//////initialize the high security descriptor into a wallet held in state
+////fn init_high_wallet(state: State<'_, TauriState>) -> String {
+////    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/high_descriptor").expect("Error reading reading high descriptor from file");
+////    println!("desc = {}", desc);
+////    *state.1.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
+////    return "Completed initializing high wallet with no problems".to_string()
+////}
 
-#[tauri::command]
-async fn sync_med_wallet(state: State<'_, TauriState>) -> Result<String, String> {
-	//create a wallet dir in ramdisk if it does not exist
+//TODO: wallet refactor
+////#[tauri::command]
+////async fn sync_med_wallet(state: State<'_, TauriState>) -> Result<String, String> {
+////    //create a wallet dir in ramdisk if it does not exist
 
-	//I'm not so sure about this code block. I don't know what it's value add is. If the dir exists in ramdisk why delete it?
-	//Perhaps I meant to make the filepath here .bitcoin rather than /mnt/ramdisk?
+////    //I'm not so sure about this code block. I don't know what it's value add is. If the dir exists in ramdisk why delete it?
+////    //Perhaps I meant to make the filepath here .bitcoin rather than /mnt/ramdisk?
 
-	// let a = std::path::Path::new("/mnt/ramdisk/immediate_wallet").exists();
-    // if a == true{
-	// 	//remove the stale dir
-	// 	let output = Command::new("sudo").args(["rm", "-r", "/mnt/ramdisk/immediate_wallet"]).output().unwrap();
-	// 	if !output.status.success() {
-	// 	return Ok(format!("ERROR in removing /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
-	// 	}
-	// }
-		//TODO
-		//check if wallet dir exists in sensitive
-		//if not then create in ramdisk
-		//if it does exist in sensitive cp it to ramdisk
-		//need to find a way to cp the wallet FROM ramdisk TO sensitive and then packup once the wallet has finished inital scan, this will require the ability to emit events
+////    // let a = std::path::Path::new("/mnt/ramdisk/immediate_wallet").exists();
+////    // if a == true{
+////    // 	//remove the stale dir
+////    // 	let output = Command::new("sudo").args(["rm", "-r", "/mnt/ramdisk/immediate_wallet"]).output().unwrap();
+////    // 	if !output.status.success() {
+////    // 	return Ok(format!("ERROR in removing /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
+////    // 	}
+////    // }
+////        //TODO
+////        //check if wallet dir exists in sensitive
+////        //if not then create in ramdisk
+////        //if it does exist in sensitive cp it to ramdisk
+////        //need to find a way to cp the wallet FROM ramdisk TO sensitive and then packup once the wallet has finished inital scan, this will require the ability to emit events
 
 
-		//commenting out all of the below for testing
-	//create the new dir
-	// let output = Command::new("mkdir").args(["/mnt/ramdisk/immediate_wallet"]).output().unwrap();
-	// if !output.status.success() {
-	// return Ok(format!("ERROR in creating /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
-	// }
-	// //open file permissions
-	// let output = Command::new("sudo").args(["chmod", "-R", "777", "/mnt/ramdisk/immediate_wallet"]).output().unwrap();
-	// if !output.status.success() {
-	// return Ok(format!("ERROR in opening file permissions at /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
-	// }
-	// //symlink wallet dir
-	// let output = Command::new("ln").args(["-s", &(get_home()+"/.bitcoin/immediate_wallet"), "mnt/ramdisk/immediate_wallet"]).output().unwrap();
-	// if !output.status.success() {
-	// return Ok(format!("ERROR in symlinking /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
-	// }
-	//import the descriptor
-	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
-	//define wallet in tauri state 
-	*state.2.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
-	//define the wallet
-	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
-	//sync wallet with internal database, notice state slice for config param here is specifically for immediate wallet
-	let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-	match wallet.sync(&blockchain, SyncOptions::default()) {
-		Ok(f) => f,
-		Err(e) => {
-			return Err(e.to_string())
-		}
-	}
-Ok(format!("Completed syncing immediate wallet with no problems"))
-}
+////        //commenting out all of the below for testing
+////    //create the new dir
+////    // let output = Command::new("mkdir").args(["/mnt/ramdisk/immediate_wallet"]).output().unwrap();
+////    // if !output.status.success() {
+////    // return Ok(format!("ERROR in creating /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
+////    // }
+////    // //open file permissions
+////    // let output = Command::new("sudo").args(["chmod", "-R", "777", "/mnt/ramdisk/immediate_wallet"]).output().unwrap();
+////    // if !output.status.success() {
+////    // return Ok(format!("ERROR in opening file permissions at /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
+////    // }
+////    // //symlink wallet dir
+////    // let output = Command::new("ln").args(["-s", &(get_home()+"/.bitcoin/immediate_wallet"), "mnt/ramdisk/immediate_wallet"]).output().unwrap();
+////    // if !output.status.success() {
+////    // return Ok(format!("ERROR in symlinking /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
+////    // }
+////    //import the descriptor
+////    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
+////    //define wallet in tauri state 
+////    *state.2.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
+////    //define the wallet
+////    let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
+////    //sync wallet with internal database, notice state slice for config param here is specifically for immediate wallet
+////    let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+////    match wallet.sync(&blockchain, SyncOptions::default()) {
+////        Ok(f) => f,
+////        Err(e) => {
+////            return Err(e.to_string())
+////        }
+////    }
+////Ok(format!("Completed syncing immediate wallet with no problems"))
+////}
 
-#[tauri::command]
-//get a new address for the tripwire wallet
-fn get_address_low_wallet(state: State<'_, TauriState>) -> String {
-	return state.3.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
-}
+////#[tauri::command]
+//////get a new address for the tripwire wallet
+////fn get_address_low_wallet(state: State<'_, TauriState>) -> String {
+////    return state.3.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
+////}
 
-#[tauri::command]
-//get a new address for the immediate wallet
-fn get_address_med_wallet(state: State<'_, TauriState>) -> String {
-	return state.2.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
-}
+////#[tauri::command]
+//////get a new address for the immediate wallet
+////fn get_address_med_wallet(state: State<'_, TauriState>) -> String {
+////    return state.2.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
+////}
 
-#[tauri::command]
-//get a new address for the delayed wallet
-fn get_address_high_wallet(state: State<'_, TauriState>) -> String {
-	return state.1.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
-}
+////#[tauri::command]
+//////get a new address for the delayed wallet
+////fn get_address_high_wallet(state: State<'_, TauriState>) -> String {
+////    return state.1.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
+////}
 
-#[tauri::command]
-//calculate the current balance of the tripwire wallet
-fn get_balance_low_wallet(state: State<'_, TauriState>) -> u64 {
-	//retrieve the wallet from state and fetch the balance
-	let balance = state.3.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
-	//calculate the total wallet balance, including unconfirmed transactions
-    let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
-    return total
-}
+////#[tauri::command]
+//////calculate the current balance of the tripwire wallet
+////fn get_balance_low_wallet(state: State<'_, TauriState>) -> u64 {
+////    //retrieve the wallet from state and fetch the balance
+////    let balance = state.3.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
+////    //calculate the total wallet balance, including unconfirmed transactions
+////    let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
+////    return total
+////}
 
-#[tauri::command]
-//calculate the current balance of the immediate wallet
-fn get_balance_med_wallet(state: State<'_, TauriState>) -> u64 {
-	//retrieve the wallet from state and fetch the balance
-	let balance = state.2.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
-	//calculate the total wallet balance, including unconfirmed transactions
-    let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
-    return total
-}
+////#[tauri::command]
+//////calculate the current balance of the immediate wallet
+////fn get_balance_med_wallet(state: State<'_, TauriState>) -> u64 {
+////    //retrieve the wallet from state and fetch the balance
+////    let balance = state.2.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
+////    //calculate the total wallet balance, including unconfirmed transactions
+////    let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
+////    return total
+////}
 
-#[tauri::command]
-//calculate the current balance of the delayed wallet
-fn get_balance_high_wallet(state: State<'_, TauriState>) -> u64 {
-	//retrieve the wallet from state and fetch the balance
-	let balance = state.1.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
-	//calculate the total wallet balance, including unconfirmed transactions
-	let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
-	return total
-}
+////#[tauri::command]
+//////calculate the current balance of the delayed wallet
+////fn get_balance_high_wallet(state: State<'_, TauriState>) -> u64 {
+////    //retrieve the wallet from state and fetch the balance
+////    let balance = state.1.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
+////    //calculate the total wallet balance, including unconfirmed transactions
+////    let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
+////    return total
+////}
 
-#[tauri::command]
-//retrieve the current transaction history for the immediate wallet
-fn get_transactions_med_wallet(state: State<'_, TauriState>) -> String {
-	//retrieve the wallet from state and fetch the transactions
-	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
-	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
-	let transactions = wallet.list_transactions(true).expect("could not get transactions");
-	//calculate the total wallet balance, including unconfirmed transactions
-	format!("{:?}", transactions)
-}
+////#[tauri::command]
+//////retrieve the current transaction history for the immediate wallet
+////fn get_transactions_med_wallet(state: State<'_, TauriState>) -> String {
+////    //retrieve the wallet from state and fetch the transactions
+////    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
+////    let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
+////    let transactions = wallet.list_transactions(true).expect("could not get transactions");
+////    //calculate the total wallet balance, including unconfirmed transactions
+////    format!("{:?}", transactions)
+////}
 
-#[tauri::command]
-//generate a PSBT for the immediate wallet
-//will require additional logic to spend when under decay threshold
-//currently only generates a PSBT for Key 1 and Key 2, which are SD 1 and SD 2 respectively
-fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amount: u64, fee: f32) -> Result<String, String> {
-	//create the directory where the PSBT will live if it does not exist
-	let a = std::path::Path::new("/mnt/ramdisk/psbt").exists();
-    if a == false{
-		//remove the stale dir
-		let output = 	Command::new("mkdir").args(["/mnt/ramdisk/psbt"]).output().unwrap();
-		if !output.status.success() {
-		return Ok(format!("ERROR in creating /mnt/ramdisk/psbt dir {}", std::str::from_utf8(&output.stderr).unwrap()));
-		}
-	}
-	//read the descriptor into memory
-	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
-	//declare the destination for the PSBT file
-	let file_dest = "/mnt/ramdisk/psbt".to_string();
-	//init the wallet, doing it twice because the value moves after getting_policy_id, there is probably a better way
-	let wallet1 = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
-	//need to parse spend_policy below to find the correct policy ID
-	let policy_id = get_policy_id(wallet1);
-	let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
-	//init the policy path
-	let mut path = BTreeMap::new();
-	//insert the correct policy IDs here from spend_policy parsing
-	//vector corresponds to an index of the keys used in the descriptor, index 0: SD 1, index 1: SD 2
-	path.insert(policy_id.to_string(), vec![0, 1]);
+////#[tauri::command]
+//////generate a PSBT for the immediate wallet
+//////will require additional logic to spend when under decay threshold
+//////currently only generates a PSBT for Key 1 and Key 2, which are SD 1 and SD 2 respectively
+////fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amount: u64, fee: f32) -> Result<String, String> {
+////    //create the directory where the PSBT will live if it does not exist
+////    let a = std::path::Path::new("/mnt/ramdisk/psbt").exists();
+////    if a == false{
+////        //remove the stale dir
+////        let output = 	Command::new("mkdir").args(["/mnt/ramdisk/psbt"]).output().unwrap();
+////        if !output.status.success() {
+////        return Ok(format!("ERROR in creating /mnt/ramdisk/psbt dir {}", std::str::from_utf8(&output.stderr).unwrap()));
+////        }
+////    }
+////    //read the descriptor into memory
+////    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
+////    //declare the destination for the PSBT file
+////    let file_dest = "/mnt/ramdisk/psbt".to_string();
+////    //init the wallet, doing it twice because the value moves after getting_policy_id, there is probably a better way
+////    let wallet1 = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
+////    //need to parse spend_policy below to find the correct policy ID
+////    let policy_id = get_policy_id(wallet1);
+////    let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
+////    //init the policy path
+////    let mut path = BTreeMap::new();
+////    //insert the correct policy IDs here from spend_policy parsing
+////    //vector corresponds to an index of the keys used in the descriptor, index 0: SD 1, index 1: SD 2
+////    path.insert(policy_id.to_string(), vec![0, 1]);
 
-	//build the transaction
-	let (psbt, details) = {
-		let mut builder = wallet.build_tx();
-		builder
-			.add_recipient(Address::from_str(&recipient).unwrap().script_pubkey(), amount)
-			.enable_rbf()
-			.fee_rate(FeeRate::from_sat_per_vb(fee as f32))
-			.policy_path(path, KeychainKind::External);
-		match builder.finish() {
-			Ok(f) => f,
-			Err(e) => {
-				return Err(e.to_string())
-			}
-		}
-	};
-	//store the transaction as a file
-		match store_psbt(&psbt, file_dest) {
-		Ok(_) => {},
-		Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
-		};
+////    //build the transaction
+////    let (psbt, details) = {
+////        let mut builder = wallet.build_tx();
+////        builder
+////            .add_recipient(Address::from_str(&recipient).unwrap().script_pubkey(), amount)
+////            .enable_rbf()
+////            .fee_rate(FeeRate::from_sat_per_vb(fee as f32))
+////            .policy_path(path, KeychainKind::External);
+////        match builder.finish() {
+////            Ok(f) => f,
+////            Err(e) => {
+////                return Err(e.to_string())
+////            }
+////        }
+////    };
+////    //store the transaction as a file
+////        match store_psbt(&psbt, file_dest) {
+////        Ok(_) => {},
+////        Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
+////        };
 
-	Ok(format!("PSBT: {}, Transaction Details: {:#?}", psbt, details))
-}
+////    Ok(format!("PSBT: {}, Transaction Details: {:#?}", psbt, details))
+////}
 
 #[tauri::command]
 async fn sync_status_emitter(window:tauri::Window) -> Result<(),()> {
@@ -1452,84 +1440,85 @@ async fn distribute_shards_sd7() -> String {
 //High Descriptor is the time locked 5 of 11 with decay (4 keys will eventually go to BPS)
 //Medium Descriptor is the 2 of 7 with decay
 //Low Descriptor is the 1 of 7 and will be used for the tripwire
-#[tauri::command]
-async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, String> {
-	println!("creating descriptors from 7 xpubs & 4 time machine keys");
-	//convert all 11 public_keys in the ramdisk to an array vector
-	println!("creating key array");
-	let mut key_array = Vec::new();
-	//push the 7 standard public keys into the key_array vector
-	println!("pushing 7 standard pubkeys into key array");
-	for i in 1..=7{
-		let key_str = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))).expect(&("Error reading public_key from file".to_string()+&(i.to_string())));
-		let key = bitcoin::util::bip32::ExtendedPubKey::from_str(&key_str).expect(&("Error reading public_key from string".to_string()+&(i.to_string())));
-		println!("printing key type");
-		// println!("{}", type_of(&key));
-		key_array.push(key);
-		println!("pushed key");
-	}
-	//push the 4 time machine public keys into the key_array vector
-	println!("pushing 4 time machine pubkeys into key array");
-	for i in 1..=4{
-		let key_str = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key from file".to_string()+&(i.to_string())));
-		let key = bitcoin::util::bip32::ExtendedPubKey::from_str(&key_str).expect(&("Error reading time_machine_public_key from string".to_string()+&(i.to_string())));
-		key_array.push(key);
-		println!("pushed key");
-	}
+//TODO: wallet refactor
+////#[tauri::command]
+////async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, String> {
+////    println!("creating descriptors from 7 xpubs & 4 time machine keys");
+////    //convert all 11 public_keys in the ramdisk to an array vector
+////    println!("creating key array");
+////    let mut key_array = Vec::new();
+////    //push the 7 standard public keys into the key_array vector
+////    println!("pushing 7 standard pubkeys into key array");
+////    for i in 1..=7{
+////        let key_str = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))).expect(&("Error reading public_key from file".to_string()+&(i.to_string())));
+////        let key = bitcoin::util::bip32::ExtendedPubKey::from_str(&key_str).expect(&("Error reading public_key from string".to_string()+&(i.to_string())));
+////        println!("printing key type");
+////        // println!("{}", type_of(&key));
+////        key_array.push(key);
+////        println!("pushed key");
+////    }
+////    //push the 4 time machine public keys into the key_array vector
+////    println!("pushing 4 time machine pubkeys into key array");
+////    for i in 1..=4{
+////        let key_str = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key from file".to_string()+&(i.to_string())));
+////        let key = bitcoin::util::bip32::ExtendedPubKey::from_str(&key_str).expect(&("Error reading time_machine_public_key from string".to_string()+&(i.to_string())));
+////        key_array.push(key);
+////        println!("pushed key");
+////    }
 
-	println!("printing key array");
-	println!("{:?}", key_array);
+////    println!("printing key array");
+////    println!("{:?}", key_array);
 
-	//create the descriptors directory inside of ramdisk
-	println!("Making descriptors dir");
-	Command::new("mkdir").args(["/mnt/ramdisk/sensitive/descriptors"]).output().unwrap();
+////    //create the descriptors directory inside of ramdisk
+////    println!("Making descriptors dir");
+////    Command::new("mkdir").args(["/mnt/ramdisk/sensitive/descriptors"]).output().unwrap();
 
-	//define the blockchain param
-	println!("configuring blockchain");
-	let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-	
-	//build the delayed wallet descriptor
-	println!("building high descriptor");
-	let high_descriptor = build_high_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
-	let high_file_dest = "/mnt/ramdisk/sensitive/descriptors/high_descriptor".to_string();
-	//store the delayed wallet descriptor in the sensitive dir
-	println!("storing high descriptor");
-	match store_descriptor(high_descriptor, high_file_dest) {
-		Ok(_) => {},
-		Err(err) => return Err("ERROR could not store High Descriptor: ".to_string()+&err)
-	};
-	
+////    //define the blockchain param
+////    println!("configuring blockchain");
+////    let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
+////    
+////    //build the delayed wallet descriptor
+////    println!("building high descriptor");
+////    let high_descriptor = build_high_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
+////    let high_file_dest = "/mnt/ramdisk/sensitive/descriptors/high_descriptor".to_string();
+////    //store the delayed wallet descriptor in the sensitive dir
+////    println!("storing high descriptor");
+////    match store_descriptor(high_descriptor, high_file_dest) {
+////        Ok(_) => {},
+////        Err(err) => return Err("ERROR could not store High Descriptor: ".to_string()+&err)
+////    };
+////    
 
-	//build the immediate wallet descriptor
-	println!("building med descriptor");
-	let med_descriptor = build_med_descriptor(&blockchain, &key_array).expect("Failed to build med level descriptor");
-	let med_file_dest = "/mnt/ramdisk/sensitive/descriptors/med_descriptor".to_string();
-	//store the immediate wallet descriptor in the sensitive dir
-	println!("storing med descriptor");
-	match store_descriptor(med_descriptor, med_file_dest) {
-		Ok(_) => {},
-		Err(err) => return Err("ERROR could not store Med Descriptor: ".to_string()+&err)
-	};
+////    //build the immediate wallet descriptor
+////    println!("building med descriptor");
+////    let med_descriptor = build_med_descriptor(&blockchain, &key_array).expect("Failed to build med level descriptor");
+////    let med_file_dest = "/mnt/ramdisk/sensitive/descriptors/med_descriptor".to_string();
+////    //store the immediate wallet descriptor in the sensitive dir
+////    println!("storing med descriptor");
+////    match store_descriptor(med_descriptor, med_file_dest) {
+////        Ok(_) => {},
+////        Err(err) => return Err("ERROR could not store Med Descriptor: ".to_string()+&err)
+////    };
 
-	//build the low security descriptor
-	println!("building low descriptor");
-	let low_descriptor = build_low_descriptor(&blockchain, &key_array).expect("Failed to build low level descriptor");
-	let low_file_dest = "/mnt/ramdisk/sensitive/descriptors/low_descriptor".to_string();
-	//store the low security descriptor in the sensitive dir
-	println!("storing low descriptor");
-	match store_descriptor(low_descriptor, low_file_dest) {
-		Ok(_) => {},
-		Err(err) => return Err("ERROR could not store Low Descriptor: ".to_string()+&err)
-	};
+////    //build the low security descriptor
+////    println!("building low descriptor");
+////    let low_descriptor = build_low_descriptor(&blockchain, &key_array).expect("Failed to build low level descriptor");
+////    let low_file_dest = "/mnt/ramdisk/sensitive/descriptors/low_descriptor".to_string();
+////    //store the low security descriptor in the sensitive dir
+////    println!("storing low descriptor");
+////    match store_descriptor(low_descriptor, low_file_dest) {
+////        Ok(_) => {},
+////        Err(err) => return Err("ERROR could not store Low Descriptor: ".to_string()+&err)
+////    };
 
-	//copy descriptors to setup CD dir
-	Command::new("cp").args(["-r", "/mnt/ramdisk/sensitive/descriptors", "/mnt/ramdisk/CDROM/"]).output().unwrap();
+////    //copy descriptors to setup CD dir
+////    Command::new("cp").args(["-r", "/mnt/ramdisk/sensitive/descriptors", "/mnt/ramdisk/CDROM/"]).output().unwrap();
 
 
 
-	Ok(format!("SUCCESS in creating descriptors"))
+////    Ok(format!("SUCCESS in creating descriptors"))
 
-}
+////}
 
 #[tauri::command]
 //copy the descriptors obtained from the setupCD to the currently inserted SD card $HOME
@@ -1775,48 +1764,64 @@ async fn convert_to_transfer_cd() -> String {
 
 fn retrieve_start_time() -> u64 {
 	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
-	let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
-	if start_time_complete == true{
+	if start_time_complete == true {
+	    let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
 		let result = match start_time.trim().parse() {
 			Ok(result) => 
 			return result,
 			Err(..) => 
 			return 1676511266
 		};
-	}
-	 else{
+	} else {
 		return 1676511266
 	}
 }
 
+#[tauri::command]
+//for testing only
+async fn init_test() -> String {
+    let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "681509".to_string());
+    //TODO: Create this in start_bitcoind and conversly set it to none if we close it.
+    let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+    let mut keys = Vec::new();
+    let (mut xpriv, mut xpub) = generate_keypair().expect("could not gen keypair");
+    keys.push(xpriv);
+    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+    keys.push(xpriv);
+    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+    keys.push(xpriv);
+    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+    keys.push(xpriv);
+    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+    keys.push(xpriv);
+    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+    keys.push(xpriv);
+    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+    keys.push(xpriv);
+    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+    keys.push(xpriv);
+    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+    keys.push(xpriv);
+    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+    keys.push(xpriv);
+    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+    keys.push(xpriv);
+    let desc = build_high_descriptor(&Client, &keys).unwrap();
+    format!("testing {} ", desc)
+}
+
+
+
 fn main() {
-	//establish RPC creds
-	let user_pass_immediate: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
-	let user_pass_delayed: bdk::blockchain::rpc::Auth = bdk::blockchain::rpc::Auth::UserPass{username: "rpcuser".to_string(), password: "477028".to_string()};
-	//if start_time unix timestamp is available, set start time param to the time of arctica install, otherwise set to 1676511266 (current time - 2 months from when I implemented this feature)
-	//1676511266 is a safe, arbitrary default value since arctica wallets are so particular to the software that creates them. No reason to scan all the way back to genesis.
-	let sync_time_immediate: bdk::blockchain::rpc::RpcSyncParams = bdk::blockchain::rpc::RpcSyncParams {start_script_count: 0, start_time: retrieve_start_time(), force_start_time: true, poll_rate_sec: 1};
-	let sync_time_delayed: bdk::blockchain::rpc::RpcSyncParams = bdk::blockchain::rpc::RpcSyncParams {start_script_count: 0, start_time: retrieve_start_time(), force_start_time: true, poll_rate_sec: 1};
-	
-	let config_immediate: RpcConfig = RpcConfig {
-	    url: "127.0.0.1:8332".to_string(),
-	    auth: user_pass_immediate,
-	    network: bdk::bitcoin::Network::Bitcoin,
-	    wallet_name: "immediate_wallet".to_string(),
-	    sync_params: Some(sync_time_immediate),
-	};
-	let config_delayed: RpcConfig = RpcConfig {
-	    url: "127.0.0.1:8332".to_string(),
-	    auth: user_pass_delayed,
-	    network: bdk::bitcoin::Network::Bitcoin,
-	    wallet_name: "delayed_wallet".to_string(),
-	    sync_params: Some(sync_time_delayed),
-	};
+    let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    //TODO: Create this in start_bitcoind and conversly set it to none if we close it.
+    let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 
   	tauri::Builder::default()
 	//export all tauri functions to be handled by the front end
-  	.manage(TauriState(Mutex::new(Some(config_immediate)), Mutex::new(None), Mutex::new(None), Mutex::new(None), Mutex::new(Some(config_delayed))))
+  	.manage(TauriState(Mutex::new(Some(Client)))) 
   	.invoke_handler(tauri::generate_handler![
+        init_test,
         test_function,
         create_bootable_usb,
         create_setup_cd,
@@ -1839,7 +1844,7 @@ fn main() {
         distribute_shards_sd5,
         distribute_shards_sd6,
         distribute_shards_sd7,
-        create_descriptor,
+    ////create_descriptor,
 		copy_descriptor,
         create_backup,
         make_backup,
@@ -1853,18 +1858,18 @@ fn main() {
         convert_to_transfer_cd,
 		generate_store_key_pair,
 		generate_store_simulated_time_machine_key_pair,
-		init_low_wallet,
-		init_med_wallet,
-		init_high_wallet,
-		sync_med_wallet,
-		get_address_low_wallet,
-		get_address_med_wallet,
-		get_address_high_wallet,
-		get_balance_low_wallet,
-		get_balance_med_wallet,
-		get_balance_high_wallet,
-		get_transactions_med_wallet,
-		generate_psbt_med_wallet,
+	////init_low_wallet,
+	////init_med_wallet,
+	////init_high_wallet,
+	////sync_med_wallet,
+	////get_address_low_wallet,
+	////get_address_med_wallet,
+	////get_address_high_wallet,
+	////get_balance_low_wallet,
+	////get_balance_med_wallet,
+	////get_balance_high_wallet,
+	////get_transactions_med_wallet,
+	////generate_psbt_med_wallet,
 		sync_status_emitter
         ])
     .run(tauri::generate_context!())
