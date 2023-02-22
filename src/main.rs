@@ -319,12 +319,12 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 //TODO: wallet refactor
 //helper function
 //builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
-fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<String, bitcoin::Error> {
+fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
     let four_years = blockchain.get_blockchain_info().unwrap().blocks+210379;
     let month = 4382;
     let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
     println!("DESC: {}", descriptor);
-    Ok(miniscript::Descriptor::<DescriptorPrivateKey>::from_str(&descriptor).unwrap().to_string())
+    Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap())
 }
 
 //helper function
@@ -1785,29 +1785,30 @@ async fn init_test() -> String {
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
     let mut keys = Vec::new();
     let (mut xpriv, mut xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpriv);
+    keys.push(xpub);
     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpriv);
+    keys.push(xpub);
     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpriv);
+    keys.push(xpub);
     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpriv);
+    keys.push(xpub);
     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpriv);
+    keys.push(xpub);
     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpriv);
+    keys.push(xpub);
     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpriv);
+    keys.push(xpub);
     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpriv);
+    keys.push(xpub);
     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpriv);
+    keys.push(xpub);
     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpriv);
+    keys.push(xpub);
     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpriv);
+    keys.push(xpub);
     let desc = build_high_descriptor(&Client, &keys).unwrap();
-    format!("testing {} ", desc)
+
+    format!("testing {} {}", desc, desc.sanity_check().unwrap() == ())
 }
 
 
