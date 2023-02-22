@@ -1764,8 +1764,8 @@ async fn convert_to_transfer_cd() -> String {
 
 fn retrieve_start_time() -> u64 {
 	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
-	if start_time_complete == true {
-	    let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
+	if start_time_complete == true{
+		let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
 		let result = match start_time.trim().parse() {
 			Ok(result) => 
 			return result,
