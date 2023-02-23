@@ -189,7 +189,7 @@ fn read() -> std::string::String {
 }
 
 //helper function
-//used to generate an XPRIV
+//used to generate an extended public and private keypair
 fn generate_keypair() -> Result<(String, String), bitcoin::Error> {
 	let secp = Secp256k1::new();
     let seed = SecretKey::new(&mut rand::thread_rng()).secret_bytes();
@@ -206,7 +206,7 @@ fn derive_public_key(private_key: bitcoin::util::bip32::ExtendedPrivKey) -> Resu
 }
 
 //helper function
-//used to store the XPRIV as a file
+//used to store keypairs as a file
 fn store_string(string: String, file_name: String) -> Result<String, String> {
 	let mut fileRef = match std::fs::File::create(file_name) {
 		Ok(file) => file,
@@ -341,43 +341,6 @@ fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<Strin
     let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
     Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap().to_string())
 }
-
-
-////#[tauri::command]
-//////initialize the low security descriptor into a wallet held in state
-////fn init_low_wallet(state: State<'_, TauriState>) -> String {
-////    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/low_descriptor").expect("Error reading reading low descriptor from file");
-////    println!("desc = {}", desc);
-////    *state.3.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
-////    return "Completed initializing low wallet with no problems".to_string()
-////}
-
-////#[tauri::command]
-//////initialize the medium security descriptor into a wallet held in state
-////async fn init_med_wallet(state: State<'_, TauriState>) -> Result<String, String> {
-////    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
-////    println!("desc = {}", desc);
-////    *state.2.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
-////    let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
-////    let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-////            match wallet.sync(&blockchain, SyncOptions::default()) {
-////            Ok(f) => f,
-////            Err(e) => {
-////                return Err(e.to_string())
-////            }
-////        }
-////    Ok(format!("Completed initializing med wallet with no problems"))
-////}	
-
-//TODO: wallet refactor
-////#[tauri::command]
-//////initialize the high security descriptor into a wallet held in state
-////fn init_high_wallet(state: State<'_, TauriState>) -> String {
-////    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/high_descriptor").expect("Error reading reading high descriptor from file");
-////    println!("desc = {}", desc);
-////    *state.1.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
-////    return "Completed initializing high wallet with no problems".to_string()
-////}
 
 //TODO: wallet refactor
 ////#[tauri::command]
@@ -1859,9 +1822,6 @@ fn main() {
         convert_to_transfer_cd,
 		generate_store_key_pair,
 		generate_store_simulated_time_machine_key_pair,
-	////init_low_wallet,
-	////init_med_wallet,
-	////init_high_wallet,
 	////sync_med_wallet,
 	////get_address_low_wallet,
 	////get_address_med_wallet,
