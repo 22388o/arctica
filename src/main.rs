@@ -329,7 +329,7 @@ fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<mini
 
 //helper function
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
-fn build_med_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<String, bitcoin::Error> {
+fn build_med_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
     let four_years = blockchain.get_blockchain_info().unwrap().blocks+210379;
     let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
     Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap().to_string())
@@ -337,7 +337,7 @@ fn build_med_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<Strin
 
 //helper function
 //builds the low security descriptor, 1 of 7 thresh, used for tripwire
-fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<String, bitcoin::Error> {
+fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
     let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
     Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap().to_string())
 }
