@@ -343,8 +343,6 @@ fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<Strin
 }
 
 //TODO: wallet refactor
-////#[tauri::command]
-////async fn sync_med_wallet(state: State<'_, TauriState>) -> Result<String, String> {
 ////    //create a wallet dir in ramdisk if it does not exist
 
 ////    //I'm not so sure about this code block. I don't know what it's value add is. If the dir exists in ramdisk why delete it?
@@ -381,22 +379,7 @@ fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<Strin
 ////    // if !output.status.success() {
 ////    // return Ok(format!("ERROR in symlinking /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
 ////    // }
-////    //import the descriptor
-////    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
-////    //define wallet in tauri state 
-////    *state.2.lock().unwrap() = Some(Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet"));
-////    //define the wallet
-////    let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
-////    //sync wallet with internal database, notice state slice for config param here is specifically for immediate wallet
-////    let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-////    match wallet.sync(&blockchain, SyncOptions::default()) {
-////        Ok(f) => f,
-////        Err(e) => {
-////            return Err(e.to_string())
-////        }
-////    }
-////Ok(format!("Completed syncing immediate wallet with no problems"))
-////}
+
 
 ////#[tauri::command]
 //////get a new address for the tripwire wallet
@@ -1822,7 +1805,6 @@ fn main() {
         convert_to_transfer_cd,
 		generate_store_key_pair,
 		generate_store_simulated_time_machine_key_pair,
-	////sync_med_wallet,
 	////get_address_low_wallet,
 	////get_address_med_wallet,
 	////get_address_high_wallet,
