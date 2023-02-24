@@ -12,20 +12,7 @@ use bitcoin::psbt::PartiallySignedTransaction;
 use bitcoin::util::bip32::ExtendedPubKey;
 use bitcoin::util::bip32::ExtendedPrivKey;
 use miniscript::DescriptorPublicKey;
-////use bdk::{FeeRate, Wallet, SyncOptions, KeychainKind};
-////use bdk::{Balance, TransactionDetails};
-////use bdk::database::MemoryDatabase;
-////use bdk::wallet::AddressIndex::New;
-////use bdk::descriptor::ExtractPolicy;
-////use bdk::signer::SignersContainer;
-////use bdk::descriptor::IntoWalletDescriptor;
-////use bdk::descriptor::policy::BuildSatisfaction;
 use bitcoincore_rpc::Client;
-////use bdk::blockchain::ConfigurableBlockchain;
-////use bdk::blockchain::rpc::RpcBlockchain;
-////use bdk::blockchain::rpc::RpcConfig;
-////use bdk::blockchain::Blockchain;
-////use bdk::blockchain::GetHeight;
 use std::sync::{Arc, Mutex};
 use std::ops::Deref;
 use std::process::Command;
@@ -131,6 +118,57 @@ fn write(name: String, value:String) {
     file.write_all(newfile.as_bytes()).expect("Could not rewrite file");
 }
 
+//helper function
+//used to check the mountpoint of /media/$USER/CDROM
+fn check_cd_mount() -> std::string::String {
+	let mut mounted = "false";
+	let output = Command::new("df").args(["-h", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
+	if !output.status.success() {
+		let er = "error";
+		return format!("{}", er)
+	}
+		
+	let df_output = std::str::from_utf8(&output.stdout).unwrap();
+	//use a closure to split the output of df -h /media/$USER/CDROM by whitespace and \n
+	let split = df_output.split(|c| c == ' ' || c == '\n');
+	let output_vec: Vec<_> = split.collect();
+	//loop through the vector
+	for i in output_vec{
+		println!("new line:");
+		println!("{}", i);
+		//if any of the lines contain /dev/sr0 we know that /media/$USER/CDROM is mounted correctly
+		if i == "/dev/sr0"{
+			mounted = "true";
+			return format!("success")
+		}
+	}
+	if mounted == "false"{
+		//check if filepath exists
+		let b = std::path::Path::new(&("/media/".to_string()+&get_user()+"/CDROM")).exists();
+		//if CD mount path does not exist...create it and mount the CD
+		if b == false{
+			let output = Command::new("sudo").args(["mkdir", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
+				if !output.status.success() {
+					return format!("error");
+				}
+			let output = Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
+			if !output.status.success() {
+				return format!("error");
+			}
+		//if CD mount path already exists...mount the CD
+		} else {
+			let output = Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
+				if !output.status.success() {
+					return format!("error");
+				}
+		}
+	}
+	format!("success")
+}
+	
+	
+
+
 //TODO: wallet refactor
 //helper function
 //return the policy id of the provided wallet
@@ -199,31 +237,13 @@ fn generate_keypair() -> Result<(String, String), bitcoin::Error> {
 }
 
 //helper function
-//used to derive an XPUB from an XPRIV
-fn derive_public_key(private_key: bitcoin::util::bip32::ExtendedPrivKey) -> Result<bitcoin::util::bip32::ExtendedPubKey, bitcoin::Error>  {
-	let secp = Secp256k1::new();
-	Ok(bitcoin::util::bip32::ExtendedPubKey::from_priv(&secp, &private_key))
-}
-
-//helper function
-//used to store keypairs as a file
+//used to store keypairs & descriptors as a file
 fn store_string(string: String, file_name: String) -> Result<String, String> {
 	let mut fileRef = match std::fs::File::create(file_name) {
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
 	};
 	fileRef.write_all(&string.as_bytes());
-	Ok(format!("SUCCESS stored with no problems"))
-}
-
-//helper function
-//used to store the miniscript descriptor as a file
-fn store_descriptor(descriptor: String, file_name: String) -> Result<String, String> {
-	let mut fileRef = match std::fs::File::create(file_name) {
-		Ok(file) => file,
-		Err(err) => return Err(err.to_string()),
-	};
-	fileRef.write_all(&descriptor.to_string().as_bytes());
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
@@ -329,17 +349,17 @@ fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<mini
 
 //helper function
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
-fn build_med_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
+fn build_med_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
     let four_years = blockchain.get_blockchain_info().unwrap().blocks+210379;
     let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
-    Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap().to_string())
+    Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap())
 }
 
 //helper function
 //builds the low security descriptor, 1 of 7 thresh, used for tripwire
-fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
+fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
     let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
-    Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap().to_string())
+    Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap())
 }
 
 //TODO: wallet refactor
@@ -763,6 +783,7 @@ async fn init_iso() -> String {
 		return format!("ERROR in init iso, with creating bitcoin.conf = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
+	//deprecated code block
 	let start_time = Command::new("date").args(["+%s"]).output().unwrap();
 	let start_time_output = std::str::from_utf8(&start_time.stdout).unwrap();
 	println!("capturing and storing current unix timestamp");
@@ -772,6 +793,7 @@ async fn init_iso() -> String {
 		Err(err) => return format!("Could not create start time file"),
 	};
 	fileRef.write_all(&start_time_output.to_string().as_bytes());
+	//end deprecated code block
 
 	format!("SUCCESS in init_iso")
 }
@@ -906,7 +928,7 @@ async fn create_setup_cd() -> String {
 	}
 
 	//eject the disc
-	let output = Command::new("eject").args(["/dev/sr0"]).output().unwrap();
+	let output = Command::new("sudo").args(["eject", "/dev/sr0"]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
@@ -918,17 +940,19 @@ async fn create_setup_cd() -> String {
 //copy the contents of the currently inserted CD to the ramdisk /mnt/ramdisk/CDROM
 #[tauri::command]
 async fn copy_cd_to_ramdisk() -> String {
-	//mount CD if not automounted
-	let a = std::path::Path::new(&("/media/".to_string()+&get_user()+"/CDROM")).exists();
-	if a == false{
-		let output = Command::new("sudo").args(["mkdir", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
-			if !output.status.success() {
-		return format!("ERROR in copy_cd_to_ramdisk, error making /media/user/CDROM dir = {}", std::str::from_utf8(&output.stderr).unwrap());
+	Command::new("sleep").args(["4"]).output().unwrap();
+	//check if a CDROM is inserted
+	let a = std::path::Path::new("/dev/sr0").exists();
+	if a == false {
+		let er = "ERROR in copy_cd_to_ramdisk: No CD inserted";
+		return format!("{}", er)
 	}
-		let output = Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
-		if !output.status.success() {
-			return format!("ERROR in copy_cd_to_ramdisk, error mounting /dev/sr0 = {}", std::str::from_utf8(&output.stderr).unwrap());
-		}
+
+	//check if CDROM is mounted at the proper filepath, if not, mount it
+	let mounted = check_cd_mount().to_string();
+	if mounted == "error" {
+		let er = "ERROR in copy_cd_to_ramdisk: error checking CD mount";
+		return format!("{}", er)
 	}
 	//copy cd contents to ramdisk
 	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/CDROM"), "/mnt/ramdisk"]).output().unwrap();
@@ -1076,8 +1100,24 @@ async fn create_ramdisk() -> String {
 //read the config file of the currently inserted CD/DVD
 #[tauri::command]
 fn read_cd() -> std::string::String {
+	Command::new("sleep").args(["4"]).output().unwrap();
+	//check if a CDROM is inserted
+	let a = std::path::Path::new("/dev/sr0").exists();
+	if a == false {
+		let er = "ERROR in read_CD: No CD inserted";
+		return format!("{}", er)
+	}
+
+	//check if CDROM is mounted at the proper filepath, if not, mount it
+	let mounted = check_cd_mount();
+	if mounted == "error" {
+		let er = "ERROR in read_CD: error checking CD mount";
+		return format!("{}", er)
+	}
+	
 	//check for config
-    let config_file = "/mnt/ramdisk/CDROM/config.txt";
+    // let config_file = "/mnt/ramdisk/CDROM/config.txt";
+	let config_file = &("/media/".to_string()+&get_user()+"/CDROM/"+"config.txt");
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
         Err(_) => {
@@ -1093,6 +1133,8 @@ fn read_cd() -> std::string::String {
         }
     }
     format!("{}", contents)
+	
+	
 }
 
 //used to combine recovered shards into an encryption/decryption masterkey
@@ -1270,7 +1312,7 @@ async fn refresh_cd() -> String {
 	}
 
 	//eject the disc
-	let output = Command::new("eject").args(["/dev/sr0"]).output().unwrap();
+	let output = Command::new("sudo").args(["eject", "/dev/sr0"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in refreshing CD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1387,84 +1429,84 @@ async fn distribute_shards_sd7() -> String {
 //Medium Descriptor is the 2 of 7 with decay
 //Low Descriptor is the 1 of 7 and will be used for the tripwire
 //TODO: wallet refactor
-////#[tauri::command]
-////async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, String> {
-////    println!("creating descriptors from 7 xpubs & 4 time machine keys");
-////    //convert all 11 public_keys in the ramdisk to an array vector
-////    println!("creating key array");
-////    let mut key_array = Vec::new();
-////    //push the 7 standard public keys into the key_array vector
-////    println!("pushing 7 standard pubkeys into key array");
-////    for i in 1..=7{
-////        let key_str = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))).expect(&("Error reading public_key from file".to_string()+&(i.to_string())));
-////        let key = bitcoin::util::bip32::ExtendedPubKey::from_str(&key_str).expect(&("Error reading public_key from string".to_string()+&(i.to_string())));
-////        println!("printing key type");
-////        // println!("{}", type_of(&key));
-////        key_array.push(key);
-////        println!("pushed key");
-////    }
-////    //push the 4 time machine public keys into the key_array vector
-////    println!("pushing 4 time machine pubkeys into key array");
-////    for i in 1..=4{
-////        let key_str = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key from file".to_string()+&(i.to_string())));
-////        let key = bitcoin::util::bip32::ExtendedPubKey::from_str(&key_str).expect(&("Error reading time_machine_public_key from string".to_string()+&(i.to_string())));
-////        key_array.push(key);
-////        println!("pushed key");
-////    }
+#[tauri::command]
+async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, String> {
+   println!("creating descriptors from 7 xpubs & 4 time machine keys");
+   //convert all 11 public_keys in the ramdisk to an array vector
+   println!("creating key array");
+   let mut key_array = Vec::new();
+   //push the 7 standard public keys into the key_array vector
+   println!("pushing 7 standard pubkeys into key array");
+   for i in 1..=7{
+       let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))).expect(&("Error reading public_key from file".to_string()+&(i.to_string())));
+    //    let key = bitcoin::util::bip32::ExtendedPubKey::from_str(&key_str).expect(&("Error reading public_key from string".to_string()+&(i.to_string())));
+       println!("printing key type");
+       key_array.push(key);
+       println!("pushed key");
+   }
+   //push the 4 time machine public keys into the key_array vector
+   println!("pushing 4 time machine pubkeys into key array");
+   for i in 1..=4{
+       let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key from file".to_string()+&(i.to_string())));
+    //    let key = bitcoin::util::bip32::ExtendedPubKey::from_str(&key_str).expect(&("Error reading time_machine_public_key from string".to_string()+&(i.to_string())));
+       key_array.push(key);
+       println!("pushed key");
+   }
 
-////    println!("printing key array");
-////    println!("{:?}", key_array);
+   println!("printing key array");
+   println!("{:?}", key_array);
 
-////    //create the descriptors directory inside of ramdisk
-////    println!("Making descriptors dir");
-////    Command::new("mkdir").args(["/mnt/ramdisk/sensitive/descriptors"]).output().unwrap();
+   //create the descriptors directory inside of ramdisk
+   println!("Making descriptors dir");
+   Command::new("mkdir").args(["/mnt/ramdisk/sensitive/descriptors"]).output().unwrap();
 
-////    //define the blockchain param
-////    println!("configuring blockchain");
-////    let blockchain = RpcBlockchain::from_config(&(state.0.lock().unwrap().as_mut().unwrap())).expect("failed to connect to bitcoin core(Ensure bitcoin core is running before calling this function)");
-////    
-////    //build the delayed wallet descriptor
-////    println!("building high descriptor");
-////    let high_descriptor = build_high_descriptor(&blockchain, &key_array).expect("Failed to build high level descriptor");
-////    let high_file_dest = "/mnt/ramdisk/sensitive/descriptors/high_descriptor".to_string();
-////    //store the delayed wallet descriptor in the sensitive dir
-////    println!("storing high descriptor");
-////    match store_descriptor(high_descriptor, high_file_dest) {
-////        Ok(_) => {},
-////        Err(err) => return Err("ERROR could not store High Descriptor: ".to_string()+&err)
-////    };
-////    
+   //define the blockchain param
+   println!("configuring blockchain");
+   let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+   let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 
-////    //build the immediate wallet descriptor
-////    println!("building med descriptor");
-////    let med_descriptor = build_med_descriptor(&blockchain, &key_array).expect("Failed to build med level descriptor");
-////    let med_file_dest = "/mnt/ramdisk/sensitive/descriptors/med_descriptor".to_string();
-////    //store the immediate wallet descriptor in the sensitive dir
-////    println!("storing med descriptor");
-////    match store_descriptor(med_descriptor, med_file_dest) {
-////        Ok(_) => {},
-////        Err(err) => return Err("ERROR could not store Med Descriptor: ".to_string()+&err)
-////    };
+   //build the delayed wallet descriptor
+   println!("building high descriptor");
+   let high_descriptor = build_high_descriptor(&Client, &key_array).expect("Failed to build high level descriptor");
+   let high_file_dest = "/mnt/ramdisk/sensitive/descriptors/high_descriptor".to_string();
+   //store the delayed wallet descriptor in the sensitive dir
+   println!("storing high descriptor");
+   match store_string(high_descriptor.to_string(), high_file_dest) {
+       Ok(_) => {},
+       Err(err) => return Err("ERROR could not store High Descriptor: ".to_string()+&err)
+   };
+   
 
-////    //build the low security descriptor
-////    println!("building low descriptor");
-////    let low_descriptor = build_low_descriptor(&blockchain, &key_array).expect("Failed to build low level descriptor");
-////    let low_file_dest = "/mnt/ramdisk/sensitive/descriptors/low_descriptor".to_string();
-////    //store the low security descriptor in the sensitive dir
-////    println!("storing low descriptor");
-////    match store_descriptor(low_descriptor, low_file_dest) {
-////        Ok(_) => {},
-////        Err(err) => return Err("ERROR could not store Low Descriptor: ".to_string()+&err)
-////    };
+   //build the immediate wallet descriptor
+   println!("building med descriptor");
+   let med_descriptor = build_med_descriptor(&Client, &key_array).expect("Failed to build med level descriptor");
+   let med_file_dest = "/mnt/ramdisk/sensitive/descriptors/med_descriptor".to_string();
+   //store the immediate wallet descriptor in the sensitive dir
+   println!("storing med descriptor");
+   match store_string(med_descriptor.to_string(), med_file_dest) {
+       Ok(_) => {},
+       Err(err) => return Err("ERROR could not store Med Descriptor: ".to_string()+&err)
+   };
 
-////    //copy descriptors to setup CD dir
-////    Command::new("cp").args(["-r", "/mnt/ramdisk/sensitive/descriptors", "/mnt/ramdisk/CDROM/"]).output().unwrap();
+   //build the low security descriptor
+   println!("building low descriptor");
+   let low_descriptor = build_low_descriptor(&Client, &key_array).expect("Failed to build low level descriptor");
+   let low_file_dest = "/mnt/ramdisk/sensitive/descriptors/low_descriptor".to_string();
+   //store the low security descriptor in the sensitive dir
+   println!("storing low descriptor");
+   match store_string(low_descriptor.to_string(), low_file_dest) {
+       Ok(_) => {},
+       Err(err) => return Err("ERROR could not store Low Descriptor: ".to_string()+&err)
+   };
+
+   //copy descriptors to setup CD dir
+   Command::new("cp").args(["-r", "/mnt/ramdisk/sensitive/descriptors", "/mnt/ramdisk/CDROM/"]).output().unwrap();
 
 
 
-////    Ok(format!("SUCCESS in creating descriptors"))
+   Ok(format!("SUCCESS in creating descriptors"))
 
-////}
+}
 
 #[tauri::command]
 //copy the descriptors obtained from the setupCD to the currently inserted SD card $HOME
@@ -1531,7 +1573,7 @@ async fn make_backup(number: String) -> String {
 		return format!("ERROR in making backup with burning iso to CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//eject the disc
-	let output = Command::new("eject").args(["/dev/sr0"]).output().unwrap();
+	let output = Command::new("sudo").args(["eject", "/dev/sr0"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1635,7 +1677,7 @@ async fn recovery_initiate() -> String {
 		return format!("ERROR converting to transfer CD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//eject the disc
-	let output = Command::new("eject").args(["/dev/sr0"]).output().unwrap();
+	let output = Command::new("sudo").args(["eject", "/dev/sr0"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1696,18 +1738,7 @@ async fn convert_to_transfer_cd() -> String {
 	format!("SUCCESS in converting config to transfer CD")
 }
 
-// fn retrieve_start_time() -> Result<u64, ParseIntError> {
-// 	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
-// 	let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
-// 	if start_time_complete == true{
-// 		start_time.parse() 
-// 		//need to handle this ParseIntError tokio traceback
-// 	 else{
-// 		return Ok(0)
-// 	}
-// }
-// }
-
+//deprecated
 fn retrieve_start_time() -> u64 {
 	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
 	if start_time_complete == true{
@@ -1723,39 +1754,39 @@ fn retrieve_start_time() -> u64 {
 	}
 }
 
-#[tauri::command]
-//for testing only
-async fn init_test() -> String {
-    let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "681509".to_string());
-    //TODO: Create this in start_bitcoind and conversly set it to none if we close it.
-    let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-    let mut keys = Vec::new();
-    let (mut xpriv, mut xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpub);
-    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpub);
-    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpub);
-    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpub);
-    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpub);
-    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpub);
-    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpub);
-    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpub);
-    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpub);
-    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpub);
-    (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
-    keys.push(xpub);
-    let desc = build_high_descriptor(&Client, &keys).unwrap();
+// #[tauri::command]
+// //for testing only
+// async fn init_test() -> String {
+//     let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+//     //TODO: Create this in start_bitcoind and conversly set it to none if we close it.
+//     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+//     let mut keys = Vec::new();
+//     let (mut xpriv, mut xpub) = generate_keypair().expect("could not gen keypair");
+//     keys.push(xpub);
+//     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+//     keys.push(xpub);
+//     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+//     keys.push(xpub);
+//     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+//     keys.push(xpub);
+//     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+//     keys.push(xpub);
+//     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+//     keys.push(xpub);
+//     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+//     keys.push(xpub);
+//     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+//     keys.push(xpub);
+//     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+//     keys.push(xpub);
+//     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+//     keys.push(xpub);
+//     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
+//     keys.push(xpub);
+//     let desc = build_high_descriptor(&Client, &keys).unwrap();
 
-    format!("testing {} {}", desc, desc.sanity_check().unwrap() == ())
-}
+//     format!("testing {} {}", desc, desc.sanity_check().unwrap() == ())
+// }
 
 
 
@@ -1766,9 +1797,9 @@ fn main() {
 
   	tauri::Builder::default()
 	//export all tauri functions to be handled by the front end
-  	.manage(TauriState(Mutex::new(Some(Client)))) 
+  	.manage(TauriState(Mutex::new(None))) 
   	.invoke_handler(tauri::generate_handler![
-        init_test,
+        // init_test,
         test_function,
         create_bootable_usb,
         create_setup_cd,
@@ -1791,7 +1822,7 @@ fn main() {
         distribute_shards_sd5,
         distribute_shards_sd6,
         distribute_shards_sd7,
-    ////create_descriptor,
+    	create_descriptor,
 		copy_descriptor,
         create_backup,
         make_backup,
