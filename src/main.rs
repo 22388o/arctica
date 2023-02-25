@@ -1585,6 +1585,15 @@ async fn make_backup(number: String) -> String {
 //start bitcoin core daemon
 #[tauri::command]
 async fn start_bitcoind() -> String {
+	//enable networking 
+	//the only time this  block should be required is immediately following initial setup
+	//networing is force disabled for key generation on all SD cards. 
+	let output = Command::new("sudo").args(["nmcli", "networking", "on"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//start bitcoin daemon
 	let output = Command::new(&(get_home()+"/bitcoin-23.0/bin/bitcoind")).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
@@ -1599,6 +1608,13 @@ async fn start_bitcoind() -> String {
 //use this function when starting core daemon on any offline device
 #[tauri::command]
 async fn start_bitcoind_network_off() -> String {
+	//disable networking
+	let output = Command::new("sudo").args(["nmcli", "networking", "off"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//start bitcoin daemon with networking inactive
 	let output = Command::new(&(get_home()+"/bitcoin-23.0/bin/bitcoind")).args(["-networkactive=0"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
