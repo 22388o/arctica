@@ -336,7 +336,6 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 	format!("SUCCESS generated and stored Private and Public Key Pair")
 }
 
-//TODO: wallet refactor
 //helper function
 //builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
 fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
@@ -517,7 +516,7 @@ fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<minis
 async fn sync_status_emitter(window:tauri::Window) -> Result<(),()> {
 	let mut progress = 0;
 	while progress < 100 {
-	let status = Command::new(&(get_home()+"/bitcoin-23.0/bin/bitcoin-cli")).args(["getblockchaininfo"]).output().unwrap();
+	let status = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli")).args(["getblockchaininfo"]).output().unwrap();
 		//do not emit if the daemon is still spooling or is busy verifying prior to starting sync
 		// if status.stderr.contains("error"){
 		// 	std::thread::sleep(std::time::Duration ::from_secs(10));
@@ -582,7 +581,7 @@ async fn init_iso() -> String {
 	//NOTE: this currently checks the arctica repo but this will change once refactor is finished and user can run binary on host machine 
 	println!("obtaining ubuntu iso and bitcoin core if needed");
 	let a = std::path::Path::new("./ubuntu-22.04.1-desktop-amd64.iso").exists();
-	let b = std::path::Path::new("./bitcoin-23.0-x86_64-linux-gnu.tar.gz").exists();
+	let b = std::path::Path::new("./bitcoin-24.0.1-x86_64-linux-gnu.tar.gz").exists();
 	if a == false{
 		let output = Command::new("wget").args(["-O", "ubuntu-22.04.1-desktop-amd64.iso", "http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso"]).output().unwrap();
 		if !output.status.success() {
@@ -591,7 +590,7 @@ async fn init_iso() -> String {
 		}
 	}
 	if b == false{
-		let output = Command::new("wget").args(["https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz"]).output().unwrap();
+		let output = Command::new("wget").args(["https://bitcoincore.org/bin/bitcoin-core-24.0.1/bitcoin-24.0.1-x86_64-linux-gnu.tar.gz"]).output().unwrap();
 		if !output.status.success() {
 			// Function Fails
 			return format!("ERROR in init iso with downloading bitcoin core = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -760,7 +759,7 @@ async fn init_iso() -> String {
 
 	println!("extracting bitcoin core");
 	//extract bitcoin core
-	let output = Command::new("tar").args(["-xzf", &(get_home()+"/arctica/bitcoin-23.0-x86_64-linux-gnu.tar.gz"), "-C", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
+	let output = Command::new("tar").args(["-xzf", &(get_home()+"/arctica/bitcoin-24.0.1-x86_64-linux-gnu.tar.gz"), "-C", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in init iso with extracting bitcoin core = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1178,7 +1177,7 @@ async fn mount_internal() -> String {
 		} 
 		
 		//Attempt to shut down bitcoin core. Whether succeed or fail, unlink stale symlinks.
-		let output = Command::new(&(get_home()+"/bitcoin-23.0/bin/bitcoin-cli")).args(["stop"]).output().unwrap();
+		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli")).args(["stop"]).output().unwrap();
 		if !output.status.success() {
 			// Function Fails, core is not running go ahead and unlink
 			//we don't mind if these fail
@@ -1594,7 +1593,7 @@ async fn start_bitcoind() -> String {
 		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//start bitcoin daemon
-	let output = Command::new(&(get_home()+"/bitcoin-23.0/bin/bitcoind")).output().unwrap();
+	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in starting bitcoin daemon = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1615,24 +1614,13 @@ async fn start_bitcoind_network_off() -> String {
 		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//start bitcoin daemon with networking inactive
-	let output = Command::new(&(get_home()+"/bitcoin-23.0/bin/bitcoind")).args(["-networkactive=0"]).output().unwrap();
+	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args(["-networkactive=0"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
 	format!("SUCCESS in starting bitcoin daemon with networking disabled")
-}
-
-#[tauri::command]
-async fn disable_networking() -> String {
-	let output = Command::new("sudo").args(["nmcli", "networking", "off"]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-
-	format!("SUCCESS disabling networking")
 }
 
 //check the currently inserted CD for an encryption masterkey
@@ -1770,6 +1758,18 @@ fn retrieve_start_time() -> u64 {
 	}
 }
 
+#[tauri::command]
+//RPC command
+// analyze a descriptor and report a canonicalized version with checksum added
+async fn get_descriptor_info() -> String {
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
+	let desc_info = Client.get_descriptor_info(&desc).unwrap();
+	format!("SUCCESS in getting descriptor info {:?}", desc_info)
+}
+
+
 // #[tauri::command]
 // //for testing only
 // async fn init_test() -> String {
@@ -1844,7 +1844,6 @@ fn main() {
         make_backup,
         start_bitcoind,
         start_bitcoind_network_off,
-		disable_networking,
         check_for_masterkey,
         recovery_initiate,
         calculate_number_of_shards,
@@ -1852,6 +1851,7 @@ fn main() {
         convert_to_transfer_cd,
 		generate_store_key_pair,
 		generate_store_simulated_time_machine_key_pair,
+		get_descriptor_info,
 	////get_address_low_wallet,
 	////get_address_med_wallet,
 	////get_address_high_wallet,
