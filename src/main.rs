@@ -400,6 +400,16 @@ fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<minis
 ////    // return Ok(format!("ERROR in symlinking /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
 ////    // }
 
+#[tauri::command]
+//get a new address
+//TODO not sure how to implement this with bitcoincore-rpc crate... not sure how to designate -rpcwallet param
+fn get_address(wallet: String) -> String {
+	let output = Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "getnewaddress"]).stdout(file).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in getting new address = {}, {}", wallet, std::str::from_utf8(&output.stderr).unwrap());
+	}
+	format!("{}", std::str::from_utf8(&output.stderr).unwrap())
+}
 
 ////#[tauri::command]
 //////get a new address for the tripwire wallet
@@ -407,11 +417,11 @@ fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<minis
 ////    return state.3.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
 ////}
 
-#[tauri::command]
-//get a new address for the immediate wallet
-fn get_address_med_wallet() -> String {
+// #[tauri::command]
+// //get a new address for the immediate wallet
+// fn get_address_med_wallet() -> String {
 
-}
+// }
 
 ////#[tauri::command]
 //////get a new address for the delayed wallet
@@ -783,7 +793,6 @@ async fn init_iso() -> String {
 		return format!("ERROR in init iso, with creating bitcoin.conf = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	//deprecated code block
 	let start_time = Command::new("date").args(["+%s"]).output().unwrap();
 	let start_time_output = std::str::from_utf8(&start_time.stdout).unwrap();
 	println!("capturing and storing current unix timestamp");
@@ -793,7 +802,6 @@ async fn init_iso() -> String {
 		Err(err) => return format!("Could not create start time file"),
 	};
 	fileRef.write_all(&start_time_output.to_string().as_bytes());
-	//end deprecated code block
 
 	format!("SUCCESS in init_iso")
 }
@@ -1772,7 +1780,7 @@ fn get_descriptor_info(wallet: String) -> String {
 	format!("SUCCESS in getting descriptor info {:?}", desc_info)
 }
 
-//helper function, RPC command
+//RPC command
 // ./bitcoin-cli createwallet "wallet name" true true
 #[tauri::command]
 async fn create_wallet(wallet: String) -> String {
@@ -1782,26 +1790,23 @@ async fn create_wallet(wallet: String) -> String {
 	format!("SUCCESS creating the wallet {}", &wallet_name)
 }
 
+//RPC command
+// ./bitcoin-cli -rpcwallet=<filepath>|"wallet_name" importdescriptors "requests"
+//requests is a JSON and is formatted s follows
+//'[{"desc": "<descriptor goes here>", "active":true, "range":[0,100], "next_index":0, "timestamp": <start_time_timestamp>}]'
 //acceptable params here are "low", "immediate", "delayed"
+//TODO this is not yet implemented for the bitcoincore-rpc-rust crate
 #[tauri::command]
 async fn import_descriptor(wallet: String) -> String {
-	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string()))+"_descriptor").expect("Error reading reading med descriptor from file");
 	let timestamp = retrieve_start_time();
 	let json = [{ "desc":desc, "active": true, "range": [0,100], "next_index": 0, "timestamp":timestamp  }]
 	let output = Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "importdescriptors", json ]).stdout(file).output().unwrap();
 	if !output.status.success() {
-		return format!("ERROR in importing descriptor = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in importing descriptor = {}, {}", wallet, std::str::from_utf8(&output.stderr).unwrap());
 	}
+	format!("Success in importing descriptor...maybe")
 }
-
-
-
-//import descriptors (use "wallet_name" for -rpcwallet param if the wallet is already loaded)
-// ./bitcoin-cli -rpcwallet=<filepath>|"wallet_name" importdescriptors "requests"
-//requests is a JSON and is formatted s follows
-//'[{"desc": "<descriptor goes here>", "active":true, "range":[0,100], "next_index":0, "timestamp": <start_time_timestamp>}]'
 
 
 // #[tauri::command]
@@ -1887,6 +1892,7 @@ fn main() {
 		generate_store_simulated_time_machine_key_pair,
 		create_wallet,
 		import_descriptor,
+		get_address,
 	////get_address_low_wallet,
 	////get_address_med_wallet,
 	////get_address_high_wallet,
