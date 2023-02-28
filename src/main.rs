@@ -341,7 +341,7 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
     let four_years = blockchain.get_blockchain_info().unwrap().blocks+210379;
     let month = 4382;
-    let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+    let descriptor = format!("wsh(and_v(v:thresh(5,pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
     println!("DESC: {}", descriptor);
     Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap())
 }
@@ -350,14 +350,15 @@ fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<mini
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
 fn build_med_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
     let four_years = blockchain.get_blockchain_info().unwrap().blocks+210379;
-    let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
+    let descriptor = format!("wsh(thresh(2,pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
     Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap())
 }
 
 //helper function
 //builds the low security descriptor, 1 of 7 thresh, used for tripwire
+//TODO this may not need child key designator /* because it seems to use hardened keys but have not tested this descriptor yet
 fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
-    let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
+    let descriptor = format!("wsh(c:or_i(pk_k({}/*),or_i(pk_h({}/*),or_i(pk_h({}/*),or_i(pk_h({}/*),or_i(pk_h({}/*),or_i(pk_h({}/*),pk_h({}/*))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
     Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap())
 }
 
@@ -406,11 +407,11 @@ fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<minis
 ////    return state.3.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
 ////}
 
-////#[tauri::command]
-//////get a new address for the immediate wallet
-////fn get_address_med_wallet(state: State<'_, TauriState>) -> String {
-////    return state.2.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
-////}
+#[tauri::command]
+//get a new address for the immediate wallet
+fn get_address_med_wallet() -> String {
+
+}
 
 ////#[tauri::command]
 //////get a new address for the delayed wallet
@@ -1467,7 +1468,7 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
    //build the delayed wallet descriptor
    println!("building high descriptor");
    let high_descriptor = build_high_descriptor(&Client, &key_array).expect("Failed to build high level descriptor");
-   let high_file_dest = "/mnt/ramdisk/sensitive/descriptors/high_descriptor".to_string();
+   let high_file_dest = "/mnt/ramdisk/sensitive/descriptors/delayed_descriptor".to_string();
    //store the delayed wallet descriptor in the sensitive dir
    println!("storing high descriptor");
    match store_string(high_descriptor.to_string(), high_file_dest) {
@@ -1479,7 +1480,7 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
    //build the immediate wallet descriptor
    println!("building med descriptor");
    let med_descriptor = build_med_descriptor(&Client, &key_array).expect("Failed to build med level descriptor");
-   let med_file_dest = "/mnt/ramdisk/sensitive/descriptors/med_descriptor".to_string();
+   let med_file_dest = "/mnt/ramdisk/sensitive/descriptors/immediate_descriptor".to_string();
    //store the immediate wallet descriptor in the sensitive dir
    println!("storing med descriptor");
    match store_string(med_descriptor.to_string(), med_file_dest) {
@@ -1758,16 +1759,49 @@ fn retrieve_start_time() -> u64 {
 	}
 }
 
-#[tauri::command]
-//RPC command
+
+//helper function, RPC command
+// ./bitcoin-cli getdescriptorinfo '<descriptor>'
 // analyze a descriptor and report a canonicalized version with checksum added
-async fn get_descriptor_info() -> String {
+//acceptable params here are "low", "immediate", "delayed"
+fn get_descriptor_info(wallet: String) -> String {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-	let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
+	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string()))+"_descriptor").expect("Error reading reading med descriptor from file");
 	let desc_info = Client.get_descriptor_info(&desc).unwrap();
 	format!("SUCCESS in getting descriptor info {:?}", desc_info)
 }
+
+//helper function, RPC command
+// ./bitcoin-cli createwallet "wallet name" true true
+#[tauri::command]
+async fn create_wallet(wallet: String) -> String {
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+	Client.create_wallet(&wallet, true, true);
+	format!("SUCCESS creating the wallet {}", &wallet_name)
+}
+
+//acceptable params here are "low", "immediate", "delayed"
+#[tauri::command]
+async fn import_descriptor(wallet: String) -> String {
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string()))+"_descriptor").expect("Error reading reading med descriptor from file");
+	let timestamp = retrieve_start_time();
+	let json = [{ "desc":desc, "active": true, "range": [0,100], "next_index": 0, "timestamp":timestamp  }]
+	let output = Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "importdescriptors", json ]).stdout(file).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in importing descriptor = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+}
+
+
+
+//import descriptors (use "wallet_name" for -rpcwallet param if the wallet is already loaded)
+// ./bitcoin-cli -rpcwallet=<filepath>|"wallet_name" importdescriptors "requests"
+//requests is a JSON and is formatted s follows
+//'[{"desc": "<descriptor goes here>", "active":true, "range":[0,100], "next_index":0, "timestamp": <start_time_timestamp>}]'
 
 
 // #[tauri::command]
@@ -1851,7 +1885,8 @@ fn main() {
         convert_to_transfer_cd,
 		generate_store_key_pair,
 		generate_store_simulated_time_machine_key_pair,
-		get_descriptor_info,
+		create_wallet,
+		import_descriptor,
 	////get_address_low_wallet,
 	////get_address_med_wallet,
 	////get_address_high_wallet,
