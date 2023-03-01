@@ -13,6 +13,7 @@ use bitcoin::util::bip32::ExtendedPubKey;
 use bitcoin::util::bip32::ExtendedPrivKey;
 use miniscript::DescriptorPublicKey;
 use bitcoincore_rpc::Client;
+use bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors};
 use std::sync::{Arc, Mutex};
 use std::ops::Deref;
 use std::process::Command;
@@ -32,6 +33,7 @@ use std::io::BufReader;
 use std::any::type_name;
 use std::num::ParseIntError;
 use hex;
+use serde_json::json;
 
 struct TauriState(Mutex<Option<Client>>);
 
@@ -402,9 +404,11 @@ fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<minis
 
 #[tauri::command]
 //get a new address
+//accepts "low", "immediate", and "delayed" as a param
 //TODO not sure how to implement this with bitcoincore-rpc crate... not sure how to designate -rpcwallet param
+//must be done with client url param URL=<hostname>/wallet/<wallet_name>
 fn get_address(wallet: String) -> String {
-	let output = Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "getnewaddress"]).stdout(file).output().unwrap();
+	let output = Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "getnewaddress"]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in getting new address = {}, {}", wallet, std::str::from_utf8(&output.stderr).unwrap());
 	}
@@ -1772,22 +1776,27 @@ fn retrieve_start_time() -> u64 {
 // ./bitcoin-cli getdescriptorinfo '<descriptor>'
 // analyze a descriptor and report a canonicalized version with checksum added
 //acceptable params here are "low", "immediate", "delayed"
+//this may not be useful for anything besides debugging on the fly
 fn get_descriptor_info(wallet: String) -> String {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string()))+"_descriptor").expect("Error reading reading med descriptor from file");
+	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor")).expect("Error reading reading med descriptor from file");
 	let desc_info = Client.get_descriptor_info(&desc).unwrap();
 	format!("SUCCESS in getting descriptor info {:?}", desc_info)
 }
 
+
 //RPC command
 // ./bitcoin-cli createwallet "wallet name" true true
 #[tauri::command]
-async fn create_wallet(wallet: String) -> String {
+async fn create_wallet(wallet: String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-	Client.create_wallet(&wallet, true, true);
-	format!("SUCCESS creating the wallet {}", &wallet_name)
+	let output = match Client.create_wallet(&wallet, Some(true), Some(true), None, None) {
+		Ok(file) => file,
+		Err(err) => return Err(err.to_string()),
+	};
+	Ok(format!("SUCCESS creating the wallet {:?}", output))
 }
 
 //RPC command
@@ -1797,15 +1806,29 @@ async fn create_wallet(wallet: String) -> String {
 //acceptable params here are "low", "immediate", "delayed"
 //TODO this is not yet implemented for the bitcoincore-rpc-rust crate
 #[tauri::command]
-async fn import_descriptor(wallet: String) -> String {
-	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string()))+"_descriptor").expect("Error reading reading med descriptor from file");
-	let timestamp = retrieve_start_time();
-	let json = [{ "desc":desc, "active": true, "range": [0,100], "next_index": 0, "timestamp":timestamp  }]
-	let output = Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "importdescriptors", json ]).stdout(file).output().unwrap();
-	if !output.status.success() {
-		return format!("ERROR in importing descriptor = {}, {}", wallet, std::str::from_utf8(&output.stderr).unwrap());
-	}
-	format!("Success in importing descriptor...maybe")
+async fn import_descriptor(wallet: String) -> Result<String, String> {
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"), auth).expect("could not connect to bitcoin core");
+	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor")).expect("Error reading reading med descriptor from file");
+	let start_time = retrieve_start_time();
+	// let input = json![{ &desc, true, "range": [0,100], "next_index": 0, "timestamp": &timestamp  }];
+	let output = match Client.import_descriptors(ImportDescriptors {
+		descriptor: &desc,
+		timestamp: start_time,
+		active: Some(true),
+		range: [0, 100],
+		next_index: 0,
+		internal: None,
+		label: None
+	}) {
+		Ok(file) => file,
+		Err(err) => return Err(err.to_string()),
+	};
+	// let output = Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "importdescriptors", input ]).stdout(file).output().unwrap();
+	// if !output.status.success() {
+	// 	return format!("ERROR in importing descriptor = {}, {}", wallet, std::str::from_utf8(&output.stderr).unwrap());
+	// }
+	Ok(format!("Success in importing descriptor...maybe {:?}", output))
 }
 
 
