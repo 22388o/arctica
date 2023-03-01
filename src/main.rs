@@ -416,24 +416,6 @@ fn get_address(wallet: String) -> String {
 }
 
 ////#[tauri::command]
-//////get a new address for the tripwire wallet
-////fn get_address_low_wallet(state: State<'_, TauriState>) -> String {
-////    return state.3.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
-////}
-
-// #[tauri::command]
-// //get a new address for the immediate wallet
-// fn get_address_med_wallet() -> String {
-
-// }
-
-////#[tauri::command]
-//////get a new address for the delayed wallet
-////fn get_address_high_wallet(state: State<'_, TauriState>) -> String {
-////    return state.1.lock().unwrap().as_mut().expect("wallet has not been init").get_address(bdk::wallet::AddressIndex::New).expect("could not get address").to_string();
-////}
-
-////#[tauri::command]
 //////calculate the current balance of the tripwire wallet
 ////fn get_balance_low_wallet(state: State<'_, TauriState>) -> u64 {
 ////    //retrieve the wallet from state and fetch the balance
@@ -1805,31 +1787,31 @@ async fn create_wallet(wallet: String) -> Result<String, String> {
 //'[{"desc": "<descriptor goes here>", "active":true, "range":[0,100], "next_index":0, "timestamp": <start_time_timestamp>}]'
 //acceptable params here are "low", "immediate", "delayed"
 //TODO this is not yet implemented for the bitcoincore-rpc-rust crate
-#[tauri::command]
-async fn import_descriptor(wallet: String) -> Result<String, String> {
-	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"), auth).expect("could not connect to bitcoin core");
-	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor")).expect("Error reading reading med descriptor from file");
-	let start_time = retrieve_start_time();
-	// let input = json![{ &desc, true, "range": [0,100], "next_index": 0, "timestamp": &timestamp  }];
-	let output = match Client.import_descriptors(ImportDescriptors {
-		descriptor: &desc,
-		timestamp: start_time,
-		active: Some(true),
-		range: [0, 100],
-		next_index: 0,
-		internal: None,
-		label: None
-	}) {
-		Ok(file) => file,
-		Err(err) => return Err(err.to_string()),
-	};
-	// let output = Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "importdescriptors", input ]).stdout(file).output().unwrap();
-	// if !output.status.success() {
-	// 	return format!("ERROR in importing descriptor = {}, {}", wallet, std::str::from_utf8(&output.stderr).unwrap());
-	// }
-	Ok(format!("Success in importing descriptor...maybe {:?}", output))
-}
+// #[tauri::command]
+// async fn import_descriptor(wallet: String) -> Result<String, String> {
+// 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+//     let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"), auth).expect("could not connect to bitcoin core");
+// 	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor")).expect("Error reading reading med descriptor from file");
+// 	let start_time = retrieve_start_time();
+// 	// let input = json![{ &desc, true, "range": [0,100], "next_index": 0, "timestamp": &timestamp  }];
+// 	let output = match Client.import_descriptors(ImportDescriptors {
+// 		descriptor: &desc,
+// 		timestamp: start_time,
+// 		active: Some(true),
+// 		range: [0, 100],
+// 		next_index: 0,
+// 		internal: None,
+// 		label: None
+// 	}) {
+// 		Ok(file) => file,
+// 		Err(err) => return Err(err.to_string()),
+// 	};
+// 	// let output = Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "importdescriptors", input ]).stdout(file).output().unwrap();
+// 	// if !output.status.success() {
+// 	// 	return format!("ERROR in importing descriptor = {}, {}", wallet, std::str::from_utf8(&output.stderr).unwrap());
+// 	// }
+// 	Ok(format!("Success in importing descriptor...maybe {:?}", output))
+// }
 
 
 // #[tauri::command]
@@ -1914,11 +1896,8 @@ fn main() {
 		generate_store_key_pair,
 		generate_store_simulated_time_machine_key_pair,
 		create_wallet,
-		import_descriptor,
+		// import_descriptor,
 		get_address,
-	////get_address_low_wallet,
-	////get_address_med_wallet,
-	////get_address_high_wallet,
 	////get_balance_low_wallet,
 	////get_balance_med_wallet,
 	////get_balance_high_wallet,
