@@ -13,7 +13,7 @@ use bitcoin::util::bip32::ExtendedPubKey;
 use bitcoin::util::bip32::ExtendedPrivKey;
 use miniscript::DescriptorPublicKey;
 use bitcoincore_rpc::Client;
-use bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors};
+// use bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors};
 use std::sync::{Arc, Mutex};
 use std::ops::Deref;
 use std::process::Command;
