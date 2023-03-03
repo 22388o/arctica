@@ -110,4 +110,4 @@ compile binary
 
 run the app
 
-`sudo cargo run`
+`cargo run`
