@@ -422,39 +422,11 @@ async fn get_address(wallet: String) -> Result<String, String> {
 #[tauri::command]
 //calculate the current balance of the tripwire wallet
 fn get_balance(wallet:String) -> u64 {
-
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"), auth).expect("could not connect to bitcoin core");
    return 0
 }
 
-////#[tauri::command]
-//////calculate the current balance of the tripwire wallet
-////fn get_balance_low_wallet(state: State<'_, TauriState>) -> u64 {
-////    //retrieve the wallet from state and fetch the balance
-////    let balance = state.3.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
-////    //calculate the total wallet balance, including unconfirmed transactions
-////    let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
-////    return total
-////}
-
-////#[tauri::command]
-//////calculate the current balance of the immediate wallet
-////fn get_balance_med_wallet(state: State<'_, TauriState>) -> u64 {
-////    //retrieve the wallet from state and fetch the balance
-////    let balance = state.2.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
-////    //calculate the total wallet balance, including unconfirmed transactions
-////    let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
-////    return total
-////}
-
-////#[tauri::command]
-//////calculate the current balance of the delayed wallet
-////fn get_balance_high_wallet(state: State<'_, TauriState>) -> u64 {
-////    //retrieve the wallet from state and fetch the balance
-////    let balance = state.1.lock().unwrap().as_mut().expect("wallet has not been init").get_balance().expect("could not get balance");
-////    //calculate the total wallet balance, including unconfirmed transactions
-////    let total = balance.immature + balance.trusted_pending + balance.untrusted_pending + balance.confirmed;
-////    return total
-////}
 
 ////#[tauri::command]
 //////retrieve the current transaction history for the immediate wallet
