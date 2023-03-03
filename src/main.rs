@@ -428,20 +428,21 @@ async fn get_balance(wallet:String) -> Result<String, String> {
 		Ok(bal) => bal.to_string(),
 		Err(err) => return Ok(format!("{}", err.to_string()))
 	};
-	return Ok(format!("{}", balance))
+	Ok(format!("{}", balance))
 }
 
 
-////#[tauri::command]
-//////retrieve the current transaction history for the immediate wallet
-////fn get_transactions_med_wallet(state: State<'_, TauriState>) -> String {
-////    //retrieve the wallet from state and fetch the transactions
-////    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
-////    let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
-////    let transactions = wallet.list_transactions(true).expect("could not get transactions");
-////    //calculate the total wallet balance, including unconfirmed transactions
-////    format!("{:?}", transactions)
-////}
+#[tauri::command]
+//retrieve the current transaction history for the immediate wallet
+async fn get_transactions(wallet: String) -> Result<String, String> {
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"), auth).expect("could not connect to bitcoin core");
+   let transactions = match Client.list_transactions(None, None, None, Some(true)) {
+	Ok(tx) => tx,
+	Err(err) => return Ok(format!("{}", err.to_string()))
+   };
+   Ok(format!("{:?}", transactions))
+}
 
 ////#[tauri::command]
 //////generate a PSBT for the immediate wallet
@@ -1885,7 +1886,7 @@ fn main() {
 		import_descriptor,
 		get_address,
 		get_balance,
-	////get_transactions_med_wallet,
+	    get_transactions,
 	////generate_psbt_med_wallet,
 		sync_status_emitter
         ])
