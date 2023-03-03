@@ -5,7 +5,7 @@
 
 use bitcoincore_rpc::RpcApi;
 use bitcoincore_rpc::{Auth, Client, Error};
-use bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp};
+use bitcoincore_rpc::bitcoincore_rpc_json::{AddressType, ImportDescriptors, Timestamp};
 use bitcoin;
 use bitcoin::locktime::Time;
 use bitcoin::Address;
@@ -402,17 +402,36 @@ fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<minis
 ////    // return Ok(format!("ERROR in symlinking /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
 ////    // }
 
+// fn get_address(wallet: String) -> String {
+// 	let output = Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "getnewaddress"]).output().unwrap();
+// 	if !output.status.success() {
+// 		return format!("ERROR in getting new address = {}, {}", wallet, std::str::from_utf8(&output.stderr).unwrap());
+// 	}
+// 	format!("{}", std::str::from_utf8(&output.stderr).unwrap())
+// }
+
 #[tauri::command]
 //get a new address
 //accepts "low", "immediate", and "delayed" as a param
 //TODO not sure how to implement this with bitcoincore-rpc crate... not sure how to designate -rpcwallet param
 //must be done with client url param URL=<hostname>/wallet/<wallet_name>
-fn get_address(wallet: String) -> String {
-	let output = Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "getnewaddress"]).output().unwrap();
-	if !output.status.success() {
-		return format!("ERROR in getting new address = {}, {}", wallet, std::str::from_utf8(&output.stderr).unwrap());
-	}
-	format!("{}", std::str::from_utf8(&output.stderr).unwrap())
+async fn get_address(wallet: String) -> Result<String, String> {
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"), auth).expect("could not connect to bitcoin core");
+	//address labels can be added here
+	let address_type = Some(AddressType::Bech32);
+	let address = match Client.get_new_address(None, address_type){
+		Ok(addr) => addr,
+		Err(err) => return Ok(format!("{}", err.to_string()))
+	};
+	Ok(format!("{}", address))
+}
+
+#[tauri::command]
+//calculate the current balance of the tripwire wallet
+fn get_balance(wallet:String) -> u64 {
+
+   return 0
 }
 
 ////#[tauri::command]
@@ -1896,9 +1915,7 @@ fn main() {
 		create_wallet,
 		import_descriptor,
 		get_address,
-	////get_balance_low_wallet,
-	////get_balance_med_wallet,
-	////get_balance_high_wallet,
+		get_balance,
 	////get_transactions_med_wallet,
 	////generate_psbt_med_wallet,
 		sync_status_emitter
