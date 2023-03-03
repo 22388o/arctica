@@ -4,16 +4,16 @@
 )]
 
 use bitcoincore_rpc::RpcApi;
-use bitcoincore_rpc::Auth;
+use bitcoincore_rpc::{Auth, Client, Error};
+use bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp};
 use bitcoin;
+use bitcoin::locktime::Time;
 use bitcoin::Address;
 use bitcoin::consensus::serialize;
 use bitcoin::psbt::PartiallySignedTransaction;
 use bitcoin::util::bip32::ExtendedPubKey;
 use bitcoin::util::bip32::ExtendedPrivKey;
 use miniscript::DescriptorPublicKey;
-use bitcoincore_rpc::Client;
-// use bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors};
 use std::sync::{Arc, Mutex};
 use std::ops::Deref;
 use std::process::Command;
@@ -273,11 +273,11 @@ async fn generate_store_key_pair(number: String) -> String {
 		Err(err) => return "ERROR could not generate keypair: ".to_string()+&err.to_string()
 	}; 
 
-	match store_string(xpriv, private_key_file) {
+	match store_string(xpriv.to_string()+"/*", private_key_file) {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store private key: ".to_string()+&err
 	}
-	match store_string(xpub, public_key_file) {
+	match store_string(xpub.to_string()+"/*", public_key_file) {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store public key: ".to_string()+&err
 	}
@@ -343,7 +343,7 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
     let four_years = blockchain.get_blockchain_info().unwrap().blocks+210379;
     let month = 4382;
-    let descriptor = format!("wsh(and_v(v:thresh(5,pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+    let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
     println!("DESC: {}", descriptor);
     Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap())
 }
@@ -352,15 +352,15 @@ fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<mini
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
 fn build_med_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
     let four_years = blockchain.get_blockchain_info().unwrap().blocks+210379;
-    let descriptor = format!("wsh(thresh(2,pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),s:pk({}/*),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
+    let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
     Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap())
 }
 
 //helper function
 //builds the low security descriptor, 1 of 7 thresh, used for tripwire
-//TODO this may not need child key designator /* because it seems to use hardened keys but have not tested this descriptor yet
+//TODO this may not need child key designators /* because it seems to use hardened keys but have not tested this descriptor yet
 fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
-    let descriptor = format!("wsh(c:or_i(pk_k({}/*),or_i(pk_h({}/*),or_i(pk_h({}/*),or_i(pk_h({}/*),or_i(pk_h({}/*),or_i(pk_h({}/*),pk_h({}/*))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
+    let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
     Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap())
 }
 
@@ -1738,18 +1738,20 @@ async fn convert_to_transfer_cd() -> String {
 }
 
 //deprecated
-fn retrieve_start_time() -> u64 {
+fn retrieve_start_time() -> Timestamp {
 	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
 	if start_time_complete == true{
 		let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
 		let result = match start_time.trim().parse() {
 			Ok(result) => 
-			return result,
+			return Timestamp::Time(result),
 			Err(..) => 
-			return 1676511266
+			//return default timestamp 
+			return Timestamp::Time(1676511266)
 		};
 	} else {
-		return 1676511266
+		//return default timestamp
+		return Timestamp::Time(1676511266)
 	}
 }
 
@@ -1783,35 +1785,31 @@ async fn create_wallet(wallet: String) -> Result<String, String> {
 
 //RPC command
 // ./bitcoin-cli -rpcwallet=<filepath>|"wallet_name" importdescriptors "requests"
-//requests is a JSON and is formatted s follows
+//requests is a JSON and is formatted as follows
 //'[{"desc": "<descriptor goes here>", "active":true, "range":[0,100], "next_index":0, "timestamp": <start_time_timestamp>}]'
 //acceptable params here are "low", "immediate", "delayed"
-//TODO this is not yet implemented for the bitcoincore-rpc-rust crate
-// #[tauri::command]
-// async fn import_descriptor(wallet: String) -> Result<String, String> {
-// 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-//     let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"), auth).expect("could not connect to bitcoin core");
-// 	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor")).expect("Error reading reading med descriptor from file");
-// 	let start_time = retrieve_start_time();
-// 	// let input = json![{ &desc, true, "range": [0,100], "next_index": 0, "timestamp": &timestamp  }];
-// 	let output = match Client.import_descriptors(ImportDescriptors {
-// 		descriptor: &desc,
-// 		timestamp: start_time,
-// 		active: Some(true),
-// 		range: [0, 100],
-// 		next_index: 0,
-// 		internal: None,
-// 		label: None
-// 	}) {
-// 		Ok(file) => file,
-// 		Err(err) => return Err(err.to_string()),
-// 	};
-// 	// let output = Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "importdescriptors", input ]).stdout(file).output().unwrap();
-// 	// if !output.status.success() {
-// 	// 	return format!("ERROR in importing descriptor = {}, {}", wallet, std::str::from_utf8(&output.stderr).unwrap());
-// 	// }
-// 	Ok(format!("Success in importing descriptor...maybe {:?}", output))
-// }
+//TODO timestamp is not currently fucntional due to a type mismatch, timestamp within the ImportDescriptors struct wants bitcoin::timelock:time
+#[tauri::command]
+async fn import_descriptor(wallet: String) -> Result<String, String> {
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"), auth).expect("could not connect to bitcoin core");
+	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor")).expect("Error reading reading med descriptor from file");
+	let start_time = retrieve_start_time();
+	let output = match Client.import_descriptors(ImportDescriptors {
+		descriptor: desc,
+		timestamp: start_time,
+		active: Some(true),
+		range: Some((0, 100)),
+		next_index: Some(0),
+		internal: None,
+		label: None
+	}){
+			Ok(file) => file,
+			Err(err) => return Err(err.to_string()),
+		
+	};
+	Ok(format!("Success in importing descriptor...{:?}", output))
+}
 
 
 // #[tauri::command]
@@ -1896,7 +1894,7 @@ fn main() {
 		generate_store_key_pair,
 		generate_store_simulated_time_machine_key_pair,
 		create_wallet,
-		// import_descriptor,
+		import_descriptor,
 		get_address,
 	////get_balance_low_wallet,
 	////get_balance_med_wallet,
