@@ -1759,11 +1759,12 @@ fn get_descriptor_info(wallet: String) -> String {
 
 //RPC command
 // ./bitcoin-cli createwallet "wallet name" true true
+//creates a blank watch only walket
 #[tauri::command]
 async fn create_wallet(wallet: String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-	let output = match Client.create_wallet(&wallet, Some(true), Some(true), None, None) {
+	let output = match Client.create_wallet(&(wallet.to_string()+"_wallet"), Some(true), Some(true), None, None) {
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
 	};
