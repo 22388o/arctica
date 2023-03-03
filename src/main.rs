@@ -402,18 +402,10 @@ fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<minis
 ////    // return Ok(format!("ERROR in symlinking /mnt/ramdisk/immediate_wallet dir {}", std::str::from_utf8(&output.stderr).unwrap()));
 ////    // }
 
-// fn get_address(wallet: String) -> String {
-// 	let output = Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "getnewaddress"]).output().unwrap();
-// 	if !output.status.success() {
-// 		return format!("ERROR in getting new address = {}, {}", wallet, std::str::from_utf8(&output.stderr).unwrap());
-// 	}
-// 	format!("{}", std::str::from_utf8(&output.stderr).unwrap())
-// }
-
 #[tauri::command]
 //get a new address
 //accepts "low", "immediate", and "delayed" as a param
-//TODO not sure how to implement this with bitcoincore-rpc crate... not sure how to designate -rpcwallet param
+//equivalent to... Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "getnewaddress"])
 //must be done with client url param URL=<hostname>/wallet/<wallet_name>
 async fn get_address(wallet: String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
