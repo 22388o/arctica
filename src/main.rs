@@ -421,10 +421,14 @@ async fn get_address(wallet: String) -> Result<String, String> {
 
 #[tauri::command]
 //calculate the current balance of the tripwire wallet
-fn get_balance(wallet:String) -> u64 {
+async fn get_balance(wallet:String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"), auth).expect("could not connect to bitcoin core");
-   return 0
+	let balance = match Client.get_balance(None, Some(true)){
+		Ok(bal) => bal.to_string(),
+		Err(err) => return Ok(format!("{}", err.to_string()))
+	};
+	return Ok(format!("{}", balance))
 }
 
 
