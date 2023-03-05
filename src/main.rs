@@ -632,7 +632,7 @@ async fn init_iso() -> String {
 	}
 
 	println!("sleeping for 200 seconds");
-	// sleep for 200 seconds
+	// sleep for 250 seconds
 	Command::new("sleep").args(["200"]).output().unwrap();
 
 	println!("obtaining pid");
@@ -1606,6 +1606,20 @@ async fn start_bitcoind_network_off() -> String {
 	format!("SUCCESS in starting bitcoin daemon with networking disabled")
 }
 
+#[tauri::command]
+async fn stop_bitcoind() -> String {
+	//start bitcoin daemon with networking inactive
+	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli")).args(["stop"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in stopping bitcoin daemon = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in stopping the bitcoin daemon")
+}
+
+
+
 //check the currently inserted CD for an encryption masterkey
 #[tauri::command]
 async fn check_for_masterkey() -> String {
@@ -1875,6 +1889,7 @@ fn main() {
         make_backup,
         start_bitcoind,
         start_bitcoind_network_off,
+		stop_bitcoind,
         check_for_masterkey,
         recovery_initiate,
         calculate_number_of_shards,
