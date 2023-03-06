@@ -1618,19 +1618,6 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
 
 }
 
-#[tauri::command]
-//copy the descriptors obtained from the setupCD to the currently inserted SD card $HOME
-async fn copy_descriptor() -> String {
-	//copy descriptors from setupCD dump to sensitive dir
-	let output = Command::new("cp").args(["-r", "/mnt/ramdisk/CDROM/descriptors", "/mnt/ramdisk/sensitive"]).output().unwrap();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in copying descriptors = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-
-	format!("SUCCESS in copying descriptors")
-}
-
 //Create a backup directory of the currently inserted SD card
 #[tauri::command]
 async fn create_backup(number: String) -> String {
@@ -2012,7 +1999,6 @@ fn main() {
         distribute_shards_sd6,
         distribute_shards_sd7,
     	create_descriptor,
-		copy_descriptor,
         create_backup,
         make_backup,
         start_bitcoind,
