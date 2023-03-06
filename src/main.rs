@@ -1161,17 +1161,37 @@ async fn mount_internal() -> String {
 		
 		//Attempt to shut down bitcoin core. Whether succeed or fail, unlink stale symlinks.
 		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli")).args(["stop"]).output().unwrap();
+		//bitcoin core shutdown fails (meaning it was not running)...
 		if !output.status.success() {
 			// Function Fails, core is not running go ahead and unlink
 			//we don't mind if these fail
 			Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
 			Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
+			//if local blocks and chainstate dirs exist, remove them
+			let chain = std::path::Path::new(&(get_home()+"/.bitcoin/chainstate")).exists();
+			let blocks = std::path::Path::new(&(get_home()+"/.bitcoin/blocks")).exists();
+			if chain == true {
+				Command::new("sudo").args(["rm", "-r", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
+			}
+			if blocks == true {
+				Command::new("sudo").args(["rm", "-r", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
+			}
+		//bitcoin core shutdown succeeds...
 		}else{
 			//function succeeds, core is running, wait 15s for daemon to stop and then unlink
 			Command::new("sleep").args(["15"]).output().unwrap();
 			//we don't mind if these fail
 			Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
 			Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
+			//if local blocks and chainstate dirs exist, remove them
+			let chain = std::path::Path::new(&(get_home()+"/.bitcoin/chainstate")).exists();
+			let blocks = std::path::Path::new(&(get_home()+"/.bitcoin/blocks")).exists();
+			if chain == true {
+				Command::new("sudo").args(["rm", "-r", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
+			}
+			if blocks == true {
+				Command::new("sudo").args(["rm", "-r", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
+			}
 		}
 
 		//remove stale .bitcoin data dirs if they exist
