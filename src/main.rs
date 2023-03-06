@@ -301,6 +301,8 @@ async fn generate_store_key_pair(number: String) -> String {
 
 //this function simulates the creation of a time machine key. Eventually this creation will be performed by the BPS and 
 //the pubkeys will be shared with the user instead. 4 Time machine Keys are needed so this function will be run 4 times in total.
+//eventually these will need to be turned into descriptors and we will need an encryption scheme for the descriptors/keys that will be held by the BPS so as not to be privacy leaks
+//decryption key will be held within encrypted tarball on each SD card
 #[tauri::command]
 async fn generate_store_simulated_time_machine_key_pair(number: String) -> String {
 	//make the time machine key dir in the setupCD staging area if it does not already exist
@@ -340,7 +342,8 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 
 //helper function
 //builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
-fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
+//TODO sdcard string needs to inform the descriptor which key in the vec should be replaced with corresponding XPRIV
+fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>, sdcard: String) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
     let four_years = blockchain.get_blockchain_info().unwrap().blocks+210379;
     let month = 4382;
     let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
@@ -350,7 +353,8 @@ fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<mini
 
 //helper function
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
-fn build_med_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
+//TODO sdcard string needs to inform the descriptor which key in the vec should be replaced with corresponding XPRIV
+fn build_med_descriptor(blockchain: &Client, keys: &Vec<String>, sdcard: String) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
     let four_years = blockchain.get_blockchain_info().unwrap().blocks+210379;
     let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
     Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap())
@@ -358,8 +362,9 @@ fn build_med_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<minis
 
 //helper function
 //builds the low security descriptor, 1 of 7 thresh, used for tripwire
+//TODO sdcard string needs to inform the descriptor which key in the vec should be replaced with corresponding XPRIV
 //TODO this may not need child key designators /* because it seems to use hardened keys but have not tested this descriptor yet
-fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
+fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>, sdcard: String) -> Result<miniscript::Descriptor::<DescriptorPublicKey>, bitcoin::Error> {
     let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
     Ok(miniscript::Descriptor::<DescriptorPublicKey>::from_str(&descriptor).unwrap())
 }
@@ -1430,9 +1435,18 @@ async fn distribute_shards_sd7() -> String {
 //High Descriptor is the time locked 5 of 11 with decay (4 keys will eventually go to BPS)
 //Medium Descriptor is the 2 of 7 with decay
 //Low Descriptor is the 1 of 7 and will be used for the tripwire
-//TODO: wallet refactor
+
+//TODO: refactor create descriptor to generate 3 seperate descriptors for each wallet
+//SD 1 will contain Low_Descriptor1, Immediate_Descriptor1, and Delayed_Descriptor1
+//SD 2 will contain Low_Descriptor2...and so on
+//Each descriptor must contain the Xpriv corresponding to it's card. 
+//Example: Immediate_Descriptor1 will contain XPRIV1, XPUB2, XPUB3...
+//Immediate_Descriptor2 will contain XPUB1, XPRIV2, XPUB3... and so on
+
+//TODO: should take in an sdCard param which will inform the function which SD card number should be used for file names and descriptor formatting
+//acceptable params should be "1", "2", "3", "4", "5", "6", "7"
 #[tauri::command]
-async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, String> {
+async fn create_descriptor(sdcard: String) -> Result<String, String> {
    println!("creating descriptors from 7 xpubs & 4 time machine keys");
    //convert all 11 public_keys in the ramdisk to an array vector
    println!("creating key array");
@@ -1469,8 +1483,8 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 
    //build the delayed wallet descriptor
    println!("building high descriptor");
-   let high_descriptor = build_high_descriptor(&Client, &key_array).expect("Failed to build high level descriptor");
-   let high_file_dest = "/mnt/ramdisk/sensitive/descriptors/delayed_descriptor".to_string();
+   let high_descriptor = build_high_descriptor(&Client, &key_array, sdcard).expect("Failed to build high level descriptor");
+   let high_file_dest = "/mnt/ramdisk/sensitive/descriptors/delayed_descriptor".to_string()+sdcard.to_string();
    //store the delayed wallet descriptor in the sensitive dir
    println!("storing high descriptor");
    match store_string(high_descriptor.to_string(), high_file_dest) {
@@ -1481,8 +1495,8 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 
    //build the immediate wallet descriptor
    println!("building med descriptor");
-   let med_descriptor = build_med_descriptor(&Client, &key_array).expect("Failed to build med level descriptor");
-   let med_file_dest = "/mnt/ramdisk/sensitive/descriptors/immediate_descriptor".to_string();
+   let med_descriptor = build_med_descriptor(&Client, &key_array, sdcard).expect("Failed to build med level descriptor");
+   let med_file_dest = "/mnt/ramdisk/sensitive/descriptors/immediate_descriptor".to_string()+sdcard.to_string();
    //store the immediate wallet descriptor in the sensitive dir
    println!("storing med descriptor");
    match store_string(med_descriptor.to_string(), med_file_dest) {
@@ -1492,19 +1506,14 @@ async fn create_descriptor(state: State<'_, TauriState>) -> Result<String, Strin
 
    //build the low security descriptor
    println!("building low descriptor");
-   let low_descriptor = build_low_descriptor(&Client, &key_array).expect("Failed to build low level descriptor");
-   let low_file_dest = "/mnt/ramdisk/sensitive/descriptors/low_descriptor".to_string();
+   let low_descriptor = build_low_descriptor(&Client, &key_array, sdcard).expect("Failed to build low level descriptor");
+   let low_file_dest = "/mnt/ramdisk/sensitive/descriptors/low_descriptor".to_string()+sdcard.to_string();
    //store the low security descriptor in the sensitive dir
    println!("storing low descriptor");
    match store_string(low_descriptor.to_string(), low_file_dest) {
        Ok(_) => {},
        Err(err) => return Err("ERROR could not store Low Descriptor: ".to_string()+&err)
    };
-
-   //copy descriptors to setup CD dir
-   Command::new("cp").args(["-r", "/mnt/ramdisk/sensitive/descriptors", "/mnt/ramdisk/CDROM/"]).output().unwrap();
-
-
 
    Ok(format!("SUCCESS in creating descriptors"))
 
