@@ -1254,64 +1254,17 @@ async fn mount_internal() -> String {
 		return format!("Error in parsing /media/user to get uuid")
 	}
 	else if uuid == "none"{
+		//mount the internal drive if NVME
 		Command::new("udisksctl").args(["mount", "--block-device", "/dev/nvme0n1p2"]).output().unwrap();
 		//mount internal drive if SATA
 		Command::new("udisksctl").args(["mount", "--block-device", "/dev/sda2"]).output().unwrap();
-		//open local .bitcoin dir file permissions
-		let output = Command::new("sudo").args(["chmod", "777", &(get_home()+"/.bitcoin")]).output().unwrap();
-		if !output.status.success() {
-			return format!("ERROR in opening local .bitcoin file permissions {}", std::str::from_utf8(&output.stderr).unwrap());
-		} 
 		
-		//Attempt to shut down bitcoin core. Whether succeed or fail, unlink stale symlinks.
+		//Attempt to shut down bitcoin core
 		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli")).args(["stop"]).output().unwrap();
 		//bitcoin core shutdown fails (meaning it was not running)...
-		if !output.status.success() {
-			// Function Fails, core is not running go ahead and unlink
-			//we don't mind if these fail
-			Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
-			Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
-			//if local blocks and chainstate dirs exist, remove them
-			let chain = std::path::Path::new(&(get_home()+"/.bitcoin/chainstate")).exists();
-			let blocks = std::path::Path::new(&(get_home()+"/.bitcoin/blocks")).exists();
-			if chain == true {
-				Command::new("sudo").args(["rm", "-r", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
-			}
-			if blocks == true {
-				Command::new("sudo").args(["rm", "-r", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
-			}
-		//bitcoin core shutdown succeeds...
-		}else{
-			//function succeeds, core is running, wait 15s for daemon to stop and then unlink
+		if output.status.success() {
+			//function succeeds, core is running for some reason, wait 15s for daemon to stop
 			Command::new("sleep").args(["15"]).output().unwrap();
-			//we don't mind if these fail
-			Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
-			Command::new("sudo").args(["unlink", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
-			//if local blocks and chainstate dirs exist, remove them
-			let chain = std::path::Path::new(&(get_home()+"/.bitcoin/chainstate")).exists();
-			let blocks = std::path::Path::new(&(get_home()+"/.bitcoin/blocks")).exists();
-			if chain == true {
-				Command::new("sudo").args(["rm", "-r", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
-			}
-			if blocks == true {
-				Command::new("sudo").args(["rm", "-r", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
-			}
-		}
-
-		//remove stale .bitcoin data dirs if they exist
-		let a = std::path::Path::new(&(get_home()+"/.bitcoin/chainstate")).exists();
-		if a == true{
-			let output = Command::new("sudo").args(["rm", "-r", "-f", &(get_home()+"/.bitcoin/chainstate")]).output().unwrap();
-			if !output.status.success() {
-			return format!("ERROR in removing stale ./bitcoin/chainstate dir {}", std::str::from_utf8(&output.stderr).unwrap());
-			}
-		}
-		let b = std::path::Path::new(&(get_home()+"/.bitcoin/blocks")).exists();
-		if b == true{
-			let output = Command::new("sudo").args(["rm", "-r", "-f", &(get_home()+"/.bitcoin/blocks")]).output().unwrap();
-			if !output.status.success() {
-			return format!("ERROR in removing stale ./bitcoin/blocks dir {}", std::str::from_utf8(&output.stderr).unwrap());
-			}
 		}
 		//obtain the UUID of the currently mounted internal storage drive
 		uuid = get_uuid();
@@ -1323,7 +1276,6 @@ async fn mount_internal() -> String {
 		else if uuid == "none" {
 			return format!("ERROR could not find a valid UUID in /media/$user");
 		}
-
 		//obtain the username of the internal storage device
 		let host = Command::new(&("ls")).args([&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home")]).output().unwrap();
 		if !host.status.success() {
@@ -1344,25 +1296,16 @@ async fn mount_internal() -> String {
 			return format!("ERROR in removing stale ./bitcoin/chainstate dir {}", std::str::from_utf8(&output.stderr).unwrap());
 			}
 		}
-		//create the symlinks between local .bitcoin data dirs and internal storage dotfiles
-		let output = Command::new("ln").args(["-s", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin/blocks"), &(get_home()+"/.bitcoin")]).output().unwrap();
-		if !output.status.success() {
-			return format!("ERROR in symlinking internal .bitcoin/blocks dir {}", std::str::from_utf8(&output.stderr).unwrap());
-		} 
-		let output = Command::new("ln").args(["-s", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin/chainstate"), &(get_home()+"/.bitcoin")]).output().unwrap();
-		if !output.status.success() {
-			return format!("ERROR in symlinking internal .bitcoin/chainstate dir {}", std::str::from_utf8(&output.stderr).unwrap());
-		} 
 		//open file permissions of internal storage dotfile dirs
 		let output = Command::new("sudo").args(["chmod", "777", &("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin")]).output().unwrap();
 		if !output.status.success() {
 			return format!("ERROR in opening file permissions of internal storage .bitcoin dirs {}", std::str::from_utf8(&output.stderr).unwrap());
 		} 
-		format!("SUCCESS in mounting the internal drive and symlinking .bitcoin data dirs")
+		format!("SUCCESS in mounting the internal drive")
 	}//in the following condition, get_uuid() returns a valid uuid.
-	// So we can assume that the user has already run the mount_internal function in a previous session 
+	// So we can assume that the internal drive is already mounted
 	else {
-		format!("SUCCESS internal drive is already mounted, assuming proper symlinks exist")
+		format!("SUCCESS internal drive is already mounted")
 	}
 }
 
@@ -1554,19 +1497,21 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
    println!("pushing 7 standard pubkeys into key array");
    for i in 1..=7{
        let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))).expect(&("Error reading public_key from file".to_string()+&(i.to_string())));
-    //    let key = bitcoin::util::bip32::ExtendedPubKey::from_str(&key_str).expect(&("Error reading public_key from string".to_string()+&(i.to_string())));
        println!("printing key type");
        key_array.push(key);
        println!("pushed key");
    }
-   //push the 4 time machine public keys into the key_array vector
-   println!("pushing 4 time machine pubkeys into key array");
-   for i in 1..=4{
-       let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key from file".to_string()+&(i.to_string())));
-    //    let key = bitcoin::util::bip32::ExtendedPubKey::from_str(&key_str).expect(&("Error reading time_machine_public_key from string".to_string()+&(i.to_string())));
-       key_array.push(key);
-       println!("pushed key");
+
+   //push the 4 time machine public keys into the key_array vector, only on SD 1.
+   if sdcard == "1"{
+	println!("pushing 4 time machine pubkeys into key array");
+	for i in 1..=4{
+		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key from file".to_string()+&(i.to_string())));
+		key_array.push(key);
+		println!("pushed key");
+	}
    }
+
 
    println!("printing key array");
    println!("{:?}", key_array);
@@ -1690,8 +1635,21 @@ async fn start_bitcoind() -> String {
 		// Function Fails
 		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-	//start bitcoin daemon
-	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).output().unwrap();
+	let uuid = get_uuid();
+	//mount internal drive if nvme
+	if uuid == "ERROR in parsing /media/user" {
+		return format!("Error in parsing /media/user to get uuid")
+	}
+	else if uuid == "none"{
+		return format!("ERROR could not find a valid UUID in /media/$user")
+	}
+	let host = Command::new(&("ls")).args([&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home")]).output().unwrap();
+		if !host.status.success() {
+			return format!("ERROR in parsing /media/user/uuid/home {}", std::str::from_utf8(&host.stderr).unwrap());
+		} 
+	let host_user = std::str::from_utf8(&host.stdout).unwrap().trim();
+	//start bitcoin daemon with proper datadir & walletdir path
+	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin")]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in starting bitcoin daemon = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1975,7 +1933,7 @@ fn main() {
 	//export all tauri functions to be handled by the front end
   	.manage(TauriState(Mutex::new(None))) 
   	.invoke_handler(tauri::generate_handler![
-        // init_test,
+        //init_test,
         test_function,
         create_bootable_usb,
         create_setup_cd,
@@ -2016,7 +1974,7 @@ fn main() {
 		get_address,
 		get_balance,
 	    get_transactions,
-	////generate_psbt_med_wallet,
+		//generate_psbt_med_wallet,
 		sync_status_emitter
         ])
     .run(tauri::generate_context!())
