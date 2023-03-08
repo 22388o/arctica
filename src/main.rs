@@ -1551,6 +1551,14 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
        Ok(_) => {},
        Err(err) => return Err("ERROR could not store High Descriptor: ".to_string()+&err)
    };
+   match create_wallet("delayed", sdcard){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not create Delayed Wallet: ".to_string()+&err)
+   };
+   match import_descriptor("delayed"){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not import Immediate Descriptor: ".to_string()+&err)
+   };
    
 
    //build the immediate wallet descriptor
@@ -1563,6 +1571,14 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
        Ok(_) => {},
        Err(err) => return Err("ERROR could not store Med Descriptor: ".to_string()+&err)
    };
+   match create_wallet("immediate", sdcard){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not create Immediate Wallet: ".to_string()+&err)
+   };
+   match import_descriptor("immediate"){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not import Immediate Descriptor: ".to_string()+&err)
+   };
 
    //build the low security descriptor
    println!("building low descriptor");
@@ -1573,6 +1589,14 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
    match store_string(low_descriptor.to_string(), low_file_dest) {
        Ok(_) => {},
        Err(err) => return Err("ERROR could not store Low Descriptor: ".to_string()+&err)
+   };
+   match create_wallet("low", sdcard){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not create Low Wallet: ".to_string()+&err)
+   };
+   match import_descriptor("low"){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not import Low Descriptor: ".to_string()+&err)
    };
 
    Ok(format!("SUCCESS in creating descriptors"))
@@ -1882,11 +1906,10 @@ fn get_descriptor_info(wallet: String) -> String {
 //RPC command
 // ./bitcoin-cli createwallet "wallet name" true true
 //creates a blank watch only walket
-#[tauri::command]
-async fn create_wallet(wallet: String) -> Result<String, String> {
+fn create_wallet(wallet: String, sdcard: String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-	let output = match Client.create_wallet(&(wallet.to_string()+"_wallet"), Some(true), Some(true), None, None) {
+	let output = match Client.create_wallet(&(wallet.to_string()+"_wallet"+sdcard.to_string()), Some(true), Some(true), None, None) {
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
 	};
@@ -1899,8 +1922,7 @@ async fn create_wallet(wallet: String) -> Result<String, String> {
 //'[{"desc": "<descriptor goes here>", "active":true, "range":[0,100], "next_index":0, "timestamp": <start_time_timestamp>}]'
 //acceptable params here are "low", "immediate", "delayed"
 //TODO timestamp is not currently fucntional due to a type mismatch, timestamp within the ImportDescriptors struct wants bitcoin::timelock:time
-#[tauri::command]
-async fn import_descriptor(wallet: String) -> Result<String, String> {
+fn import_descriptor(wallet: String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"), auth).expect("could not connect to bitcoin core");
 	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor")).expect("Error reading reading med descriptor from file");
@@ -2003,8 +2025,6 @@ fn main() {
         convert_to_transfer_cd,
 		generate_store_key_pair,
 		generate_store_simulated_time_machine_key_pair,
-		create_wallet,
-		import_descriptor,
 		get_address,
 		get_balance,
 	    get_transactions,
