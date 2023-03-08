@@ -1718,6 +1718,23 @@ async fn start_bitcoind_network_off() -> String {
 		// Function Fails
 		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	let uuid = get_uuid();
+	//mount internal drive if nvme
+	if uuid == "ERROR in parsing /media/user" {
+		return format!("Error in parsing /media/user to get uuid");
+	}
+	else if uuid == "none"{
+		return format!("ERROR could not find a valid UUID in /media/$user");
+	}
+	let host = Command::new(&("ls")).args([&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home")]).output().unwrap();
+		if !host.status.success() {
+			return format!("ERROR in parsing /media/user/uuid/home {}", std::str::from_utf8(&host.stderr).unwrap());
+		} 
+	let host_user = std::str::from_utf8(&host.stdout).unwrap().trim();
 	//ensure wallets dir path exists and if not, creat it.
 	let a = std::path::Path::new("/mnt/ramdisk/sensitive/wallets").exists();
 	if a == false {
@@ -1728,7 +1745,7 @@ async fn start_bitcoind_network_off() -> String {
 		}
 	}
 	//start bitcoin daemon with networking inactive and proper walletdir path
-	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args(["-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
+	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args(["-networkactive=0", &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
