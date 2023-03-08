@@ -1943,6 +1943,21 @@ fn import_descriptor(wallet: String) -> Result<String, String> {
 	Ok(format!("Success in importing descriptor...{:?}", output))
 }
 
+#[tauri::command]
+async fn load_wallets() -> Result<String, String> {
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+	let output = match Client.load_wallet("immediate_wallet"){
+		Ok(_) => {},
+		Err(err) => return Err(err.to_string())
+	}:
+	let output = match Client.load_wallet("delayed_wallet"){
+		Ok(_) => {},
+		Err(err) => return Err(err.to_string())
+	};
+	Ok(format!("Success in loading wallets!"))
+}
+
 
 // #[tauri::command]
 // //for testing only
@@ -2025,6 +2040,7 @@ fn main() {
         convert_to_transfer_cd,
 		generate_store_key_pair,
 		generate_store_simulated_time_machine_key_pair,
+		load_wallets,
 		get_address,
 		get_balance,
 	    get_transactions,
