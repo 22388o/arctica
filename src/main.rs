@@ -1120,6 +1120,22 @@ async fn unpack() -> String {
     	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
+	// let contents = Command::new(&("ls")).args(["/mnt/ramdisk/mnt/ramdisk/sensitive"]).output().unwrap();
+	// if !contents.status.success() {
+	// return format!("ERROR in unpack with parsing /mnt/ramdisk/mnt/ramdisk/sensitive");
+	// } 
+	// //convert the list of contents into a vector of results
+	// let contents_output = std::str::from_utf8(&contents.stdout).unwrap();
+	// let split = contents_output.split('\n');
+	// let contents_vec: Vec<_> = split.collect();
+	// //iterate through the vector and copy each file to /mnt/ramdisk/sensitive
+	// for i in contents_vec{
+	// 	let output = Command::new("cp").args(["-r", &("mnt/ramdisk/mnt/ramdisk/".to_string()+i.to_string()), "/mnt/ramdisk/sensitive"]).output().unwrap();
+	// 	if !output.status.success() {
+	// 		return format!("Error in unpack with copying items")
+	// 	}
+	// 	} 
+
     // copy sensitive dir to ramdisk
 	let output = Command::new("cp").args(["-R", "/mnt/ramdisk/mnt/ramdisk/sensitive", "/mnt/ramdisk"]).output().unwrap();
 	if !output.status.success() {
@@ -1127,7 +1143,7 @@ async fn unpack() -> String {
     	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
-	// remove nested sensitive
+	// remove nested sensitive tarball output
 	Command::new("sudo").args(["rm", "-r", "/mnt/ramdisk/mnt"]).output().unwrap();
 
 	// #NOTES:
