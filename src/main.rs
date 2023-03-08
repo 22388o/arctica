@@ -1726,20 +1726,24 @@ async fn start_bitcoind_network_off() -> String {
 	//check if walletdir exists and if not create it
 	let a = std::path::Path::new("/mnt/ramdisk/sensitive/wallets").exists();
 	if a == false {
-		let output = Command::new("mkdir").args(["/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
-		if !output.status.success() {
-			// Function Fails
-			return format!("ERROR in starting bitcoin daemon with creating ../sensitive/wallets dir = {}", std::str::from_utf8(&output.stderr).unwrap());
-		}
-	}
-	//start bitcoin daemon with networking inactive and proper walletdir path
+		Command::new("mkdir").args(["/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
+		//start bitcoin daemon with networking inactive and proper walletdir path
 	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
 	format!("SUCCESS in starting bitcoin daemon with networking disabled")
+	}
+	else {
+		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
+	if !output.status.success() {
+		// Function Fails
+		return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+		format!("SUCCESS in starting bitcoin daemon with networking disabled")
+	}
+	
 	}
 	
 
