@@ -1551,11 +1551,11 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
        Ok(_) => {},
        Err(err) => return Err("ERROR could not store High Descriptor: ".to_string()+&err)
    };
-   match create_wallet("delayed", sdcard){
+   match create_wallet("delayed".to_string(), &sdcard){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not create Delayed Wallet: ".to_string()+&err)
    };
-   match import_descriptor("delayed"){
+   match import_descriptor("delayed".to_string()){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not import Immediate Descriptor: ".to_string()+&err)
    };
@@ -1571,11 +1571,11 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
        Ok(_) => {},
        Err(err) => return Err("ERROR could not store Med Descriptor: ".to_string()+&err)
    };
-   match create_wallet("immediate", sdcard){
+   match create_wallet("immediate".to_string(), &sdcard){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not create Immediate Wallet: ".to_string()+&err)
    };
-   match import_descriptor("immediate"){
+   match import_descriptor("immediate".to_string()){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not import Immediate Descriptor: ".to_string()+&err)
    };
@@ -1590,11 +1590,11 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
        Ok(_) => {},
        Err(err) => return Err("ERROR could not store Low Descriptor: ".to_string()+&err)
    };
-   match create_wallet("low", sdcard){
+   match create_wallet("low".to_string(), &sdcard){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not create Low Wallet: ".to_string()+&err)
    };
-   match import_descriptor("low"){
+   match import_descriptor("low".to_string()){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not import Low Descriptor: ".to_string()+&err)
    };
@@ -1689,7 +1689,7 @@ async fn start_bitcoind() -> String {
 		} 
 	let host_user = std::str::from_utf8(&host.stdout).unwrap().trim();
 	//check if walletdir exists and if not create it
-	let a = std::path::Path::new("/mnt/ramdisk/sensitive/wallets").exists()
+	let a = std::path::Path::new("/mnt/ramdisk/sensitive/wallets").exists();
 	if a == false {
 		let output = Command::new("mkdir").args(["/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
 		if !output.status.success() {
@@ -1719,7 +1719,7 @@ async fn start_bitcoind_network_off() -> String {
 		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//ensure wallets dir path exists and if not, creat it.
-	let a = std::path::Path::new("/mnt/ramdisk/sensitive/wallets").exists()
+	let a = std::path::Path::new("/mnt/ramdisk/sensitive/wallets").exists();
 	if a == false {
 		let output = Command::new("mkdir").args(["/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
 		if !output.status.success() {
@@ -1906,10 +1906,10 @@ fn get_descriptor_info(wallet: String) -> String {
 //RPC command
 // ./bitcoin-cli createwallet "wallet name" true true
 //creates a blank watch only walket
-fn create_wallet(wallet: String, sdcard: String) -> Result<String, String> {
+fn create_wallet(wallet: String, sdcard: &String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-	let output = match Client.create_wallet(&(wallet.to_string()+"_wallet"+sdcard.to_string()), Some(true), Some(true), None, None) {
+	let output = match Client.create_wallet(&(wallet.to_string()+"_wallet"+&sdcard.to_string()), Some(true), Some(true), None, None) {
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
 	};
@@ -1950,7 +1950,7 @@ async fn load_wallets() -> Result<String, String> {
 	let output = match Client.load_wallet("immediate_wallet"){
 		Ok(_) => {},
 		Err(err) => return Err(err.to_string())
-	}:
+	};
 	let output = match Client.load_wallet("delayed_wallet"){
 		Ok(_) => {},
 		Err(err) => return Err(err.to_string())
