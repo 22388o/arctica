@@ -13,8 +13,6 @@ use bitcoin::consensus::serialize;
 use bitcoin::psbt::PartiallySignedTransaction;
 use bitcoin::util::bip32::ExtendedPubKey;
 use bitcoin::util::bip32::ExtendedPrivKey;
-use miniscript::DescriptorPublicKey;
-use miniscript::descriptor::DescriptorSecretKey;
 use std::sync::{Arc, Mutex};
 use std::ops::Deref;
 use std::process::Command;
