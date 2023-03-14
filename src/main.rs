@@ -1757,7 +1757,7 @@ async fn start_bitcoind() -> String {
 //this will prevent block sync
 //use this function when starting core daemon on any offline device
 #[tauri::command]
-async fn start_bitcoind_network_off() -> String {
+fn start_bitcoind_network_off() -> String {
 	//disable networking
 	let output = Command::new("sudo").args(["nmcli", "networking", "off"]).output().unwrap();
 	if !output.status.success() {
