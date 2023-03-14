@@ -1781,7 +1781,6 @@ async fn start_bitcoind_network_off() -> String {
 		// Function Fails
 		return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-	format!("SUCCESS in starting bitcoin daemon with networking disabled")
 	}
 	else {
 		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
@@ -1789,9 +1788,8 @@ async fn start_bitcoind_network_off() -> String {
 		// Function Fails
 		return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-		format!("SUCCESS in starting bitcoin daemon with networking disabled")
 	}
-	
+	format!("SUCCESS in starting bitcoin daemon with networking disabled")
 	}
 	
 
