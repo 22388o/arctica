@@ -343,8 +343,12 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 //builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
 fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
 	println!("calculating 4 year block time span");
-    let four_years = blockchain.get_blockchain_info().unwrap().blocks+210379;
-    let month = 4382;
+    let start_time = retrieve_start_time() 
+	//convert start time to minisript acceptable unix time + 500,000,000
+	//add the 4 year time delay in seconds 12623400
+	let four_years = start_time + 126230400 + 500000000
+	//establish 1 month in unix time
+    let month = 2629800;
 	println!("reading xpriv");
 	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(sdcard.to_string()))).expect(&("Error reading public_key from file".to_string()+&(sdcard.to_string())));
 	println!("{}", xpriv);
@@ -432,7 +436,12 @@ fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>, sdcard: &Strin
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
 fn build_med_descriptor(blockchain: &Client, keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
 	println!("calculating 4 year block time span");
-    let four_years = blockchain.get_blockchain_info().unwrap().blocks+210379;
+    let start_time = retrieve_start_time() 
+	//convert start time to minisript acceptable unix time + 500,000,000
+	//add the 4 year time delay in seconds 12623400
+	let four_years = start_time + 126230400 + 500000000
+	//establish 1 month in unix time
+    let month = 2629800;
 	println!("reading xpriv");
 	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(sdcard.to_string()))).expect(&("Error reading public_key from file".to_string()+&(sdcard.to_string())));
 	println!("{}", xpriv);
