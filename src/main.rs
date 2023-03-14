@@ -341,12 +341,12 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 
 //helper function
 //builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
-fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
+fn build_high_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
 	println!("calculating 4 year block time span");
-    let start_time = retrieve_start_time() 
+    let start_time = retrieve_start_time_integer(); 
 	//convert start time to minisript acceptable unix time + 500,000,000
 	//add the 4 year time delay in seconds 12623400
-	let four_years = start_time + 126230400 + 500000000
+	let four_years = start_time + 126230400 + 500000000;
 	//establish 1 month in unix time
     let month = 2629800;
 	println!("reading xpriv");
@@ -434,12 +434,12 @@ fn build_high_descriptor(blockchain: &Client, keys: &Vec<String>, sdcard: &Strin
 
 //helper function
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
-fn build_med_descriptor(blockchain: &Client, keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
+fn build_med_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
 	println!("calculating 4 year block time span");
-    let start_time = retrieve_start_time() 
+    let start_time = retrieve_start_time_integer();
 	//convert start time to minisript acceptable unix time + 500,000,000
 	//add the 4 year time delay in seconds 12623400
-	let four_years = start_time + 126230400 + 500000000
+	let four_years = start_time + 126230400 + 500000000;
 	//establish 1 month in unix time
     let month = 2629800;
 	println!("reading xpriv");
@@ -500,7 +500,7 @@ fn build_med_descriptor(blockchain: &Client, keys: &Vec<String>, sdcard: &String
 //builds the low security descriptor, 1 of 7 thresh, used for tripwire
 //TODO this needs to use its own special keypair or it will be a privacy leak once implemented
 //TODO this may not need child key designators /* because it seems to use hardened keys but have not tested this descriptor yet
-	fn build_low_descriptor(blockchain: &Client, keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
+	fn build_low_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
 		println!("reading xpriv");
 		let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(sdcard.to_string()))).expect(&("Error reading public_key from file".to_string()+&(sdcard.to_string())));
 		println!("{}", xpriv);
@@ -1570,14 +1570,9 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
    println!("Making descriptors dir");
    Command::new("mkdir").args(["/mnt/ramdisk/sensitive/descriptors"]).output().unwrap();
 
-   //define the blockchain param
-   println!("configuring blockchain client");
-   let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-   let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-
    //build the delayed wallet descriptor
    println!("building high descriptor");
-   let high_descriptor = match build_high_descriptor(&Client, &key_array, &sdcard) {
+   let high_descriptor = match build_high_descriptor(&key_array, &sdcard) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build High Descriptor ".to_string()+&err)
    };
@@ -1602,7 +1597,7 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
 
    //build the immediate wallet descriptor
    println!("building med descriptor");
-   let med_descriptor = match build_med_descriptor(&Client, &key_array, &sdcard) {
+   let med_descriptor = match build_med_descriptor(&key_array, &sdcard) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build Immediate Descriptor ".to_string()+&err)
    };
@@ -1626,7 +1621,7 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
 
    //build the low security descriptor
    println!("building low descriptor");
-   let low_descriptor = match build_low_descriptor(&Client, &key_array, &sdcard) {
+   let low_descriptor = match build_low_descriptor(&key_array, &sdcard) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build Low Descriptor ".to_string()+&err)
    };
@@ -1929,7 +1924,6 @@ async fn convert_to_transfer_cd() -> String {
 	format!("SUCCESS in converting config to transfer CD")
 }
 
-//deprecated
 fn retrieve_start_time() -> Timestamp {
 	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
 	if start_time_complete == true{
@@ -1944,6 +1938,23 @@ fn retrieve_start_time() -> Timestamp {
 	} else {
 		//return default timestamp
 		return Timestamp::Time(1676511266)
+	}
+}
+
+fn retrieve_start_time_integer() -> u64 {
+	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
+	if start_time_complete == true{
+		let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
+		let result = match start_time.trim().parse() {
+			Ok(result) => 
+			return result,
+			Err(..) => 
+			//return default timestamp 
+			return 0
+		};
+	} else {
+		//return default timestamp
+		return 0
 	}
 }
 
