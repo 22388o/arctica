@@ -344,11 +344,17 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 fn build_high_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
 	println!("calculating 4 year block time span");
     let start_time = retrieve_start_time_integer(); 
-	//convert start time to minisript acceptable unix time + 500,000,000
+	println!("start time: {}", start_time);
+	let start_time_block_height = unix_to_block_height(start_time);
+	println!("start time block height: {}", start_time_block_height);
 	//add the 4 year time delay in seconds 12623400
-	let four_years = start_time + 126230400 + 500000000;
-	//establish 1 month in unix time
-    let month = 2629800;
+	let four_years_unix_time = 126230400 + start_time;
+	let four_years_block_height = unix_to_block_height(four_years_unix_time);
+	println!("for years block height: {}", four_years_block_height);
+	let four_years = start_time_block_height + four_years_block_height;
+	println!("four years: {}", four_years);
+	//establish 1 month in estimated block height change
+    let month = 4383;
 	println!("reading xpriv");
 	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(sdcard.to_string()))).expect(&("Error reading public_key from file".to_string()+&(sdcard.to_string())));
 	println!("{}", xpriv);
@@ -436,12 +442,18 @@ fn build_high_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<String, 
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
 fn build_med_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
 	println!("calculating 4 year block time span");
-    let start_time = retrieve_start_time_integer();
-	//convert start time to minisript acceptable unix time + 500,000,000
+    let start_time = retrieve_start_time_integer(); 
+	println!("start time: {}", start_time);
+	let start_time_block_height = unix_to_block_height(start_time);
+	println!("start time block height: {}", start_time_block_height);
 	//add the 4 year time delay in seconds 12623400
-	let four_years = start_time + 126230400 + 500000000;
-	//establish 1 month in unix time
-    let month = 2629800;
+	let four_years_unix_time = 126230400 + start_time;
+	let four_years_block_height = unix_to_block_height(four_years_unix_time);
+	println!("for years block height: {}", four_years_block_height);
+	let four_years = start_time_block_height + four_years_block_height;
+	println!("four years: {}", four_years);
+	//establish 1 month in estimated block height change
+    let month = 4383;
 	println!("reading xpriv");
 	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(sdcard.to_string()))).expect(&("Error reading public_key from file".to_string()+&(sdcard.to_string())));
 	println!("{}", xpriv);
@@ -1547,7 +1559,6 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
    println!("pushing 7 standard pubkeys into key array");
    for i in 1..=7{
        let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))).expect(&("Error reading public_key from file".to_string()+&(i.to_string())));
-       println!("printing key type");
        key_array.push(key);
        println!("pushed key");
    }
@@ -1941,7 +1952,7 @@ fn retrieve_start_time() -> Timestamp {
 	}
 }
 
-fn retrieve_start_time_integer() -> u64 {
+fn retrieve_start_time_integer() -> i64 {
 	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
 	if start_time_complete == true{
 		let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
@@ -1958,6 +1969,18 @@ fn retrieve_start_time_integer() -> u64 {
 	}
 }
 
+fn unix_to_block_height(unix_timestamp: i64) -> i64 {
+	let genesis_timestamp = 1231006505; //unix timestamp of genesis block
+							// 1671299369 start time
+							// 126230400 4 year period
+	let block_interval = 600; //10 minutes in seconds
+	let time_since_genesis = unix_timestamp - genesis_timestamp;
+	let block_height = time_since_genesis / block_interval;
+	block_height
+}
+
+	//add the 4 year time delay in seconds 12623400
+	//start time  1671299369
 
 //helper function, RPC command
 // ./bitcoin-cli getdescriptorinfo '<descriptor>'
