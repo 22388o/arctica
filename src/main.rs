@@ -2052,11 +2052,11 @@ fn import_descriptor(wallet: String, sdcard: &String) -> Result<String, String> 
 async fn load_wallets(sdcard: String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-	let output = match Client.load_wallet(&("immediate_wallet".to_string()+sdcard.to_string())){
+	let output = match Client.load_wallet(&("immediate_wallet".to_string()+&sdcard.to_string())){
 		Ok(_) => {},
 		Err(err) => return Err(err.to_string())
 	};
-	let output = match Client.load_wallet(&("delayed_wallet".to_string()+sdcard.to_string())){
+	let output = match Client.load_wallet(&("delayed_wallet".to_string()+&sdcard.to_string())){
 		Ok(_) => {},
 		Err(err) => return Err(err.to_string())
 	};
