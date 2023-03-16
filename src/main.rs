@@ -1564,14 +1564,13 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
    }
 
    //push the 4 time machine public keys into the key_array vector, only on SD 1.
-   if sdcard == "1"{
 	println!("pushing 4 time machine pubkeys into key array");
 	for i in 1..=4{
 		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key from file".to_string()+&(i.to_string())));
 		key_array.push(key);
 		println!("pushed key");
 	}
-   }
+   
 
 
    println!("printing key array");
