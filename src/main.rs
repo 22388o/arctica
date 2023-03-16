@@ -1753,7 +1753,7 @@ async fn start_bitcoind() -> String {
 			}
 		}
 		//start bitcoin daemon with proper datadir & walletdir path
-		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
+		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
 		if !output.status.success() {
 			// Function Fails
 			return format!("ERROR in starting bitcoin daemon = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1783,7 +1783,7 @@ fn start_bitcoind_network_off() -> String {
 	if a == false {
 		Command::new("mkdir").args(["/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
 		//start bitcoin daemon with networking inactive and proper walletdir path
-	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
+	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -2049,14 +2049,14 @@ fn import_descriptor(wallet: String, sdcard: &String) -> Result<String, String> 
 }
 
 #[tauri::command]
-async fn load_wallets() -> Result<String, String> {
+async fn load_wallets(sdcard: String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-	let output = match Client.load_wallet("immediate_wallet"){
+	let output = match Client.load_wallet(&("immediate_wallet".to_string()+sdcard.to_string())){
 		Ok(_) => {},
 		Err(err) => return Err(err.to_string())
 	};
-	let output = match Client.load_wallet("delayed_wallet"){
+	let output = match Client.load_wallet(&("delayed_wallet".to_string()+sdcard.to_string())){
 		Ok(_) => {},
 		Err(err) => return Err(err.to_string())
 	};
