@@ -1753,7 +1753,7 @@ async fn start_bitcoind() -> String {
 			}
 		}
 		//start bitcoin daemon with proper datadir & walletdir path
-		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
+		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
 		if !output.status.success() {
 			// Function Fails
 			return format!("ERROR in starting bitcoin daemon = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1783,14 +1783,14 @@ fn start_bitcoind_network_off() -> String {
 	if a == false {
 		Command::new("mkdir").args(["/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
 		//start bitcoin daemon with networking inactive and proper walletdir path
-	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
+	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	}
 	else {
-		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
+		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
 	if !output.status.success() {
 		// Function Fails
 		return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
