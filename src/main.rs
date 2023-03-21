@@ -1727,8 +1727,8 @@ async fn start_bitcoind() -> String {
 			}
 		}
 		//start bitcoin daemon with proper datadir & walletdir path
-		Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
-
+		let child = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
+		child.detach().exepect("failed to spawn command");
 		let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
 		let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 
@@ -1773,11 +1773,12 @@ fn start_bitcoind_network_off() -> String {
 	if a == false {
 		Command::new("mkdir").args(["/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
 		//start bitcoin daemon with networking inactive and proper walletdir path
-		Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
+		let child = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
+		child.detach().exepect("failed to spawn command");
 	}
 	else {
-		Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
-
+		let child = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
+		child.detach().exepect("failed to spawn command");
 	}
 	format!("SUCCESS in starting bitcoin daemon with networking disabled")
 	}
