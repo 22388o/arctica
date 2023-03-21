@@ -1727,10 +1727,26 @@ async fn start_bitcoind() -> String {
 			}
 		}
 		//start bitcoin daemon with proper datadir & walletdir path
-		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
-		if !output.status.success() {
-			// Function Fails
-			return format!("ERROR in starting bitcoin daemon = {}", std::str::from_utf8(&output.stderr).unwrap());
+		Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
+
+		let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+		let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+
+		loop{
+			//note this is a CLIENT METHOD NOT THE LOCAL get_blockchain_info tauri fn
+			let info = Client.get_blockchain_info();
+			let progress = info.unwrap().verification_progress;
+			let synced = progress >= 0.9999;
+
+			if synced {
+				//node is fully synced
+				println!("Node is fully synced");
+				break;
+			}else {
+				//node is not fully synced
+				println!("Node is syncing (Progress: {:.2}%)", progress * 100.0);
+			}
+			std::thread::sleep(Duration::from_secs(10));
 		}
 
 		format!("SUCCESS in starting bitcoin daemon")
@@ -1757,18 +1773,11 @@ fn start_bitcoind_network_off() -> String {
 	if a == false {
 		Command::new("mkdir").args(["/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
 		//start bitcoin daemon with networking inactive and proper walletdir path
-	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
+		Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
 	}
 	else {
-		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
-	if !output.status.success() {
-		// Function Fails
-		return format!("ERROR in starting bitcoin daemon with networking disabled = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
+		Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind")).args([&("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-networkactive=0", "-walletdir=/mnt/ramdisk/sensitive/wallets"]).spawn();
+
 	}
 	format!("SUCCESS in starting bitcoin daemon with networking disabled")
 	}
@@ -2033,6 +2042,14 @@ async fn load_wallet(wallet: String, sdcard: String) -> Result<String, String> {
 	Ok(format!("Success in loading wallets!"))
 }
 
+#[tauri::command]
+async fn get_blockchain_info() -> String {
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+	let info = Client.get_blockchain_info();
+	format!("Results: {:?}", info)
+}
+
 
 // #[tauri::command]
 // //for testing only
@@ -2120,6 +2137,7 @@ fn main() {
 		get_balance,
 	    get_transactions,
 		get_descriptor_info,
+		get_blockchain_info,
 		//generate_psbt_med_wallet,
         ])
     .run(tauri::generate_context!())
