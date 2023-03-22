@@ -1732,6 +1732,7 @@ async fn start_bitcoind() -> String {
 			let uuid = get_uuid();
 			let host = Command::new(&("ls")).args([&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home")]).output().unwrap();
 			let host_user = std::str::from_utf8(&host.stdout).unwrap().trim();
+			//spawn as a child process on a seperate thread, nullify the output
 			Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind"))
 			.args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets"])
 			.stdout(Stdio::null())
@@ -1771,11 +1772,9 @@ fn start_bitcoind_network_off() -> String {
 	//disable networking
 	let output = Command::new("sudo").args(["nmcli", "networking", "off"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//check if walletdir exists and if not create it
@@ -1783,6 +1782,7 @@ fn start_bitcoind_network_off() -> String {
 	if a == false {
 		Command::new("mkdir").args(["/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
 		//start bitcoin daemon with networking inactive and proper walletdir path
+		//spawn as a child process on a seperate thread, nullify the output
 		std::thread::spawn( ||{
 			Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind"))
 			.args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets"])
@@ -1793,6 +1793,8 @@ fn start_bitcoind_network_off() -> String {
 			});
 	}
 	else {
+		//start bitcoin daemon with networking inactive and proper walletdir path
+		//spawn as a child process on a seperate thread, nullify the output
 		std::thread::spawn( ||{
 			Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind"))
 			.args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets"])
