@@ -292,7 +292,6 @@ async fn generate_store_key_pair(number: String) -> String {
 	//copy public key to setupCD dir
 	let output = Command::new("cp").args([&("/mnt/ramdisk/sensitive/public_key".to_string()+&number), "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in generate store key pair with copying pubkey= {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
@@ -333,7 +332,6 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 	//copy public key to setupCD dir
 	let output = Command::new("cp").args([&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_public_key".to_string()+&number), "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in generate store key pair with copying pubkey= {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
@@ -711,14 +709,12 @@ async fn init_iso() -> String {
 	if a == false{
 		let output = Command::new("wget").args(["-O", "ubuntu-22.04.1-desktop-amd64.iso", "http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso"]).output().unwrap();
 		if !output.status.success() {
-			// Function Fails
 			return format!("ERROR in init iso with downloading ubuntu iso = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 	}
 	if b == false{
 		let output = Command::new("wget").args(["https://bitcoincore.org/bin/bitcoin-core-24.0.1/bitcoin-24.0.1-x86_64-linux-gnu.tar.gz"]).output().unwrap();
 		if !output.status.success() {
-			// Function Fails
 			return format!("ERROR in init iso with downloading bitcoin core = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 	}
@@ -760,7 +756,6 @@ async fn init_iso() -> String {
 	//fallocate persistent iso, creates a 7GB image. Image size determines final storage space allocated to writable
 	let output = Command::new("fallocate").args(["-l", "7GiB", "persistent-ubuntu.iso"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with fallocate persistent iso = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -768,7 +763,6 @@ async fn init_iso() -> String {
 	//boot kvm to establish persistence
 	let output = Command::new("kvm").args(["-m", "2048", &(get_home()+"/arctica/persistent-ubuntu.iso"), "-daemonize", "-pidfile", "pid.txt", "-cpu", "host", "-display", "none"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with kvm = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -788,7 +782,6 @@ async fn init_iso() -> String {
 	//kill pid
 	let output = Command::new("kill").args(["-9", &pid]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with killing pid = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -796,7 +789,6 @@ async fn init_iso() -> String {
 	//mount persistent iso at /media/$USER/writable/upper/
 	let output = Command::new("udisksctl").args(["loop-setup", "-f", &(get_home()+"/arctica/persistent-ubuntu.iso")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with mounting persistent iso = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -808,7 +800,6 @@ async fn init_iso() -> String {
 	//open file permissions for persistent directory
 	let output = Command::new("sudo").args(["chmod", "777", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with opening file permissions of persistent dir = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -820,19 +811,16 @@ async fn init_iso() -> String {
 	//copying over dependencies genisoimage
 	let output = Command::new("cp").args([&(get_home()+"/arctica/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with copying genisoimage = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//copying over dependencies ssss
 	let output = Command::new("cp").args([&(get_home()+"/arctica/ssss_0.5-5_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with copying ssss = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//copying over dependencies wodim
 	let output = Command::new("cp").args([&(get_home()+"/arctica/wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with copying wodim = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -841,19 +829,16 @@ async fn init_iso() -> String {
 	//copy over artica binary and make executable
 	let output = Command::new("cp").args([&(get_home()+"/arctica/target/debug/app"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/arctica")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with copying arctica binary = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	println!("copying arctica icon");
 	let output = Command::new("cp").args([&(get_home()+"/arctica/icons/arctica.jpeg"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/arctica.jpeg")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with copying binary jpeg = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	println!("making arctica a .desktop file");
 	let output = Command::new("sudo").args(["cp", &(get_home()+"/arctica/shortcut/Arctica.desktop"), &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with copying arctica.desktop = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -862,7 +847,6 @@ async fn init_iso() -> String {
 	// Command::new("mkdir").args([&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.config/autostart")]).output().unwrap();
 	// let output = Command::new("sudo").args(["cp", &(get_home()+"/arctica/shortcut/Arctica.desktop"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.config/autostart")]).output().unwrap();
 	// if !output.status.success() {
-	// 	// Function Fails
 	// 	return format!("ERROR in init iso with copying arctica.desktop = {}", std::str::from_utf8(&output.stderr).unwrap());
 	// }
 
@@ -871,7 +855,6 @@ async fn init_iso() -> String {
 	//make the binary an executable file
 	let output = Command::new("sudo").args(["chmod", "+x", &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with making binary executable = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -879,7 +862,6 @@ async fn init_iso() -> String {
 	//copy over scripts directory and its contents. 
 	let output = Command::new("cp").args(["-r", &(get_home()+"/arctica/scripts"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with copying scripts dir = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -887,7 +869,6 @@ async fn init_iso() -> String {
 	//extract bitcoin core
 	let output = Command::new("tar").args(["-xzf", &(get_home()+"/arctica/bitcoin-24.0.1-x86_64-linux-gnu.tar.gz"), "-C", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with extracting bitcoin core = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -895,7 +876,6 @@ async fn init_iso() -> String {
 	//create target device .bitcoin dir
 	let output = Command::new("mkdir").args([&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.bitcoin")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso with making target .bitcoin dir = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -904,7 +884,6 @@ async fn init_iso() -> String {
 	let file = File::create(&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.bitcoin/bitcoin.conf")).unwrap();
 	let output = Command::new("echo").args(["-e", "rpcuser=rpcuser\nrpcpassword=477028"]).stdout(file).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in init iso, with creating bitcoin.conf = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -940,19 +919,16 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
 	//copy new config
 	let output = Command::new("sudo").args(["cp", &(get_home()+"/config.txt"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in creating bootable with copying current config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//open file permissions for config
 	let output = Command::new("sudo").args(["chmod", "777", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/config.txt")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in creating bootable with opening file permissions = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//remove current working config from local
 	let output = Command::new("sudo").args(["rm", &(get_home()+"/config.txt")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in creating bootable with removing current working config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//burn iso with mkusb
@@ -962,7 +938,6 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
 	println!("mkusb finished creating output");
 	let output = mkusb_child_two.wait_with_output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in creating bootable with mkusb = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	format!("SUCCESS in creating bootable device")
@@ -1006,33 +981,28 @@ async fn create_setup_cd() -> String {
 	//copy first 2 shards to SD 1
 	let output = Command::new("sudo").args(["cp", "/mnt/ramdisk/shards/shard1.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in copying shard1.txt in create setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 	let output = Command::new("sudo").args(["cp", "/mnt/ramdisk/shards/shard11.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in copying shard11.txt in create setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
 	//remove stale shard file
 	let output = Command::new("sudo").args(["rm", "/mnt/ramdisk/shards_untrimmed.txt"]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in removing deprecated shards_untrimmed in create setup cd = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
 	//stage setup CD dir with shards for distribution
 	let output = Command::new("sudo").args(["cp", "-R", "/mnt/ramdisk/shards", "/mnt/ramdisk/CDROM"]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in copying shards to CDROM dir in create setup cd = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
 	//create iso from setupCD dir
 	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/setupCD.iso", "/mnt/ramdisk/CDROM"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR refreshing setupCD with genisoimage = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -1040,7 +1010,6 @@ async fn create_setup_cd() -> String {
 	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
 	let output = Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR refreshing setupCD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -1080,13 +1049,11 @@ async fn copy_cd_to_ramdisk() -> String {
 	//copy cd contents to ramdisk
 	let output = Command::new("cp").args(["-R", &("/media/".to_string()+&get_user()+"/CDROM"), "/mnt/ramdisk"]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in copying CD contents = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 	//open up permissions
 	let output = Command::new("sudo").args(["chmod", "-R", "777", "/mnt/ramdisk/CDROM"]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in opening file permissions of CDROM = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
@@ -1099,7 +1066,6 @@ async fn eject_cd() -> String {
 	//copy cd contents to ramdisk
 	let output = Command::new("sudo").args(["eject", "/dev/sr0"]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
@@ -1119,14 +1085,12 @@ async fn packup() -> String {
 	//pack the sensitive directory into a tarball
 	let output = Command::new("tar").args(["cvf", "/mnt/ramdisk/unencrypted.tar", "/mnt/ramdisk/sensitive"]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in packup = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
 	//encrypt the sensitive directory tarball 
 	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/CDROM/masterkey", "--output", &(get_home()+"/encrypted.gpg"), "--symmetric", "/mnt/ramdisk/unencrypted.tar"]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in packup = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
@@ -1146,21 +1110,18 @@ async fn unpack() -> String {
 	//decrypt sensitive directory
 	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/CDROM/masterkey", "--output", "/mnt/ramdisk/decrypted.out", "-d", &(get_home()+"/encrypted.gpg")]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
 	// unpack sensitive directory tarball
 	let output = Command::new("tar").args(["xvf", "/mnt/ramdisk/decrypted.out", "-C", "/mnt/ramdisk/"]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
     // copy sensitive dir to ramdisk
 	let output = Command::new("cp").args(["-R", "/mnt/ramdisk/mnt/ramdisk/sensitive", "/mnt/ramdisk"]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in unpack = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 
@@ -1168,7 +1129,7 @@ async fn unpack() -> String {
 	Command::new("sudo").args(["rm", "-r", "/mnt/ramdisk/mnt"]).output().unwrap();
 
 	// #NOTES:
-	// #use this to append files to a decrypted tarball without having to create an entire new one
+	// #can use this to append files to a decrypted tarball without having to create an entire new one
 	// #tar rvf output_tarball ~/filestobeappended
 	format!("SUCCESS in unpack")
 }
@@ -1199,20 +1160,17 @@ async fn create_ramdisk() -> String {
 		//allocate the RAM for ramdisk 
 		let output = Command::new("sudo").args(["mount", "-t", "ramfs", "-o", "size=250M", "ramfs", "/mnt/ramdisk"]).output().unwrap();
 		if !output.status.success() {
-			// Function Fails
 			return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 		//open ramdisk file permissions
 		let output = Command::new("sudo").args(["chmod", "777", "/mnt/ramdisk"]).output().unwrap();
 		if !output.status.success() {
-			// Function Fails
 			return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 
 		//make the target dir for encrypted payload to or from SD cards
 		let output = Command::new("mkdir").args(["/mnt/ramdisk/sensitive"]).output().unwrap();
 		if !output.status.success() {
-			// Function Fails
 			return format!("ERROR in Creating /mnt/ramdiskamdisk/sensitive = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 
@@ -1378,7 +1336,6 @@ async fn refresh_cd() -> String {
 	//create iso from CD dir
 	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/CDROM"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR refreshing CD with genisoimage = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -1386,21 +1343,18 @@ async fn refresh_cd() -> String {
 	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
 	let output = Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR refreshing CD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
 	//burn setupCD iso to the setupCD
 	let output = Command::new("sudo").args(["wodim", "dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/transferCD.iso"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in refreshing CD with burning iso = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
 	//eject the disc
 	let output = Command::new("sudo").args(["eject", "/dev/sr0"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in refreshing CD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -1415,13 +1369,11 @@ async fn distribute_shards_sd2() -> String {
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard2.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in distributing shards to sd2 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard10.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in distributing shards to sd2 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -1435,13 +1387,11 @@ async fn distribute_shards_sd3() -> String {
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard3.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in distributing shards to sd3 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard9.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in distributing shards to sd3 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -1455,13 +1405,11 @@ async fn distribute_shards_sd4() -> String {
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard4.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in distributing shards to sd4 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard8.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in distributing shards to sd4 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -1475,7 +1423,6 @@ async fn distribute_shards_sd5() -> String {
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard5.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in distributing shards to sd5 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -1489,7 +1436,6 @@ async fn distribute_shards_sd6() -> String {
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard6.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in distributing shards to sd6 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -1503,7 +1449,6 @@ async fn distribute_shards_sd7() -> String {
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard7.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in distributing shards to sd7 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -1642,25 +1587,21 @@ async fn create_backup(number: String) -> String {
 		//Copy shards to backup
 		let output = Command::new("cp").args(["-r", &(get_home()+"/shards"), "/mnt/ramdisk/backup"]).output().unwrap();
 		if !output.status.success() {
-			// Function Fails
 			return format!("ERROR in creating backup with copying shards = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 		//Copy sensitive dir
 		let output = Command::new("cp").args([&(get_home()+"/encrypted.gpg"), "/mnt/ramdisk/backup"]).output().unwrap();
 		if !output.status.success() {
-			// Function Fails
 			return format!("ERROR in creating backup with copying sensitive dir= {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 		//copy config
 		let output = Command::new("cp").args([&(get_home()+"/config.txt"), "/mnt/ramdisk/backup"]).output().unwrap();
 		if !output.status.success() {
-			// Function Fails
 			return format!("ERROR in creating backup with copying config.txt= {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 		//create .iso from backup dir
 		let output = Command::new("genisoimage").args(["-r", "-J", "-o", &("/mnt/ramdisk/backup".to_string()+&number+".iso"), "/mnt/ramdisk/backup"]).output().unwrap();
 		if !output.status.success() {
-			// Function Fails
 			return format!("ERROR in creating backup with creating iso= {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 	
@@ -1681,13 +1622,11 @@ async fn make_backup(number: String) -> String {
 	//burn setupCD iso to the backup CD
 	let output = Command::new("sudo").args(["wodim", "dev=/dev/sr0", "-v", "-data", &("/mnt/ramdisk/backup".to_string()+&number+".iso")]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in making backup with burning iso to CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//eject the disc
 	let output = Command::new("sudo").args(["eject", "/dev/sr0"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -1702,7 +1641,6 @@ async fn start_bitcoind() -> String {
 	//networing is force disabled for key generation on all SD cards. 
 	let output = Command::new("sudo").args(["nmcli", "networking", "on"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	let uuid = get_uuid();
@@ -1723,7 +1661,6 @@ async fn start_bitcoind() -> String {
 		if a == false {
 			let output = Command::new("mkdir").args(["/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
 			if !output.status.success() {
-				// Function Fails
 				return format!("ERROR in starting bitcoin daemon with creating ../sensitive/wallets dir = {}", std::str::from_utf8(&output.stderr).unwrap());
 			}
 		}
@@ -1814,7 +1751,7 @@ async fn stop_bitcoind() -> String {
 	//start bitcoin daemon with networking inactive
 	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli")).args(["stop"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
+		
 		return format!("ERROR in stopping bitcoin daemon = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
@@ -1851,39 +1788,33 @@ async fn recovery_initiate() -> String {
 	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
 	let output = Command::new("echo").args(["type=recoverycd" ]).stdout(file).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in creating recovery CD, with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//collect shards from SD card for export to transfer CD
 	let output = Command::new("cp").args(["-R", &(get_home()+"/shards"), "/mnt/ramdisk/CDROM/shards"]).output().unwrap();
 	if !output.status.success() {
-    	// Function Fails
     	return format!("ERROR in creating recovery CD with copying shards from SD = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 	//create iso from transferCD dir
 	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/CDROM"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR creating recovery CD with creating ISO = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//wipe the CD 
 	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
 	let output = Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR converting to transfer CD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//burn transferCD iso to the transfer CD
 	Command::new("sudo").args(["wodim", "dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/transferCD.iso"]).output().unwrap();
 	let output = Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR converting to transfer CD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//eject the disc
 	let output = Command::new("sudo").args(["eject", "/dev/sr0"]).output().unwrap();
 	if !output.status.success() {
-		// Function Fails
 		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
