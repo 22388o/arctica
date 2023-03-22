@@ -2001,21 +2001,21 @@ async fn load_wallet(wallet: String, sdcard: String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 
+	//load the specified wallet
 	Client.load_wallet(&(wallet.to_string()+"_wallet"+&(sdcard.to_string())));
-	//spawn load wallet in seperate thread? maybe not necessary
 
-	//parse list wallet in a loop to verify when rescan is completed
+	//parse list_wallets in a continuous loop to verify when rescan is completed
 	loop{
 		let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     	let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 		let list = Client.list_wallets().unwrap();
 		let search_string = &(wallet.to_string()+"_wallet"+&(sdcard.to_string()));
-		//wallet is properly loaded and scanned
+		//listwallets returns the wallet name as expected...wallet is properly loaded and scanned
 		if list.contains(&search_string){
 			break;
 		}
+		//listwallets does not return the wallet name...wallet not yet loaded
 		else{
-			//wallet not yet loaded
 			std::thread::sleep(Duration::from_secs(5));
 			continue;
 		}
