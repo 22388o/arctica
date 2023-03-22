@@ -1666,7 +1666,7 @@ async fn start_bitcoind() -> String {
 		}
 		//start bitcoin daemon with proper datadir & walletdir path
 		std::thread::spawn( ||{
-			//redeclare dynamic vars within new scope
+			//redeclare dynamic vars within the new scope
 			let uuid = get_uuid();
 			let host = Command::new(&("ls")).args([&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home")]).output().unwrap();
 			let host_user = std::str::from_utf8(&host.stdout).unwrap().trim();
@@ -1679,20 +1679,27 @@ async fn start_bitcoind() -> String {
 			.spawn();
 			});
 		loop{
+			//redeclare the Client object within the new scope
 			let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
 			let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+			//query getblockchaininfo
 			match Client.get_blockchain_info(){
+				//if a valid response is received...
 				Ok(res) => {
+					//sleep and continue the loop in the event that the chain is not synced
 					let progress =  res.verification_progress; 
 					if progress < 0.9999{
 						std::thread::sleep(Duration::from_secs(5));
+						continue;
 					}
+					//break the loop in the event the sync exceed 0.9999
 					else{
 						break;
 					}
 				},
 				//error is returned when the daemon is still performing initial block db verification
 				Err(error) => {
+					//sleep and continue the loop
 					std::thread::sleep(Duration::from_secs(5));
 					continue;
 				},
