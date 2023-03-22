@@ -1681,14 +1681,23 @@ async fn start_bitcoind() -> String {
 		loop{
 			let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
 			let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-			let info = Client.get_blockchain_info();
-			let progress =  info.unwrap().verification_progress; 
-			if progress < 0.9999{
-				std::thread::sleep(Duration::from_secs(10));
-			}
-			else{
-				break;
-			}
+			match Client.get_blockchain_info(){
+				Ok(res) => {
+					let progress =  res.verification_progress; 
+					if progress < 0.9999{
+						std::thread::sleep(Duration::from_secs(5));
+					}
+					else{
+						break;
+					}
+				},
+				//error is returned when the daemon is still performing initial block db verification
+				Err(error) => {
+					std::thread::sleep(Duration::from_secs(5));
+					continue;
+				},
+			};
+			
 		}
 		format!("SUCCESS in starting bitcoin daemon")
 	}
@@ -1984,12 +1993,29 @@ fn import_descriptor(wallet: String, sdcard: &String) -> Result<String, String> 
 async fn load_wallet(wallet: String, sdcard: String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-	let output = match Client.load_wallet(&(wallet.to_string()+"_wallet"+&(sdcard.to_string()))){
-		Ok(_) => {},
-		Err(err) => return Err(err.to_string())
-	};
-	Ok(format!("Success in loading wallets!"))
-}
+
+	Client.load_wallet(&(wallet.to_string()+"_wallet"+&(sdcard.to_string())));
+	//spawn load wallet in seperate thread? maybe not necessary
+
+	//parse list wallet in a loop to verify when rescan is completed
+	loop{
+		let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    	let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+		let list = Client.list_wallets().unwrap();
+		let search_string = &(wallet.to_string()+"_wallet"+&(sdcard.to_string()));
+		//wallet is properly loaded and scanned
+		if list.contains(&search_string){
+			break;
+		}
+		else{
+			//wallet not yet loaded
+			std::thread::sleep(Duration::from_secs(5));
+			continue;
+		}
+	}
+	Ok(format!("Success in loading {} wallet", wallet))
+	}
+
 
 #[tauri::command]
 async fn get_blockchain_info() -> String {
