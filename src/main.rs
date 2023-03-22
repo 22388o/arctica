@@ -1666,6 +1666,7 @@ async fn start_bitcoind() -> String {
 		}
 		//start bitcoin daemon with proper datadir & walletdir path
 		std::thread::spawn( ||{
+			//redeclare dynamic vars within new scope
 			let uuid = get_uuid();
 			let host = Command::new(&("ls")).args([&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home")]).output().unwrap();
 			let host_user = std::str::from_utf8(&host.stdout).unwrap().trim();
@@ -1677,26 +1678,18 @@ async fn start_bitcoind() -> String {
 			.stdin(Stdio::null())
 			.spawn();
 			});
-		// let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-		// let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-
-		// loop{
-		// 	//note this is a CLIENT METHOD NOT THE LOCAL get_blockchain_info tauri fn
-		// 	let info = Client.get_blockchain_info();
-		// 	let progress = info.unwrap().verification_progress;
-		// 	let synced = progress >= 0.9999;
-
-		// 	if synced {
-		// 		//node is fully synced
-		// 		println!("Node is fully synced");
-		// 		break;
-		// 	}else {
-		// 		//node is not fully synced
-		// 		println!("Node is syncing (Progress: {:.2}%)", progress * 100.0);
-		// 	}
-		// 	std::thread::sleep(Duration::from_secs(10));
-		// }
-
+		loop{
+			let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+			let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+			let info = Client.get_blockchain_info();
+			let progress =  info.unwrap().verification_progress; 
+			if progress < 0.9999{
+				std::thread::sleep(Duration::from_secs(10));
+			}
+			else{
+				break;
+			}
+		}
 		format!("SUCCESS in starting bitcoin daemon")
 	}
 }
