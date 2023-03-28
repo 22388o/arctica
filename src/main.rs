@@ -611,6 +611,7 @@ async fn get_balance(wallet:String, sdcard:String) -> Result<String, String> {
 
 #[derive(Serialize)]
 struct CustomTransaction {
+	id: i32,
     info: CustomWalletTxInfo,
     detail: CustomGetTransactionResultDetail,
     trusted: Option<bool>,
@@ -661,9 +662,11 @@ async fn get_transactions(wallet: String, sdcard:String) -> Result<String, Strin
    }
    else{
 	let mut custom_transactions: Vec<CustomTransaction> = Vec::new();
+	let mut x = 0;
    
 	for tx in transactions {
 		let custom_tx = CustomTransaction {
+			id: x,
 			info: CustomWalletTxInfo {
 				confirmations: tx.info.confirmations,
 				blockhash: tx.info.blockhash.map(|hash| hash.to_string()),
@@ -699,6 +702,7 @@ async fn get_transactions(wallet: String, sdcard:String) -> Result<String, Strin
 			comment: tx.comment,
 		};
 		custom_transactions.push(custom_tx);
+		x += 1;
 	}
 	
 	let json_string = serde_json::to_string(&custom_transactions).unwrap();
