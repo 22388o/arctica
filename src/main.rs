@@ -6,6 +6,7 @@
 use bitcoincore_rpc::RpcApi;
 use bitcoincore_rpc::{Auth, Client, Error};
 use bitcoincore_rpc::bitcoincore_rpc_json::{AddressType, ImportDescriptors, Timestamp};
+use bitcoincore_rpc::bitcoincore_rpc_json::{ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory};
 use bitcoin;
 use bitcoin::locktime::Time;
 use bitcoin::Address;
@@ -13,6 +14,8 @@ use bitcoin::consensus::serialize;
 use bitcoin::psbt::PartiallySignedTransaction;
 use bitcoin::util::bip32::ExtendedPubKey;
 use bitcoin::util::bip32::ExtendedPrivKey;
+use bitcoin::util::amount::SignedAmount;
+use bitcoin::Amount;
 use std::sync::{Arc, Mutex};
 use std::ops::Deref;
 use std::process::Command;
@@ -33,6 +36,8 @@ use std::any::type_name;
 use std::num::ParseIntError;
 use hex;
 use serde_json::json;
+use serde::{Serialize, Serializer};
+use std::collections::HashMap;
 use std::mem;
 
 struct TauriState(Mutex<Option<Client>>);
@@ -590,11 +595,55 @@ async fn get_balance(wallet:String, sdcard:String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
 	let balance = match Client.get_balance(None, Some(true)){
-		Ok(bal) => bal.to_string(),
+		Ok(bal) => {
+			//split string into a vec and extract the number only without the BTC unit
+			let bal_output = bal.to_string();
+			let split = bal_output.split(' ');
+			let bal_vec: Vec<_> = split.collect();
+			return Ok(bal_vec[0].to_string())
+			
+		},
 		Err(err) => return Ok(format!("{}", err.to_string()))
 	};
-	Ok(format!("{}", balance))
 }
+
+
+
+#[derive(Serialize)]
+struct CustomTransaction {
+    info: CustomWalletTxInfo,
+    detail: CustomGetTransactionResultDetail,
+    trusted: Option<bool>,
+    comment: Option<String>,
+}
+
+#[derive(Serialize)]
+struct CustomWalletTxInfo {
+    confirmations: i32,
+    blockhash: Option<String>,
+    blockindex: Option<usize>,
+    blocktime: Option<u64>,
+    blockheight: Option<u32>,
+    txid: String,
+    time: u64,
+    timereceived: u64,
+    bip125_replaceable: String,
+    wallet_conflicts: Vec<String>,
+}
+
+#[derive(Serialize)]
+struct CustomGetTransactionResultDetail {
+    address: Option<String>,
+    category: String,
+    amount: i64,
+    label: Option<String>,
+    vout: u32,
+    fee: Option<i64>,
+    abandoned: Option<bool>,
+}
+
+
+
 
 
 #[tauri::command]
@@ -602,11 +651,56 @@ async fn get_balance(wallet:String, sdcard:String) -> Result<String, String> {
 async fn get_transactions(wallet: String, sdcard:String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
-   let transactions = match Client.list_transactions(None, None, None, Some(true)) {
+   let transactions: Vec<ListTransactionResult> = match Client.list_transactions(None, None, None, Some(true)) {
 	Ok(tx) => tx,
 	Err(err) => return Ok(format!("{}", err.to_string()))
    };
-   Ok(format!("{:?}", transactions))
+
+   let mut custom_transactions: Vec<CustomTransaction> = Vec::new();
+   
+   for tx in transactions {
+	   let custom_tx = CustomTransaction {
+		   info: CustomWalletTxInfo {
+			   confirmations: tx.info.confirmations,
+			   blockhash: tx.info.blockhash.map(|hash| hash.to_string()),
+			   blockindex: tx.info.blockindex,
+			   blocktime: tx.info.blocktime,
+			   blockheight: tx.info.blockheight,
+			   txid: tx.info.txid.to_string(),
+			   time: tx.info.time,
+			   timereceived: tx.info.timereceived,
+			   bip125_replaceable: match tx.info.bip125_replaceable {
+				   Bip125Replaceable::Yes => "Yes".to_string(),
+				   Bip125Replaceable::No => "No".to_string(),
+				   Bip125Replaceable::Unknown => "Unknown".to_string(),
+			   },
+			   wallet_conflicts: tx.info.wallet_conflicts.into_iter().map(|c| c.to_string()).collect(),
+		   },
+		   detail: CustomGetTransactionResultDetail {
+			   address: tx.detail.address.map(|addr| addr.to_string()),
+			   category: match tx.detail.category {
+				GetTransactionResultDetailCategory::Send => "Send".to_string(),
+				GetTransactionResultDetailCategory::Receive => "Receive".to_string(),
+				GetTransactionResultDetailCategory::Generate => "Generate".to_string(),
+				GetTransactionResultDetailCategory::Immature => "Immature".to_string(),
+				GetTransactionResultDetailCategory::Orphan => "Orphan".to_string(),
+			}, 
+			   amount: tx.detail.amount.to_sat(),
+			   label: tx.detail.label,
+			   vout: tx.detail.vout,
+			   fee: tx.detail.fee.map_or_else(|| None, |x| Some(x.to_sat())),
+			   abandoned: tx.detail.abandoned,
+		   },
+		   trusted: tx.trusted,
+		   comment: tx.comment,
+	   };
+	   custom_transactions.push(custom_tx);
+   }
+   
+   let json_string = serde_json::to_string(&custom_transactions).unwrap();
+   println!("{}", json_string);
+
+   Ok(format!("{}", json_string))
 }
 
 ////#[tauri::command]

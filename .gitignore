@@ -14,3 +14,4 @@ config.txt
 ssss_0.5-5_amd64.deb
 wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb
 genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb
+update.sh
