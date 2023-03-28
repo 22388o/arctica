@@ -656,51 +656,58 @@ async fn get_transactions(wallet: String, sdcard:String) -> Result<String, Strin
 	Err(err) => return Ok(format!("{}", err.to_string()))
    };
 
-   let mut custom_transactions: Vec<CustomTransaction> = Vec::new();
-   
-   for tx in transactions {
-	   let custom_tx = CustomTransaction {
-		   info: CustomWalletTxInfo {
-			   confirmations: tx.info.confirmations,
-			   blockhash: tx.info.blockhash.map(|hash| hash.to_string()),
-			   blockindex: tx.info.blockindex,
-			   blocktime: tx.info.blocktime,
-			   blockheight: tx.info.blockheight,
-			   txid: tx.info.txid.to_string(),
-			   time: tx.info.time,
-			   timereceived: tx.info.timereceived,
-			   bip125_replaceable: match tx.info.bip125_replaceable {
-				   Bip125Replaceable::Yes => "Yes".to_string(),
-				   Bip125Replaceable::No => "No".to_string(),
-				   Bip125Replaceable::Unknown => "Unknown".to_string(),
-			   },
-			   wallet_conflicts: tx.info.wallet_conflicts.into_iter().map(|c| c.to_string()).collect(),
-		   },
-		   detail: CustomGetTransactionResultDetail {
-			   address: tx.detail.address.map(|addr| addr.to_string()),
-			   category: match tx.detail.category {
-				GetTransactionResultDetailCategory::Send => "Send".to_string(),
-				GetTransactionResultDetailCategory::Receive => "Receive".to_string(),
-				GetTransactionResultDetailCategory::Generate => "Generate".to_string(),
-				GetTransactionResultDetailCategory::Immature => "Immature".to_string(),
-				GetTransactionResultDetailCategory::Orphan => "Orphan".to_string(),
-			}, 
-			   amount: tx.detail.amount.to_sat(),
-			   label: tx.detail.label,
-			   vout: tx.detail.vout,
-			   fee: tx.detail.fee.map_or_else(|| None, |x| Some(x.to_sat())),
-			   abandoned: tx.detail.abandoned,
-		   },
-		   trusted: tx.trusted,
-		   comment: tx.comment,
-	   };
-	   custom_transactions.push(custom_tx);
+   if transactions.is_empty() {
+	return Ok(format!("empty123321"))
    }
+   else{
+	let mut custom_transactions: Vec<CustomTransaction> = Vec::new();
    
-   let json_string = serde_json::to_string(&custom_transactions).unwrap();
-   println!("{}", json_string);
+	for tx in transactions {
+		let custom_tx = CustomTransaction {
+			info: CustomWalletTxInfo {
+				confirmations: tx.info.confirmations,
+				blockhash: tx.info.blockhash.map(|hash| hash.to_string()),
+				blockindex: tx.info.blockindex,
+				blocktime: tx.info.blocktime,
+				blockheight: tx.info.blockheight,
+				txid: tx.info.txid.to_string(),
+				time: tx.info.time,
+				timereceived: tx.info.timereceived,
+				bip125_replaceable: match tx.info.bip125_replaceable {
+					Bip125Replaceable::Yes => "Yes".to_string(),
+					Bip125Replaceable::No => "No".to_string(),
+					Bip125Replaceable::Unknown => "Unknown".to_string(),
+				},
+				wallet_conflicts: tx.info.wallet_conflicts.into_iter().map(|c| c.to_string()).collect(),
+			},
+			detail: CustomGetTransactionResultDetail {
+				address: tx.detail.address.map(|addr| addr.to_string()),
+				category: match tx.detail.category {
+				 GetTransactionResultDetailCategory::Send => "Send".to_string(),
+				 GetTransactionResultDetailCategory::Receive => "Receive".to_string(),
+				 GetTransactionResultDetailCategory::Generate => "Generate".to_string(),
+				 GetTransactionResultDetailCategory::Immature => "Immature".to_string(),
+				 GetTransactionResultDetailCategory::Orphan => "Orphan".to_string(),
+			 }, 
+				amount: tx.detail.amount.to_sat(),
+				label: tx.detail.label,
+				vout: tx.detail.vout,
+				fee: tx.detail.fee.map_or_else(|| None, |x| Some(x.to_sat())),
+				abandoned: tx.detail.abandoned,
+			},
+			trusted: tx.trusted,
+			comment: tx.comment,
+		};
+		custom_transactions.push(custom_tx);
+	}
+	
+	let json_string = serde_json::to_string(&custom_transactions).unwrap();
+	println!("{}", json_string);
+ 
+	Ok(format!("{}", json_string))
+   }
 
-   Ok(format!("{}", json_string))
+
 }
 
 ////#[tauri::command]
