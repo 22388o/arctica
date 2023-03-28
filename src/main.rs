@@ -6,7 +6,7 @@
 use bitcoincore_rpc::RpcApi;
 use bitcoincore_rpc::{Auth, Client, Error};
 use bitcoincore_rpc::bitcoincore_rpc_json::{AddressType, ImportDescriptors, Timestamp};
-use bitcoincore_rpc::bitcoincore_rpc_json::{ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory};
+use bitcoincore_rpc::bitcoincore_rpc_json::{ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtOptions};
 use bitcoin;
 use bitcoin::locktime::Time;
 use bitcoin::Address;
@@ -256,15 +256,14 @@ fn store_string(string: String, file_name: &String) -> Result<String, String> {
 
 //helper function
 //used to store the generated PSBT as a file
-//TODO: wallet refactor
-////fn store_psbt(psbt: &PartiallySignedTransaction, file_name: String) -> Result<String, String> {
-////    let mut fileRef = match std::fs::File::create(file_name) {
-////        Ok(file) => file,
-////        Err(err) => return Err(err.to_string()),
-////    };
-////    fileRef.write_all(&psbt.to_string().as_bytes());
-////    Ok(format!("SUCCESS stored with no problems"))
-////}
+fn store_psbt(psbt: &PartiallySignedTransaction, file_name: String) -> Result<String, String> {
+   let mut fileRef = match std::fs::File::create(file_name) {
+       Ok(file) => file,
+       Err(err) => return Err(err.to_string()),
+   };
+   fileRef.write_all(&psbt.to_string().as_bytes());
+   Ok(format!("SUCCESS stored with no problems"))
+}
 
 #[tauri::command]
 //generates a public and private key pair and stores them as a text file
@@ -714,58 +713,76 @@ async fn get_transactions(wallet: String, sdcard:String) -> Result<String, Strin
 
 }
 
-////#[tauri::command]
-//////generate a PSBT for the immediate wallet
-//////will require additional logic to spend when under decay threshold
-//////currently only generates a PSBT for Key 1 and Key 2, which are SD 1 and SD 2 respectively
-////fn generate_psbt_med_wallet(state: State<'_, TauriState>, recipient: &str, amount: u64, fee: f32) -> Result<String, String> {
-////    //create the directory where the PSBT will live if it does not exist
-////    let a = std::path::Path::new("/mnt/ramdisk/psbt").exists();
-////    if a == false{
-////        //remove the stale dir
-////        let output = 	Command::new("mkdir").args(["/mnt/ramdisk/psbt"]).output().unwrap();
-////        if !output.status.success() {
-////        return Ok(format!("ERROR in creating /mnt/ramdisk/psbt dir {}", std::str::from_utf8(&output.stderr).unwrap()));
-////        }
-////    }
-////    //read the descriptor into memory
-////    let desc: String = fs::read_to_string("/mnt/ramdisk/sensitive/descriptors/med_descriptor").expect("Error reading reading med descriptor from file");
-////    //declare the destination for the PSBT file
-////    let file_dest = "/mnt/ramdisk/psbt".to_string();
-////    //init the wallet, doing it twice because the value moves after getting_policy_id, there is probably a better way
-////    let wallet1 = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
-////    //need to parse spend_policy below to find the correct policy ID
-////    let policy_id = get_policy_id(wallet1);
-////    let wallet = Wallet::new(&desc, None, bitcoin::Network::Bitcoin, MemoryDatabase::default()).expect("could not init wallet");
-////    //init the policy path
-////    let mut path = BTreeMap::new();
-////    //insert the correct policy IDs here from spend_policy parsing
-////    //vector corresponds to an index of the keys used in the descriptor, index 0: SD 1, index 1: SD 2
-////    path.insert(policy_id.to_string(), vec![0, 1]);
 
-////    //build the transaction
-////    let (psbt, details) = {
-////        let mut builder = wallet.build_tx();
-////        builder
-////            .add_recipient(Address::from_str(&recipient).unwrap().script_pubkey(), amount)
-////            .enable_rbf()
-////            .fee_rate(FeeRate::from_sat_per_vb(fee as f32))
-////            .policy_path(path, KeychainKind::External);
-////        match builder.finish() {
-////            Ok(f) => f,
-////            Err(e) => {
-////                return Err(e.to_string())
-////            }
-////        }
-////    };
-////    //store the transaction as a file
-////        match store_psbt(&psbt, file_dest) {
-////        Ok(_) => {},
-////        Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
-////        };
+//TODO for send flow
+//on SD 1
+//generate PSBT
+//process PSBT (SIGN)
+//export processed PSBT
+//on SD 2
+//import signed PSBTs
+//process PSBT (SIGN)
+//export processed PSBT
+//on SD 1 import processed PSBT
+//combine psbts
+//finalize psbt
+//sendrawtransaction
 
-////    Ok(format!("PSBT: {}, Transaction Details: {:#?}", psbt, details))
-////}
+// #[tauri::command]
+// //generate a PSBT for the immediate wallet
+// //will require additional logic to spend when under decay threshold
+// //currently only generates a PSBT for Key 1 and Key 2, which are SD 1 and SD 2 respectively
+// fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: u64, fee: f32) -> Result<String, String> {
+// 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+//     let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
+//    //create the directory where the PSBT will live if it does not exist
+//    let a = std::path::Path::new("/mnt/ramdisk/psbt").exists();
+//    if a == false{
+//        //remove the stale dir
+//        let output = 	Command::new("mkdir").args(["/mnt/ramdisk/psbt"]).output().unwrap();
+//        if !output.status.success() {
+//        return Ok(format!("ERROR in creating /mnt/ramdisk/psbt dir {}", std::str::from_utf8(&output.stderr).unwrap()));
+//        }
+//    }
+//    //declare the destination for the PSBT file
+//    let file_dest = "/mnt/ramdisk/psbt".to_string();
+
+//    let output = (String::from_str(recipient).unwrap(), amount);
+
+//    let options = WalletCreateFundedPsbtOptions {
+// 	add_inputs: None,
+// 	change_address: None,
+// 	change_position: None,
+// 	change_type: None,
+// 	include_watching: None,
+// 	lock_unspent: None,
+// 	fee_rate: fee,
+// 	subtract_fee_from_outputs: None,
+// 	replaceable: None,
+// 	conf_target: None,
+// 	estimate_mode: None,
+//    };
+//    //build the transaction
+//   let psbt = match Client.wallet_create_funded_psbt(
+// 	&[], //no inputs specified
+// 	&[output],
+// 	None, //no locktime specified
+// 	options, //options specified in the options struct
+// 	None, //no bip32derivs specified
+//   	).unwrap() {
+// 		Ok(psbt)=> psbt,
+// 		Err(err)=> return Ok(format!("{}", err.to_string()))
+		
+// 	};
+
+//    //store the transaction as a file
+//        match store_psbt(&psbt, file_dest) {
+//        Ok(_) => {},
+//        Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
+//        };
+
+//    Ok(format!("PSBT: {}", psbt))
+// }
 
 
 #[tauri::command]
@@ -2225,7 +2242,7 @@ fn main() {
 	    get_transactions,
 		get_descriptor_info,
 		get_blockchain_info,
-		//generate_psbt_med_wallet,
+		// generate_psbt,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
