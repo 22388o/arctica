@@ -733,7 +733,7 @@ async fn get_transactions(wallet: String, sdcard:String) -> Result<String, Strin
 //generate a PSBT for the immediate wallet
 //will require additional logic to spend when under decay threshold
 //currently only generates a PSBT for Key 1 and Key 2, which are SD 1 and SD 2 respectively
-fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: u64, fee: u64) -> Result<String, String> {
+async fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: u64, fee: u64) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
    //create the directory where the PSBT will live if it does not exist
@@ -748,6 +748,7 @@ fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: u64, fe
    //declare the destination for the PSBT file
    let file_dest = "/mnt/ramdisk/psbt".to_string();
 
+   let inputs = vec![];
    let mut outputs = HashMap::new();
    outputs.insert(
 	String::from_str(recipient).unwrap(),
@@ -757,10 +758,11 @@ fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: u64, fe
    let mut options = WalletCreateFundedPsbtOptions::default();
 
    options.fee_rate = Some(Amount::from_sat(fee));
- 
+
+   
    //build the transaction
   let psbt_result =Client.wallet_create_funded_psbt(
-	&[], //no inputs specified
+	&inputs, //no inputs specified
 	&outputs, //outputs specified in the outputs struct
 	None, //no locktime specified
 	Some(options), //options specified in the options struct
