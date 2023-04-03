@@ -6,7 +6,7 @@
 use bitcoincore_rpc::RpcApi;
 use bitcoincore_rpc::{Auth, Client, Error};
 use bitcoincore_rpc::bitcoincore_rpc_json::{AddressType, ImportDescriptors, Timestamp};
-use bitcoincore_rpc::bitcoincore_rpc_json::{ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtOptions, WalletCreateFundedPsbtResult};
+use bitcoincore_rpc::bitcoincore_rpc_json::{WalletProcessPsbtResult, CreateRawTransactionInput, ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtOptions, WalletCreateFundedPsbtResult};
 use bitcoin;
 use bitcoin::locktime::Time;
 use bitcoin::Address;
@@ -16,6 +16,8 @@ use bitcoin::util::bip32::ExtendedPubKey;
 use bitcoin::util::bip32::ExtendedPrivKey;
 use bitcoin::util::amount::SignedAmount;
 use bitcoin::Amount;
+use bitcoin::Txid;
+use bitcoin::psbt::Psbt;
 use std::sync::{Arc, Mutex};
 use std::ops::Deref;
 use std::process::Command;
@@ -35,10 +37,11 @@ use std::io::BufReader;
 use std::any::type_name;
 use std::num::ParseIntError;
 use hex;
-use serde_json::{json, to_string};
+use serde_json::{json, to_string, Value};
 use serde::{Serialize, Serializer};
 use std::collections::HashMap;
 use std::mem;
+use base64::decode;
 
 struct TauriState(Mutex<Option<Client>>);
 
@@ -256,7 +259,7 @@ fn store_string(string: String, file_name: &String) -> Result<String, String> {
 
 //helper function
 //used to store the generated PSBT as a file
-fn store_psbt(psbt: &WalletCreateFundedPsbtResult, file_name: String) -> Result<String, String> {
+fn store_psbt(psbt: &WalletProcessPsbtResult, file_name: String) -> Result<String, String> {
    let mut fileRef = match std::fs::File::create(file_name) {
        Ok(file) => file,
        Err(err) => return Err(err.to_string()),
@@ -746,18 +749,31 @@ async fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: u
        }
    }
    //declare the destination for the PSBT file
-   let file_dest = "/mnt/ramdisk/psbt".to_string();
+   let file_dest = "/mnt/ramdisk/psbt/psbt".to_string();
 
-   let inputs = vec![];
+   let address_type = Some(AddressType::Bech32);
+
+   let change_address = match Client.get_new_address(None, address_type){
+	   Ok(addr) => addr,
+	   Err(err) => return Ok(format!("{}", err.to_string()))
+   };
+
+	let inputs = vec![];
    let mut outputs = HashMap::new();
    outputs.insert(
 	String::from_str(recipient).unwrap(),
-	Amount::from_sat(amount)
+	Amount::from_sat(amount),
+   );
+
+   outputs.insert(
+	change_address.to_string(),
+	Amount::from_sat(0),
    );
 
    let mut options = WalletCreateFundedPsbtOptions::default();
 
-   options.fee_rate = Some(Amount::from_sat(fee));
+   	options.fee_rate = Some(Amount::from_sat(fee));
+	// println!("{:?}", fee);
 
    
    //build the transaction
@@ -769,21 +785,50 @@ async fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: u
 	None, //no bip32derivs specified
   	);
 
-	let psbt = match psbt_result{
+	//obtain the result of wallet_create_funded_psbt
+	let psbt_res = match psbt_result{
 		Ok(psbt)=> psbt,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 		
 	};
+	
+	//decode the psbt from base64
+	// let psbt_decoded = decode(&psbt_res);
 
+	//convert the decoded psbt to a JSON value
+	// let psbt_json: Value = Psbt::from_bytes(&psbt_decoded).unwrap();
+
+	//convert the PSBT JSON to a string
+	let psbt = decode(&psbt_res.psbt).unwrap();
+
+	let psbt_str = to_string(&psbt).unwrap();
+
+
+	//sign the PSBT
+	let signed_result = Client.wallet_process_psbt(
+		&psbt_str,
+		Some(true),
+		None,
+		None,
+	);
+
+	let signed = match signed_result{
+		Ok(psbt)=> psbt,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+		
+	};
+	
 
    //store the transaction as a file
-       match store_psbt(&psbt, file_dest) {
+       match store_psbt(&signed, file_dest) {
        Ok(_) => {},
        Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
        };
 
-   Ok(format!("PSBT: {:?}", psbt))
+   Ok(format!("PSBT: {:?}", &signed))
 }
+
+
 
 
 #[tauri::command]
@@ -877,7 +922,7 @@ async fn init_iso() -> String {
 
 	println!("fallocate persistent iso");
 	//fallocate persistent iso, creates a 7GB image. Image size determines final storage space allocated to writable
-	let output = Command::new("fallocate").args(["-l", "7GiB", "persistent-ubuntu.iso"]).output().unwrap();
+	let output = Command::new("fallocate").args(["-l", "15GiB", "persistent-ubuntu.iso"]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in init iso with fallocate persistent iso = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
@@ -1419,7 +1464,13 @@ async fn mount_internal() -> String {
 		if !output.status.success() {
 			return format!("ERROR in opening file permissions of internal storage .bitcoin dirs {}", std::str::from_utf8(&output.stderr).unwrap());
 		} 
-		format!("SUCCESS in mounting the internal drive")
+		let e = std::path::Path::new(&("/media/ubuntu/".to_string()+&(uuid.to_string()))).exists();
+		if e == true{
+			format!("SUCCESS in mounting the internal drive")
+		}else{
+			format!("ERROR mounting internal drive, final check failed")
+		}
+		
 	}//in the following condition, get_uuid() returns a valid uuid.
 	// So we can assume that the internal drive is already mounted
 	else {
