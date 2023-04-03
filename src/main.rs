@@ -751,33 +751,41 @@ async fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: u
    //declare the destination for the PSBT file
    let file_dest = "/mnt/ramdisk/psbt/psbt".to_string();
 
+   //define change address type
    let address_type = Some(AddressType::Bech32);
 
+   //obtain a change address
    let change_address = match Client.get_new_address(None, address_type){
 	   Ok(addr) => addr,
 	   Err(err) => return Ok(format!("{}", err.to_string()))
    };
 
+   //define the inputs struct, leave empty for dynamic input selection
 	let inputs = vec![];
+	//define outputs hashmap
    let mut outputs = HashMap::new();
+
+   //add the recipient to the outputs hashmap
    outputs.insert(
 	String::from_str(recipient).unwrap(),
 	Amount::from_sat(amount),
    );
 
+   //add the change address to the outputs hashmap
    outputs.insert(
 	change_address.to_string(),
 	Amount::from_sat(0),
    );
 
+   //declare the options struct with the default params
    let mut options = WalletCreateFundedPsbtOptions::default();
 
+   //set the fee rate
    	options.fee_rate = Some(Amount::from_sat(fee));
-	// println!("{:?}", fee);
 
    
    //build the transaction
-  let psbt_result =Client.wallet_create_funded_psbt(
+  let psbt_result = Client.wallet_create_funded_psbt(
 	&inputs, //no inputs specified
 	&outputs, //outputs specified in the outputs struct
 	None, //no locktime specified
@@ -792,15 +800,11 @@ async fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: u
 		
 	};
 	
-	//decode the psbt from base64
-	// let psbt_decoded = decode(&psbt_res);
 
-	//convert the decoded psbt to a JSON value
-	// let psbt_json: Value = Psbt::from_bytes(&psbt_decoded).unwrap();
-
-	//convert the PSBT JSON to a string
+	//decode the psbt
 	let psbt = decode(&psbt_res.psbt).unwrap();
 
+	//convert the decoded psbt to a string
 	let psbt_str = to_string(&psbt).unwrap();
 
 
