@@ -2252,7 +2252,7 @@ async fn get_blockchain_info() -> String {
 }
 
 #[tauri::command]
-async fn export_psbt() -> Result<String, String>{
+async fn export_psbt() -> String{
 	let a = std::path::Path::new("/mnt/ramdisk/psbt/config.txt").exists();
 	//create conf for CD
 	if a == false{
@@ -2265,15 +2265,37 @@ async fn export_psbt() -> Result<String, String>{
 	let b = std::path::Path::new("/mnt/ramdisk/psbt/masterkey").exists();
 	//copy over masterkey
 	if b == false{
-		let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/masterkey", "/mnt/ramdisk/psbt"]).stdout(file).output().unwrap();
+		let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/masterkey", "/mnt/ramdisk/psbt"]).output().unwrap();
 		if !output.status.success() {
 			return format!("ERROR in export_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 	}
-	//create iso
-	//unmount cd?
-	//blank cd if necessary
-	//burn cd
+	//create iso from psbt dir
+	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/psbt"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR creating psbt iso with genisoimage = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	//wipe the CD
+	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
+	let output = Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR refreshing setupCD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	//burn psbt iso to the transferCD
+	let output = Command::new("sudo").args(["wodim", "dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/transferCD.iso"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in refreshing setupCD with burning iso = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	//eject the disc
+	let output = Command::new("sudo").args(["eject", "/dev/sr0"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
+	format!("SUCCESS in Creating transferCD")
 }
 
 
