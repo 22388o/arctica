@@ -43,6 +43,8 @@ use std::collections::HashMap;
 use std::mem;
 use base64::decode;
 
+// std::env::set_var("RUST_LOG", "bitcoincore_rpc=debug");
+
 struct TauriState(Mutex<Option<Client>>);
 
 //helper function
@@ -736,7 +738,7 @@ async fn get_transactions(wallet: String, sdcard:String) -> Result<String, Strin
 //generate a PSBT for the immediate wallet
 //will require additional logic to spend when under decay threshold
 //currently only generates a PSBT for Key 1 and Key 2, which are SD 1 and SD 2 respectively
-async fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: u64, fee: u64) -> Result<String, String> {
+async fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: f64, fee: u64) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
    //create the directory where the PSBT will live if it does not exist
@@ -760,57 +762,96 @@ async fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: u
 	   Err(err) => return Ok(format!("{}", err.to_string()))
    };
 
-   //define the inputs struct, leave empty for dynamic input selection
-	let inputs = vec![];
-	//define outputs hashmap
-   let mut outputs = HashMap::new();
 
-   //add the recipient to the outputs hashmap
-   outputs.insert(
-	String::from_str(recipient).unwrap(),
-	Amount::from_sat(amount),
-   );
 
-   //add the change address to the outputs hashmap
-   outputs.insert(
-	change_address.to_string(),
-	Amount::from_sat(0),
-   );
+   //below code block is for trying to use bitcoincore_rpc crate to generate psbt, method is currently bugged
+   //alternatively going to do the below with Command::new() and will return to this method when it is fixed
 
-   //declare the options struct with the default params
-   let mut options = WalletCreateFundedPsbtOptions::default();
+//    //define the inputs struct, leave empty for dynamic input selection
+// 	let inputs = vec![];
 
-   //set the fee rate
-   	options.fee_rate = Some(Amount::from_sat(fee));
+// 	//define outputs hashmap
+//    let mut outputs = HashMap::new();
 
-   
-   //build the transaction
-  let psbt_result = Client.wallet_create_funded_psbt(
-	&inputs, //no inputs specified
-	&outputs, //outputs specified in the outputs struct
-	None, //no locktime specified
-	Some(options), //options specified in the options struct
-	None, //no bip32derivs specified
-  	);
+//    //add the recipient to the outputs hashmap
+//    outputs.insert(
+// 	String::from_str(recipient).unwrap(),
+// 	Amount::from_sat(amount),
+//    );
 
-	//obtain the result of wallet_create_funded_psbt
-	let psbt_res = match psbt_result{
-		Ok(psbt)=> psbt,
-		Err(err)=> return Ok(format!("{}", err.to_string()))
+//    //add the change address to the outputs hashmap
+//    outputs.insert(
+// 	change_address.to_string(),
+// 	Amount::from_btc(0),
+//    );
+
+//    //declare the options struct with the default params
+//    let mut options = WalletCreateFundedPsbtOptions::default();
+
+//    //set the fee rate
+//    	// options.fee_rate = Some(Amount::from_sat(fee));
+
+//    //build the transaction
+//   let psbt_result = Client.wallet_create_funded_psbt(
+// 	&inputs, //no inputs specified
+// 	&outputs, //outputs specified in the outputs struct
+// 	None, //no locktime specified
+// 	Some(options), //options specified in the options struct
+// 	None, //no bip32derivs specified
+//   	);
+
+// 	//obtain the result of wallet_create_funded_psbt
+// 	let psbt_res = match psbt_result{
+// 		Ok(psbt)=> psbt,
+// 		Err(err)=> return Ok(format!("{}", err.to_string()))
 		
-	};
+// 	};
 	
+// 	//decode the psbt
+// 	let psbt = decode(&psbt_res.psbt).unwrap();
 
-	//decode the psbt
-	let psbt = decode(&psbt_res.psbt).unwrap();
+// 	//convert the decoded psbt to a string
+// 	let psbt_str = to_string(&psbt).unwrap();
 
-	//convert the decoded psbt to a string
-	let psbt_str = to_string(&psbt).unwrap();
+let json_input = json!([]);
 
 
-	//sign the PSBT
+let mut json_output = json!([{
+	recipient: amount
+}]);
+
+let change_arg = json!({
+	"changeAddress": change_address
+});
+
+let locktime = "0";
+
+let psbt_output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli"))
+.args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), 
+"walletcreatefundedpsbt", 
+&json_input.to_string(), //empty array
+&json_output.to_string(), //receive address & output amount
+&locktime, //locktime should always be 0
+&change_arg.to_string() ]) //manually providing change address
+.output()
+.unwrap();
+if !psbt_output.status.success() {
+	return Ok(format!("ERROR in generating PSBT = {}", std::str::from_utf8(&psbt_output.stderr).unwrap()));
+}
+
+
+let psbt_str = String::from_utf8(psbt_output.stdout).unwrap();
+
+let psbt: WalletCreateFundedPsbtResult = match serde_json::from_str(&psbt_str) {
+	Ok(psbt)=> psbt,
+	Err(err)=> return Ok(format!("{}", err.to_string()))
+};
+
+
+
+	// sign the PSBT
 	let signed_result = Client.wallet_process_psbt(
-		&psbt_str,
+		&psbt.psbt,
 		Some(true),
 		None,
 		None,
@@ -829,7 +870,7 @@ async fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: u
        Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
        };
 
-   Ok(format!("PSBT: {:?}", &signed))
+   Ok(format!("PSBT: {:?}", signed))
 }
 
 
@@ -1244,7 +1285,7 @@ async fn eject_cd() -> String {
 	format!("SUCCESS in ejecting CD")
 }
 
-//pack up and encrypt the contents of the sensitive directory in ramdisk into an encrypted directory on the current SD card
+//pack up and encrypt the contents of the sensitive directory in ramdisk into an encrypted directory on tpackuphe current SD card
 #[tauri::command]
 async fn packup() -> String {
 	println!("packing up sensitive info");
@@ -2164,7 +2205,7 @@ fn import_descriptor(wallet: String, sdcard: &String) -> Result<String, String> 
 		active: Some(true),
 		range: Some((0, 100)),
 		next_index: Some(0),
-		internal: None,
+		internal: Some(true),
 		label: None
 	}){
 			Ok(file) => file,
@@ -2208,6 +2249,31 @@ async fn get_blockchain_info() -> String {
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 	let info = Client.get_blockchain_info();
 	format!("Results: {:?}", info)
+}
+
+#[tauri::command]
+async fn export_psbt() -> Result<String, String>{
+	let a = std::path::Path::new("/mnt/ramdisk/psbt/config.txt").exists();
+	//create conf for CD
+	if a == false{
+		let file = File::create(&("/mnt/ramdisk/psbt/config.txt")).unwrap();
+		let output = Command::new("echo").args(["-e", "type=transfercd\npsbt=1of2"]).stdout(file).output().unwrap();
+		if !output.status.success() {
+			return format!("ERROR in export_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+	}
+	let b = std::path::Path::new("/mnt/ramdisk/psbt/masterkey").exists();
+	//copy over masterkey
+	if b == false{
+		let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/masterkey", "/mnt/ramdisk/psbt"]).stdout(file).output().unwrap();
+		if !output.status.success() {
+			return format!("ERROR in export_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+	}
+	//create iso
+	//unmount cd?
+	//blank cd if necessary
+	//burn cd
 }
 
 
@@ -2299,6 +2365,7 @@ fn main() {
 		get_descriptor_info,
 		get_blockchain_info,
 		generate_psbt,
+		export_psbt,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
