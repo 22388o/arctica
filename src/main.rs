@@ -74,6 +74,15 @@ fn get_home() -> String {
 }
 
 //helper function
+//check if target path is empty
+fn is_dir_empty(path: &str) -> bool {
+	if let Ok(mut entries) = fs::read_dir(path){
+		return entries.next().is_none();
+	}
+	false
+}
+
+//helper function
 //copy any shards potentially on the recovery CD to ramdisk
 fn copy_shards_to_ramdisk() {
 	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard1.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
@@ -2252,12 +2261,14 @@ async fn get_blockchain_info() -> String {
 }
 
 #[tauri::command]
-async fn export_psbt() -> String{
-	let a = std::path::Path::new("/mnt/ramdisk/psbt/config.txt").exists();
+async fn export_psbt(progress: String) -> String{
+	// sleep for 4 seconds
+	Command::new("sleep").args(["4"]).output().unwrap();
 	//create conf for CD
+	let a = std::path::Path::new("/mnt/ramdisk/psbt/config.txt").exists();
 	if a == false{
 		let file = File::create(&("/mnt/ramdisk/psbt/config.txt")).unwrap();
-		let output = Command::new("echo").args(["-e", "type=transfercd\npsbt=1of2"]).stdout(file).output().unwrap();
+		let output = Command::new("echo").args(["-e", &("type=transfercd\npsbt=".to_string()+&progress.to_string())]).stdout(file).output().unwrap();
 		if !output.status.success() {
 			return format!("ERROR in export_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
@@ -2276,11 +2287,17 @@ async fn export_psbt() -> String{
 		return format!("ERROR creating psbt iso with genisoimage = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	//wipe the CD
+	//check if the CDROM is blank
+	let dir_path = "/media/ubuntu/CDROM";
+	let is_empty = is_dir_empty(dir_path);
+	//unmount the disc
 	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
-	let output = Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
-	if !output.status.success() {
-		return format!("ERROR refreshing setupCD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	//if not blank, wipe the CD
+	if is_empty == false{
+		let output = Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
+		if !output.status.success() {
+			return format!("ERROR refreshing setupCD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
 	}
 
 	//burn psbt iso to the transferCD
