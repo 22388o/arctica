@@ -1566,14 +1566,18 @@ async fn refresh_cd() -> String {
 	if !output.status.success() {
 		return format!("ERROR refreshing CD with genisoimage = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
-	//wipe the CD
+	//check if the CDROM is blank
+	let dir_path = "/media/ubuntu/CDROM";
+	let is_empty = is_dir_empty(dir_path);
+	//unmount the disc
 	Command::new("sudo").args(["umount", "/dev/sr0"]).output().unwrap();
-	let output = Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
-	if !output.status.success() {
-		return format!("ERROR refreshing CD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+	//if not blank, wipe the CD
+	if is_empty == false{
+		let output = Command::new("sudo").args(["wodim", "-v", "dev=/dev/sr0", "blank=fast"]).output().unwrap();
+		if !output.status.success() {
+			return format!("ERROR refreshing setupCD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
 	}
-
 	//burn setupCD iso to the setupCD
 	let output = Command::new("sudo").args(["wodim", "dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/transferCD.iso"]).output().unwrap();
 	if !output.status.success() {
@@ -2268,7 +2272,7 @@ async fn export_psbt(progress: String) -> String{
 	let a = std::path::Path::new("/mnt/ramdisk/psbt/config.txt").exists();
 	if a == false{
 		let file = File::create(&("/mnt/ramdisk/psbt/config.txt")).unwrap();
-		let output = Command::new("echo").args(["-e", &("type=transfercd\npsbt=".to_string()+&progress.to_string())]).stdout(file).output().unwrap();
+		let output = Command::new("echo").args(["-e", &("psbt=".to_string()+&progress.to_string())]).stdout(file).output().unwrap();
 		if !output.status.success() {
 			return format!("ERROR in export_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
@@ -2286,7 +2290,6 @@ async fn export_psbt(progress: String) -> String{
 	if !output.status.success() {
 		return format!("ERROR creating psbt iso with genisoimage = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
 	//check if the CDROM is blank
 	let dir_path = "/media/ubuntu/CDROM";
 	let is_empty = is_dir_empty(dir_path);
@@ -2299,20 +2302,53 @@ async fn export_psbt(progress: String) -> String{
 			return format!("ERROR refreshing setupCD with wiping CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 	}
-
 	//burn psbt iso to the transferCD
 	let output = Command::new("sudo").args(["wodim", "dev=/dev/sr0", "-v", "-data", "/mnt/ramdisk/transferCD.iso"]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in refreshing setupCD with burning iso = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
 	//eject the disc
 	let output = Command::new("sudo").args(["eject", "/dev/sr0"]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
 	format!("SUCCESS in Creating transferCD")
+}
+
+#[tauri::command]
+async fn sign_psbt(wallet: String, sdcard: String, progress: String) -> Result<String, String>{
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
+	//TODO
+	//import the psbt from ramdisk (perhaps break this into a seperate function? maybe not because it has to be used within scope)...but potentially we should analyze before signing
+	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
+
+	let psbt: WalletProcessPsbtResult = match serde_json::from_str(&psbt_str) {
+		Ok(psbt)=> psbt,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
+	//attempt to sign the tx
+	let signed_result = Client.wallet_process_psbt(
+		&psbt.psbt,
+		Some(true),
+		None,
+		None,
+	);
+	let signed = match signed_result{
+		Ok(psbt)=> psbt,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+		
+	};
+	//declare file dest
+	let file_dest = "/mnt/ramdisk/CDROM/psbt".to_string();
+	//remove stale psbt from /mnt/ramdisk/CDROM/psbt
+	Command::new("sudo").args(["rm", "/mnt/ramdisk/CDROM/psbt"]).output().unwrap();
+	//store the signed transaction as a file
+	match store_psbt(&signed, file_dest) {
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
+	};
+	Ok(format!("Reading PSBT from file: {:?}", signed))
 }
 
 
@@ -2405,6 +2441,7 @@ fn main() {
 		get_blockchain_info,
 		generate_psbt,
 		export_psbt,
+		sign_psbt,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
