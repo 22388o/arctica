@@ -2348,6 +2348,14 @@ async fn sign_psbt(wallet: String, sdcard: String, progress: String) -> Result<S
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
 	};
+	//remove the stale config.txt
+	Command::new("sudo").args(["rm", "/mnt/ramdisk/CDROM/config.txt"]).output().unwrap();
+	let file = File::create(&("/mnt/ramdisk/CDROM/config.txt")).unwrap();
+	let output = Command::new("echo").args(["-e", &("psbt=".to_string()+&progress.to_string())]).stdout(file).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in export_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+
 	Ok(format!("Reading PSBT from file: {:?}", signed))
 }
 
