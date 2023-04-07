@@ -2353,7 +2353,7 @@ async fn sign_psbt(wallet: String, sdcard: String, progress: String) -> Result<S
 	let file = File::create(&("/mnt/ramdisk/CDROM/config.txt")).unwrap();
 	let output = Command::new("echo").args(["-e", &("psbt=".to_string()+&progress.to_string())]).stdout(file).output().unwrap();
 	if !output.status.success() {
-		return format!("ERROR in export_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return Ok(format!("ERROR in sign_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap()));
 	}
 
 	Ok(format!("Reading PSBT from file: {:?}", signed))

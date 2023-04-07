@@ -111,3 +111,7 @@ compile binary
 run the app
 
 `cargo run`
+
+Please Note, until the following issue is resolved, you will need to follow the instructions found here after completing initial setup, else your wallets will not work properly
+
+https://github.com/wild-kard/arctica/issues/51
