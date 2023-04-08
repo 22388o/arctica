@@ -4,9 +4,9 @@
 )]
 
 use bitcoincore_rpc::RpcApi;
-use bitcoincore_rpc::{Auth, Client, Error};
+use bitcoincore_rpc::{Auth, Client, Error, RawTx};
 use bitcoincore_rpc::bitcoincore_rpc_json::{AddressType, ImportDescriptors, Timestamp};
-use bitcoincore_rpc::bitcoincore_rpc_json::{WalletProcessPsbtResult, CreateRawTransactionInput, ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtOptions, WalletCreateFundedPsbtResult};
+use bitcoincore_rpc::bitcoincore_rpc_json::{WalletProcessPsbtResult, CreateRawTransactionInput, ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtOptions, WalletCreateFundedPsbtResult, FinalizePsbtResult};
 use bitcoin;
 use bitcoin::locktime::Time;
 use bitcoin::Address;
@@ -2323,6 +2323,7 @@ async fn sign_psbt(wallet: String, sdcard: String, progress: String) -> Result<S
 	//import the psbt from ramdisk (perhaps break this into a seperate function? maybe not because it has to be used within scope)...but potentially we should analyze before signing
 	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
 
+	//convert result to valid base64
 	let psbt: WalletProcessPsbtResult = match serde_json::from_str(&psbt_str) {
 		Ok(psbt)=> psbt,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
@@ -2337,7 +2338,6 @@ async fn sign_psbt(wallet: String, sdcard: String, progress: String) -> Result<S
 	let signed = match signed_result{
 		Ok(psbt)=> psbt,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
-		
 	};
 	//declare file dest
 	let file_dest = "/mnt/ramdisk/CDROM/psbt".to_string();
@@ -2357,6 +2357,62 @@ async fn sign_psbt(wallet: String, sdcard: String, progress: String) -> Result<S
 	}
 
 	Ok(format!("Reading PSBT from file: {:?}", signed))
+}
+
+#[tauri::command]
+async fn finalize_psbt(wallet: String, sdcard: String) -> Result<String, String>{
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
+	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
+	//convert result to valid base64
+	let psbt: WalletProcessPsbtResult = match serde_json::from_str(&psbt_str) {
+		Ok(psbt)=> psbt,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
+	//finalize the tx
+	let finalized_result = Client.finalize_psbt(
+		&psbt.psbt,
+		None,
+	);
+	let finalized = match finalized_result{
+		Ok(psbt)=> psbt,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+		
+	};
+	
+	Ok(format!("Reading PSBT from file: {:?}", finalized))
+}
+
+#[tauri::command]
+async fn broadcast_tx(wallet: String, sdcard: String) -> Result<String, String>{
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
+	//read the psbt from the transfer CD
+	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
+	//convert result to valid base64
+	let psbt: WalletProcessPsbtResult = match serde_json::from_str(&psbt_str) {
+		Ok(psbt)=> psbt,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
+	//finalize the psbt
+	let finalized_result = Client.finalize_psbt(
+		&psbt.psbt,
+		None,
+	);
+	let finalized = match finalized_result{
+		Ok(tx)=> tx.hex.unwrap(),
+		Err(err)=> return Ok(format!("{}", err.to_string()))	
+	};
+
+	//broadcast the tx
+	let broadcast_result = Client.send_raw_transaction(&finalized[..]);
+
+	let broadcast = match broadcast_result{
+		Ok(tx)=> tx,
+		Err(err)=> return Ok(format!("{}", err.to_string()))	
+	};
+	
+	Ok(format!("Broadcasting Fully Signed TX: {:?}", broadcast))
 }
 
 
@@ -2450,6 +2506,8 @@ fn main() {
 		generate_psbt,
 		export_psbt,
 		sign_psbt,
+		finalize_psbt,
+		broadcast_tx,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
