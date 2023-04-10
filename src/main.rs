@@ -2415,6 +2415,42 @@ async fn broadcast_tx(wallet: String, sdcard: String) -> Result<String, String>{
 	Ok(format!("Broadcasting Fully Signed TX: {:?}", broadcast))
 }
 
+#[tauri::command]
+async fn decode_raw_tx(wallet: String, sdcard: String) -> Result<String, String>{
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
+	//read the psbt from the transfer CD
+	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
+	//convert result to valid base64
+	let psbt: WalletProcessPsbtResult = match serde_json::from_str(&psbt_str) {
+		Ok(psbt)=> psbt,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
+	//finalize the psbt
+	let finalized_result = Client.finalize_psbt(
+		&psbt.psbt,
+		None,
+	);
+	let finalized = match finalized_result{
+		Ok(tx)=> tx.hex.unwrap(),
+		Err(err)=> return Ok(format!("{}", err.to_string()))	
+	};
+
+	let decoded_result = Client.decode_raw_transaction(&finalized[..], None);
+
+	let decoded = match decoded_result{
+		Ok(result) => result,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
+
+	let clone = decoded.vout[0].clone();
+
+	let address: String = clone.script_pub_key.address.unwrap().to_string();
+	let amount = clone.value;
+
+	Ok(format!("address = {}, amount = {}", address, amount))
+}
+
 
 // #[tauri::command]
 // //for testing only
@@ -2508,6 +2544,7 @@ fn main() {
 		sign_psbt,
 		finalize_psbt,
 		broadcast_tx,
+		decode_raw_tx,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
