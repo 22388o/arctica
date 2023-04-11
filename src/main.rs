@@ -11,12 +11,14 @@ use bitcoin;
 use bitcoin::locktime::Time;
 use bitcoin::Address;
 use bitcoin::consensus::serialize;
+use bitcoin::consensus::deserialize;
 use bitcoin::psbt::PartiallySignedTransaction;
 use bitcoin::util::bip32::ExtendedPubKey;
 use bitcoin::util::bip32::ExtendedPrivKey;
 use bitcoin::util::amount::SignedAmount;
 use bitcoin::Amount;
 use bitcoin::Txid;
+use bitcoin::Transaction;
 use bitcoin::psbt::Psbt;
 use std::sync::{Arc, Mutex};
 use std::ops::Deref;
@@ -855,8 +857,6 @@ let psbt: WalletCreateFundedPsbtResult = match serde_json::from_str(&psbt_str) {
 	Ok(psbt)=> psbt,
 	Err(err)=> return Ok(format!("{}", err.to_string()))
 };
-
-
 
 	// sign the PSBT
 	let signed_result = Client.wallet_process_psbt(
@@ -2415,6 +2415,7 @@ async fn broadcast_tx(wallet: String, sdcard: String) -> Result<String, String>{
 	Ok(format!("Broadcasting Fully Signed TX: {:?}", broadcast))
 }
 
+//used to decode a fully signed TX...might be able to remove the
 #[tauri::command]
 async fn decode_raw_tx(wallet: String, sdcard: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
@@ -2426,17 +2427,13 @@ async fn decode_raw_tx(wallet: String, sdcard: String) -> Result<String, String>
 		Ok(psbt)=> psbt,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
-	//finalize the psbt
-	let finalized_result = Client.finalize_psbt(
-		&psbt.psbt,
-		None,
-	);
-	let finalized = match finalized_result{
-		Ok(tx)=> tx.hex.unwrap(),
-		Err(err)=> return Ok(format!("{}", err.to_string()))	
-	};
+	
+	let psbt_bytes = base64::decode(&psbt.psbt).unwrap();
+	let psbtx: PartiallySignedTransaction = deserialize(&psbt_bytes[..]).unwrap();
+	let unsigned_tx = psbtx.extract_tx();
+	let hex_tx = serialize(&unsigned_tx);
 
-	let decoded_result = Client.decode_raw_transaction(&finalized[..], None);
+	let decoded_result = Client.decode_raw_transaction(&hex_tx[..], None);
 
 	let decoded = match decoded_result{
 		Ok(result) => result,
@@ -2447,10 +2444,17 @@ async fn decode_raw_tx(wallet: String, sdcard: String) -> Result<String, String>
 
 	let address: String = clone.script_pub_key.address.unwrap().to_string();
 	let amount = clone.value;
+	let fee = "unavailable";
 
-	Ok(format!("address = {}, amount = {}", address, amount))
+	// Ok(format!("decoded: {:?}", decoded))
+
+	Ok(format!("address = {}, amount = {}, fee = {}", address, amount, fee))
 }
 
+fn base64_to_hex(base64_str: &str) -> String{
+	let bytes = base64::decode(base64_str).expect("Failed to decode base64 string");
+	hex::encode(bytes)
+}
 
 // #[tauri::command]
 // //for testing only
