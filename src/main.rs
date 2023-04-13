@@ -1924,7 +1924,7 @@ async fn start_bitcoind() -> String {
 			let host_user = std::str::from_utf8(&host.stdout).unwrap().trim();
 			//spawn as a child process on a seperate thread, nullify the output
 			Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind"))
-			.args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets", "-debuglogfile=/mnt/ramdisk/debug.log"])
+			.args(["-debuglogfile=/mnt/ramdisk/debug.log", &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets"])
 			.stdout(Stdio::null())
 			.stderr(Stdio::null())
 			.stdin(Stdio::null())
@@ -1983,7 +1983,7 @@ fn start_bitcoind_network_off() -> String {
 		//spawn as a child process on a seperate thread, nullify the output
 		std::thread::spawn( ||{
 			Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind"))
-			.args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets", "-debuglogfile=/mnt/ramdisk/debug.log"])
+			.args(["-debuglogfile=/mnt/ramdisk/debug.log", &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets"])
 			.stdout(Stdio::null())
 			.stderr(Stdio::null())
 			.stdin(Stdio::null())
@@ -1995,7 +1995,7 @@ fn start_bitcoind_network_off() -> String {
 		//spawn as a child process on a seperate thread, nullify the output
 		std::thread::spawn( ||{
 			Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind"))
-			.args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets"])
+			.args(["-debuglogfile=/mnt/ramdisk/debug.log", &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets"])
 			.stdout(Stdio::null())
 			.stderr(Stdio::null())
 			.stdin(Stdio::null())
