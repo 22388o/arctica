@@ -6,7 +6,7 @@
 use bitcoincore_rpc::RpcApi;
 use bitcoincore_rpc::{Auth, Client, Error, RawTx};
 use bitcoincore_rpc::bitcoincore_rpc_json::{AddressType, ImportDescriptors, Timestamp};
-use bitcoincore_rpc::bitcoincore_rpc_json::{WalletProcessPsbtResult, CreateRawTransactionInput, ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtOptions, WalletCreateFundedPsbtResult, FinalizePsbtResult};
+use bitcoincore_rpc::bitcoincore_rpc_json::{GetRawTransactionResult, WalletProcessPsbtResult, CreateRawTransactionInput, ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtOptions, WalletCreateFundedPsbtResult, FinalizePsbtResult};
 use bitcoin;
 use bitcoin::locktime::Time;
 use bitcoin::Address;
@@ -700,7 +700,7 @@ async fn get_transactions(wallet: String, sdcard:String) -> Result<String, Strin
 				wallet_conflicts: tx.info.wallet_conflicts.into_iter().map(|c| c.to_string()).collect(),
 			},
 			detail: CustomGetTransactionResultDetail {
-				address: tx.detail.address.map(|addr| addr.to_string()),
+				address: tx.detail.address.as_ref().map(|addr| addr.to_string()),
 				category: match tx.detail.category {
 				 GetTransactionResultDetailCategory::Send => "Send".to_string(),
 				 GetTransactionResultDetailCategory::Receive => "Receive".to_string(),
@@ -717,8 +717,22 @@ async fn get_transactions(wallet: String, sdcard:String) -> Result<String, Strin
 			trusted: tx.trusted,
 			comment: tx.comment,
 		};
-		custom_transactions.push(custom_tx);
-		x += 1;
+
+		//check if the address is owned by the wallet, if so, assume change input/output and hide from the display
+		let addr: Address = tx.detail.address.unwrap();
+		let ismine_res = Client.get_address_info(&addr);
+		let ismine = match ismine_res{
+			Ok(res)=>res,
+			Err(err)=>return Ok(format!("{}", err.to_string()))
+		};
+		// if ismine.is_mine == Some(false)||Some(true){
+			custom_transactions.push(custom_tx);
+			x += 1;
+		// }
+		// else{
+		// 	continue
+		// }
+		
 	}
 	
 	let json_string = serde_json::to_string(&custom_transactions).unwrap();
@@ -1396,6 +1410,12 @@ async fn create_ramdisk() -> String {
 			return format!("ERROR in Creating /mnt/ramdiskamdisk/sensitive = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 
+		//make the debug.log file
+		let output = Command::new("echo").args(["/mnt/ramdisk/debug.log"]).output().unwrap();
+		if !output.status.success() {
+			return format!("ERROR in Creating debug.log = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+
 	format!("SUCCESS in Creating Ramdisk")
 	}
 }
@@ -1904,7 +1924,7 @@ async fn start_bitcoind() -> String {
 			let host_user = std::str::from_utf8(&host.stdout).unwrap().trim();
 			//spawn as a child process on a seperate thread, nullify the output
 			Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind"))
-			.args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets"])
+			.args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets", "-debuglogfile=/mnt/ramdisk/debug.log"])
 			.stdout(Stdio::null())
 			.stderr(Stdio::null())
 			.stdin(Stdio::null())
@@ -1963,7 +1983,7 @@ fn start_bitcoind_network_off() -> String {
 		//spawn as a child process on a seperate thread, nullify the output
 		std::thread::spawn( ||{
 			Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind"))
-			.args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets"])
+			.args([&("-debuglogfile=".to_string()+&get_home()+"/.bitcoin/debug.log"), &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets", "-debuglogfile=/mnt/ramdisk/debug.log"])
 			.stdout(Stdio::null())
 			.stderr(Stdio::null())
 			.stdin(Stdio::null())
@@ -2427,7 +2447,7 @@ async fn decode_raw_tx(wallet: String, sdcard: String) -> Result<String, String>
 		Ok(psbt)=> psbt,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
-	
+
 	let psbt_bytes = base64::decode(&psbt.psbt).unwrap();
 	let psbtx: PartiallySignedTransaction = deserialize(&psbt_bytes[..]).unwrap();
 	let unsigned_tx = psbtx.extract_tx();
@@ -2441,19 +2461,36 @@ async fn decode_raw_tx(wallet: String, sdcard: String) -> Result<String, String>
 	};
 
 	let clone = decoded.vout[0].clone();
-
 	let address: String = clone.script_pub_key.address.unwrap().to_string();
 	let amount = clone.value;
-	let fee = "unavailable";
+
+	// Calculate the total value of the transaction outputs
+	let output_total: Amount = decoded
+		.vout
+		.iter()
+		.filter_map(|output| Some(output.value))
+		.sum();
+	
+	// Calculate the total value of the transaction inputs
+	let input_total: Amount = decoded
+		.vin
+		.iter()
+		.filter_map(|input| {
+			// Get the transaction output for this input
+			// Find the output corresponding to this input index
+			decoded.vout
+				.iter()
+				.find(|out| out.n == input.vout.unwrap())
+				.map(|out| out.value)
+		})
+		.sum();
+	
+	// Calculate the total fees for the transaction
+	let fee = 0;
 
 	// Ok(format!("decoded: {:?}", decoded))
 
 	Ok(format!("address = {}, amount = {}, fee = {}", address, amount, fee))
-}
-
-fn base64_to_hex(base64_str: &str) -> String{
-	let bytes = base64::decode(base64_str).expect("Failed to decode base64 string");
-	hex::encode(bytes)
 }
 
 // #[tauri::command]
