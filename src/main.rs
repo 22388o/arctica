@@ -1388,6 +1388,11 @@ async fn create_ramdisk() -> String {
 				return format!("Error in removing stale /mnt/ramdisk")
 			}
 		}
+		//disable swapiness
+		let output = Command::new("sudo").args(["swapoff", "-a"]).output().unwrap();
+		if !output.status.success() {
+			return format!("ERROR in disabling swapiness {}", std::str::from_utf8(&output.stderr).unwrap());
+			}
 		//create the ramdisk
 		let output = Command::new("sudo").args(["mkdir", "/mnt/ramdisk"]).output().unwrap();
 		if !output.status.success() {
