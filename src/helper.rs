@@ -467,15 +467,14 @@ pub fn get_descriptor_checksum(descriptor: String) -> String {
 
 
 //converts a unix timestamp to block height
-pub fn unix_to_block_height(unix_timestamp: i64) -> i64 {
-    let genesis_timestamp = 1231006505; //unix timestamp of genesis block
-                            // 1671299369 start time
-                            // 126230400 4 year period
-    let block_interval = 600; //10 minutes in seconds
-    let time_since_genesis = unix_timestamp - genesis_timestamp;
-    let block_height = time_since_genesis / block_interval;
-    block_height
-}
+// pub fn unix_to_block_height(unix_timestamp: i64) -> i64 {
+//     let genesis_timestamp = 1231006505; //unix timestamp of genesis block
+//                             // 126230400 4 year period
+//     let block_interval = 600; //10 minutes in seconds
+//     let time_since_genesis = unix_timestamp - genesis_timestamp;
+//     let block_height = time_since_genesis / block_interval;
+//     block_height
+// }
 
 
 

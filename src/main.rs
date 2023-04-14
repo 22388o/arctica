@@ -50,8 +50,8 @@ mod helper;
 use helper::{get_user, print_rust, type_of, get_home, is_dir_empty, 
 	copy_shards_to_ramdisk, write, check_cd_mount, get_uuid, generate_keypair, 
 	store_string, store_psbt, build_high_descriptor, build_med_descriptor,
-	build_low_descriptor, get_descriptor_checksum, unix_to_block_height,
-	import_descriptor, create_wallet, retrieve_start_time, retrieve_start_time_integer
+	build_low_descriptor, get_descriptor_checksum, import_descriptor, 
+	create_wallet, retrieve_start_time, retrieve_start_time_integer
 };
 
 // std::env::set_var("RUST_LOG", "bitcoincore_rpc=debug");
