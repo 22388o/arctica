@@ -51,35 +51,11 @@ use base64::decode;
 
 //import functions from helper
 mod helper;
-use helper::{get_user, print_rust, type_of, get_home, is_dir_empty, copy_shards_to_ramdisk, write, check_cd_mount};
+use helper::{get_user, print_rust, type_of, get_home, is_dir_empty, copy_shards_to_ramdisk, write, check_cd_mount, get_uuid, generate_keypair, store_string, store_psbt};
 
 // std::env::set_var("RUST_LOG", "bitcoincore_rpc=debug");
 
 struct TauriState(Mutex<Option<Client>>);
-
-//helper function
-//check for the presence of an internal storage uuid and if one is mounted, return it
-pub fn get_uuid() -> String {
-	//Obtain the internal storage device UUID if mounted
-	let devices = Command::new(&("ls")).args([&("/media/".to_string()+&get_user())]).output().unwrap();
-	if !devices.status.success() {
-	return format!("ERROR in parsing /media/user");
-	} 
-	//convert the list of devices above into a vector of results
-	let devices_output = std::str::from_utf8(&devices.stdout).unwrap();
-	let split = devices_output.split('\n');
-	let devices_vec: Vec<_> = split.collect();
-	//loop through the vector and check the character count of each entry to obtain the uuid which is 36 characters
-	let mut uuid = "none";
-	for i in devices_vec{
-		if i.chars().count() == 36{
-			uuid = i.trim();
-		} 
-	}
-	//if a valid uuid is not found, this function returns the string: "none"
-	format!("{}", uuid)
-}
-
 
 
 #[tauri::command]
@@ -104,39 +80,6 @@ fn read() -> std::string::String {
         }
     }
     format!("{}", contents)
-}
-
-//helper function
-//used to generate an extended public and private keypair
-pub fn generate_keypair() -> Result<(String, String), bitcoin::Error> {
-	let secp = Secp256k1::new();
-    let seed = SecretKey::new(&mut rand::thread_rng()).secret_bytes();
-    let xpriv = bitcoin::util::bip32::ExtendedPrivKey::new_master(bitcoin::Network::Bitcoin, &seed).unwrap();
-	let xpub = bitcoin::util::bip32::ExtendedPubKey::from_priv(&secp, &xpriv);
-	Ok((bitcoin::util::base58::check_encode_slice(&xpriv.encode()), bitcoin::util::base58::check_encode_slice(&xpub.encode())))
-}
-
-//helper function
-//used to store keypairs & descriptors as a file
-pub fn store_string(string: String, file_name: &String) -> Result<String, String> {
-	let mut fileRef = match std::fs::File::create(file_name) {
-		Ok(file) => file,
-		Err(err) => return Err(err.to_string()),
-	};
-	fileRef.write_all(&string.as_bytes());
-	Ok(format!("SUCCESS stored with no problems"))
-}
-
-//helper function
-//used to store the generated PSBT as a file
-pub fn store_psbt(psbt: &WalletProcessPsbtResult, file_name: String) -> Result<String, String> {
-   let mut fileRef = match std::fs::File::create(file_name) {
-       Ok(file) => file,
-       Err(err) => return Err(err.to_string()),
-   };
-   let psbt_json = to_string(&psbt).unwrap();
-   fileRef.write_all(&psbt_json.to_string().as_bytes());
-   Ok(format!("SUCCESS stored with no problems"))
 }
 
 #[tauri::command]
