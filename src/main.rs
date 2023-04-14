@@ -1289,19 +1289,10 @@ async fn distribute_shards_sd7() -> String {
 	format!("SUCCESS in distributing shards to SD 7")
 }
 
-//create and store as files all 3 descriptors needed for Arctica.
+//create arctica descriptors
 //High Descriptor is the time locked 5 of 11 with decay (4 keys will eventually go to BPS)
 //Medium Descriptor is the 2 of 7 with decay
 //Low Descriptor is the 1 of 7 and will be used for the tripwire
-
-//TODO: refactor create descriptor to generate 3 seperate descriptors for each wallet
-//SD 1 will contain Low_Descriptor1, Immediate_Descriptor1, and Delayed_Descriptor1
-//SD 2 will contain Low_Descriptor2...and so on
-//Each descriptor must contain the Xpriv corresponding to it's card. 
-//Example: Immediate_Descriptor1 will contain XPRIV1, XPUB2, XPUB3...
-//Immediate_Descriptor2 will contain XPUB1, XPRIV2, XPUB3... and so on
-
-//TODO: should take in an sdCard param which will inform the function which SD card number should be used for file names and descriptor formatting
 //acceptable params should be "1", "2", "3", "4", "5", "6", "7"
 #[tauri::command]
 async fn create_descriptor(sdcard: String) -> Result<String, String> {
