@@ -1542,8 +1542,6 @@ fn start_bitcoind_network_off() -> String {
 	}
 	format!("SUCCESS in starting bitcoin daemon with networking disabled")
 	}
-	
-
 
 #[tauri::command]
 async fn stop_bitcoind() -> String {
@@ -1556,8 +1554,6 @@ async fn stop_bitcoind() -> String {
 
 	format!("SUCCESS in stopping the bitcoin daemon")
 }
-
-
 
 //check the currently inserted CD for an encryption masterkey
 #[tauri::command]
@@ -1620,8 +1616,6 @@ async fn recovery_initiate() -> String {
 	format!("SUCCESS in creating recovery CD")
 }
 
-
-
 //calculate the number of encryption shards currently in the ramdisk
 #[tauri::command]
 async fn calculate_number_of_shards() -> u32 {
@@ -1631,7 +1625,6 @@ async fn calculate_number_of_shards() -> u32 {
 	}
 	return x;
 }
-
 
 #[tauri::command]
 async fn collect_shards() -> String {
@@ -1686,7 +1679,6 @@ async fn get_descriptor_info(wallet: String) -> String {
 	format!("SUCCESS in getting descriptor info {:?}", desc_info)
 }
 
-
 #[tauri::command]
 async fn load_wallet(wallet: String, sdcard: String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
@@ -1713,7 +1705,6 @@ async fn load_wallet(wallet: String, sdcard: String) -> Result<String, String> {
 	}
 	Ok(format!("Success in loading {} wallet", wallet))
 	}
-
 
 #[tauri::command]
 async fn get_blockchain_info() -> String {
@@ -1963,8 +1954,6 @@ async fn decode_raw_tx(wallet: String, sdcard: String) -> Result<String, String>
 //     let desc = build_high_descriptor(&Client, &keys).unwrap();
 //     format!("testing {} {}", desc, desc.sanity_check().unwrap() == ())
 // }
-
-
 
 fn main() {
     let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
