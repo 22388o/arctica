@@ -45,164 +45,21 @@ use std::collections::HashMap;
 use std::mem;
 use base64::decode;
 
+//local module imports
+// mod install_module;
+// use install_module::{init_iso};
+
+//import functions from helper
+mod helper;
+use helper::{get_user, print_rust, type_of, get_home, is_dir_empty, copy_shards_to_ramdisk, write, check_cd_mount};
+
 // std::env::set_var("RUST_LOG", "bitcoincore_rpc=debug");
 
 struct TauriState(Mutex<Option<Client>>);
 
 //helper function
-//only useful when running the application in a dev envrionment
-//prints & error messages must be passed to the front end in a promise when running from a precompiled binary
-fn print_rust(data: &str) -> String {
-	println!("input = {}", data);
-	format!("completed with no problems")
-}
-
-//helper function
-//determine the data type of the provided variable
-fn type_of<T>(_: &T) -> &'static str{
-	type_name::<T>()
-}
-
-//helper function
-//get the current user
-fn get_user() -> String {
-	home_dir().unwrap().to_str().unwrap().to_string().split("/").collect::<Vec<&str>>()[2].to_string()
-}
-
-//helper function
-//get the current $HOME path
-fn get_home() -> String {
-	home_dir().unwrap().to_str().unwrap().to_string()
-}
-
-//helper function
-//check if target path is empty
-fn is_dir_empty(path: &str) -> bool {
-	if let Ok(mut entries) = fs::read_dir(path){
-		return entries.next().is_none();
-	}
-	false
-}
-
-//helper function
-//copy any shards potentially on the recovery CD to ramdisk
-fn copy_shards_to_ramdisk() {
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard1.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard2.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard3.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard4.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard5.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard6.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard7.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard8.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard9.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard10.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard11.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-}
-
-//helper function
-//update the config.txt with the provided params
-fn write(name: String, value:String) {
-	let mut config_file = home_dir().expect("could not get home directory");
-    config_file.push("config.txt");
-    let mut written = false;
-    let mut newfile = String::new();
-
-    let contents = match fs::read_to_string(&config_file) {
-        Ok(ct) => ct,
-        Err(_) => {
-            "".to_string()       
-        }
-    };
-
-    for line in contents.split("\n") {
-        let parts: Vec<&str> = line.split("=").collect();
-        if parts.len() == 2 {
-           let (n,v) = (parts[0],parts[1]); 
-           newfile += n;
-           newfile += "=";
-           if n == name {
-            newfile += &value;
-            written = true;
-           } else {
-            newfile += v;
-           }
-           newfile += "\n";
-        }
-    }
-
-    if !written {
-        newfile += &name;
-        newfile += "=";
-        newfile += &value;
-    }
-
-    let mut file = File::create(&config_file).expect("Could not Open file");
-    file.write_all(newfile.as_bytes()).expect("Could not rewrite file");
-}
-
-//helper function
-//used to check the mountpoint of /media/$USER/CDROM
-fn check_cd_mount() -> std::string::String {
-	let mut mounted = "false";
-	let output = Command::new("df").args(["-h", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
-	if !output.status.success() {
-		let er = "error";
-		return format!("{}", er)
-	}
-		
-	let df_output = std::str::from_utf8(&output.stdout).unwrap();
-	//use a closure to split the output of df -h /media/$USER/CDROM by whitespace and \n
-	let split = df_output.split(|c| c == ' ' || c == '\n');
-	let output_vec: Vec<_> = split.collect();
-	//loop through the vector
-	for i in output_vec{
-		println!("new line:");
-		println!("{}", i);
-		//if any of the lines contain /dev/sr0 we know that /media/$USER/CDROM is mounted correctly
-		if i == "/dev/sr0"{
-			mounted = "true";
-			return format!("success")
-		}
-	}
-	if mounted == "false"{
-		//check if filepath exists
-		let b = std::path::Path::new(&("/media/".to_string()+&get_user()+"/CDROM")).exists();
-		//if CD mount path does not exist...create it and mount the CD
-		if b == false{
-			let output = Command::new("sudo").args(["mkdir", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
-				if !output.status.success() {
-					return format!("error");
-				}
-			let output = Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
-			if !output.status.success() {
-				return format!("error");
-			}
-		//if CD mount path already exists...mount the CD
-		} else {
-			let output = Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
-				if !output.status.success() {
-					return format!("error");
-				}
-		}
-	}
-	format!("success")
-}
-	
-	
-
-
-//TODO: wallet refactor
-//helper function
-//return the policy id of the provided wallet
-////fn get_policy_id(wallet: Wallet<MemoryDatabase>) -> String {
-////    if let Ok(Some(spend_policy)) = wallet.policies(KeychainKind::External){
-////        format!("{}", spend_policy.id.to_string()) } else {todo!()}
-////}
-
-//helper function
 //check for the presence of an internal storage uuid and if one is mounted, return it
-fn get_uuid() -> String {
+pub fn get_uuid() -> String {
 	//Obtain the internal storage device UUID if mounted
 	let devices = Command::new(&("ls")).args([&("/media/".to_string()+&get_user())]).output().unwrap();
 	if !devices.status.success() {
@@ -251,7 +108,7 @@ fn read() -> std::string::String {
 
 //helper function
 //used to generate an extended public and private keypair
-fn generate_keypair() -> Result<(String, String), bitcoin::Error> {
+pub fn generate_keypair() -> Result<(String, String), bitcoin::Error> {
 	let secp = Secp256k1::new();
     let seed = SecretKey::new(&mut rand::thread_rng()).secret_bytes();
     let xpriv = bitcoin::util::bip32::ExtendedPrivKey::new_master(bitcoin::Network::Bitcoin, &seed).unwrap();
@@ -261,7 +118,7 @@ fn generate_keypair() -> Result<(String, String), bitcoin::Error> {
 
 //helper function
 //used to store keypairs & descriptors as a file
-fn store_string(string: String, file_name: &String) -> Result<String, String> {
+pub fn store_string(string: String, file_name: &String) -> Result<String, String> {
 	let mut fileRef = match std::fs::File::create(file_name) {
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
@@ -272,7 +129,7 @@ fn store_string(string: String, file_name: &String) -> Result<String, String> {
 
 //helper function
 //used to store the generated PSBT as a file
-fn store_psbt(psbt: &WalletProcessPsbtResult, file_name: String) -> Result<String, String> {
+pub fn store_psbt(psbt: &WalletProcessPsbtResult, file_name: String) -> Result<String, String> {
    let mut fileRef = match std::fs::File::create(file_name) {
        Ok(file) => file,
        Err(err) => return Err(err.to_string()),
