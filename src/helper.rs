@@ -40,13 +40,11 @@ use std::collections::HashMap;
 use std::mem;
 use base64::decode;
 
-//helper function
 //get the current user
 pub fn get_user() -> String {
 	home_dir().unwrap().to_str().unwrap().to_string().split("/").collect::<Vec<&str>>()[2].to_string()
 }
 
-//helper function
 //only useful when running the application in a dev envrionment
 //prints & error messages must be passed to the front end in a promise when running from a precompiled binary
 pub fn print_rust(data: &str) -> String {
@@ -54,20 +52,17 @@ pub fn print_rust(data: &str) -> String {
 	format!("completed with no problems")
 }
 
-//helper function
 //determine the data type of the provided variable
 pub fn type_of<T>(_: &T) -> &'static str{
 	type_name::<T>()
 }
 
 
-//helper function
 //get the current $HOME path
 pub fn get_home() -> String {
 	home_dir().unwrap().to_str().unwrap().to_string()
 }
 
-//helper function
 //check for the presence of an internal storage uuid and if one is mounted, return it
 pub fn get_uuid() -> String {
 	//Obtain the internal storage device UUID if mounted
@@ -90,7 +85,6 @@ pub fn get_uuid() -> String {
 	format!("{}", uuid)
 }
 
-//helper function
 //check if target path is empty
 pub fn is_dir_empty(path: &str) -> bool {
 	if let Ok(mut entries) = fs::read_dir(path){
@@ -99,7 +93,6 @@ pub fn is_dir_empty(path: &str) -> bool {
 	false
 }
 
-//helper function
 //used to store keypairs & descriptors as a file
 pub fn store_string(string: String, file_name: &String) -> Result<String, String> {
 	let mut fileRef = match std::fs::File::create(file_name) {
@@ -110,7 +103,6 @@ pub fn store_string(string: String, file_name: &String) -> Result<String, String
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
-//helper function
 //used to store the generated PSBT as a file
 pub fn store_psbt(psbt: &WalletProcessPsbtResult, file_name: String) -> Result<String, String> {
     let mut fileRef = match std::fs::File::create(file_name) {
@@ -122,7 +114,6 @@ pub fn store_psbt(psbt: &WalletProcessPsbtResult, file_name: String) -> Result<S
     Ok(format!("SUCCESS stored with no problems"))
  }
 
-//helper function
 //copy any shards potentially on the recovery CD to ramdisk
 pub fn copy_shards_to_ramdisk() {
 	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard1.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
@@ -138,7 +129,6 @@ pub fn copy_shards_to_ramdisk() {
 	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard11.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
 }
 
-//helper function
 //update the config.txt with the provided params
 pub fn write(name: String, value:String) {
 	let mut config_file = home_dir().expect("could not get home directory");
@@ -180,7 +170,6 @@ pub fn write(name: String, value:String) {
 }
 
 
-//helper function
 //used to check the mountpoint of /media/$USER/CDROM
 pub fn check_cd_mount() -> std::string::String {
 	let mut mounted = "false";
@@ -228,7 +217,6 @@ pub fn check_cd_mount() -> std::string::String {
 	format!("success")
 }
 
-//helper function
 //used to generate an extended public and private keypair
 pub fn generate_keypair() -> Result<(String, String), bitcoin::Error> {
 	let secp = Secp256k1::new();
@@ -238,8 +226,6 @@ pub fn generate_keypair() -> Result<(String, String), bitcoin::Error> {
 	Ok((bitcoin::util::base58::check_encode_slice(&xpriv.encode()), bitcoin::util::base58::check_encode_slice(&xpub.encode())))
 }
 
-
-//helper function
 //builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
 pub fn build_high_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
 	println!("calculating 4 year block time span");
@@ -338,7 +324,6 @@ pub fn build_high_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<Stri
 
 }
 
-//helper function
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
 pub fn build_med_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
 	println!("calculating 4 year block time span");
@@ -408,7 +393,6 @@ pub fn build_med_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<Strin
 	}
 }
 
-//helper function
 //builds the low security descriptor, 1 of 7 thresh, used for tripwire
 //TODO this needs to use its own special keypair or it will be a privacy leak once implemented
 //TODO this may not need child key designators /* because it seems to use hardened keys but have not tested this descriptor yet
@@ -468,35 +452,34 @@ pub fn build_med_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<Strin
 	
 	}
 
-    //returns the checksum of the descriptor param
-    pub fn get_descriptor_checksum(descriptor: String) -> String {
-        let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-        let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-        let desc_info = Client.get_descriptor_info(&descriptor).unwrap();
-        println!("Descriptor info: {:?}", desc_info);
-        let checksum = desc_info.checksum;
-        println!("Checksum: {:?}", checksum);
-        let output = &(descriptor.to_string() + "#" + &checksum.to_string());
-        println!("output: {:?}", output);
-        format!("{}", output)
-    }
+//returns the checksum of the descriptor param
+pub fn get_descriptor_checksum(descriptor: String) -> String {
+    let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+    let desc_info = Client.get_descriptor_info(&descriptor).unwrap();
+    println!("Descriptor info: {:?}", desc_info);
+    let checksum = desc_info.checksum;
+    println!("Checksum: {:?}", checksum);
+    let output = &(descriptor.to_string() + "#" + &checksum.to_string());
+    println!("output: {:?}", output);
+    format!("{}", output)
+}
 
 
-    //converts a unix timestamp to block height
-    pub fn unix_to_block_height(unix_timestamp: i64) -> i64 {
-        let genesis_timestamp = 1231006505; //unix timestamp of genesis block
-                                // 1671299369 start time
-                                // 126230400 4 year period
-        let block_interval = 600; //10 minutes in seconds
-        let time_since_genesis = unix_timestamp - genesis_timestamp;
-        let block_height = time_since_genesis / block_interval;
-        block_height
-    }
-        //add the 4 year time delay in seconds 12623400
-        //start time  1671299369
+//converts a unix timestamp to block height
+pub fn unix_to_block_height(unix_timestamp: i64) -> i64 {
+    let genesis_timestamp = 1231006505; //unix timestamp of genesis block
+                            // 1671299369 start time
+                            // 126230400 4 year period
+    let block_interval = 600; //10 minutes in seconds
+    let time_since_genesis = unix_timestamp - genesis_timestamp;
+    let block_height = time_since_genesis / block_interval;
+    block_height
+}
 
 
-        //RPC command
+
+//RPC command
 // ./bitcoin-cli createwallet "wallet name" true true
 //creates a blank watch only walket
 pub fn create_wallet(wallet: String, sdcard: &String) -> Result<String, String> {
@@ -536,6 +519,7 @@ pub fn import_descriptor(wallet: String, sdcard: &String) -> Result<String, Stri
 	Ok(format!("Success in importing descriptor...{:?}", output))
 }
 
+//retrieve start time from the start_time file and output as Timestamp type
 pub fn retrieve_start_time() -> Timestamp {
 	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
 	if start_time_complete == true{
@@ -553,6 +537,7 @@ pub fn retrieve_start_time() -> Timestamp {
 	}
 }
 
+//retrieve start time from the start_time file and output as integer
 pub fn retrieve_start_time_integer() -> i64 {
 	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
 	if start_time_complete == true{
