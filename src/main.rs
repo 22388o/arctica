@@ -54,15 +54,9 @@ use helper::{get_user, print_rust, type_of, get_home, is_dir_empty,
 	import_descriptor, create_wallet, retrieve_start_time, retrieve_start_time_integer
 };
 
-//local module imports
-// mod install_module;
-// use install_module::{init_iso};
-
-
 // std::env::set_var("RUST_LOG", "bitcoincore_rpc=debug");
 
 struct TauriState(Mutex<Option<Client>>);
-
 
 #[tauri::command]
 //current the config currently in $HOME
@@ -200,8 +194,6 @@ async fn get_balance(wallet:String, sdcard:String) -> Result<String, String> {
 	};
 }
 
-
-
 #[derive(Serialize)]
 struct CustomTransaction {
 	id: i32,
@@ -235,10 +227,6 @@ struct CustomGetTransactionResultDetail {
     fee: Option<i64>,
     abandoned: Option<bool>,
 }
-
-
-
-
 
 #[tauri::command]
 //retrieve the current transaction history for the immediate wallet
@@ -311,30 +299,12 @@ async fn get_transactions(wallet: String, sdcard:String) -> Result<String, Strin
 		// }
 		
 	}
-	
 	let json_string = serde_json::to_string(&custom_transactions).unwrap();
 	println!("{}", json_string);
  
 	Ok(format!("{}", json_string))
    }
-
-
 }
-
-
-//TODO send flow
-//on SD 1
-//generate PSBT
-//process PSBT (SIGN)
-//export processed PSBT
-//on SD 2
-//import signed PSBTs
-//process PSBT (SIGN)
-//export processed PSBT
-//on SD 1 import processed PSBT
-//combine psbts
-//finalize psbt
-//sendrawtransaction
 
 #[tauri::command]
 //generate a PSBT for the immediate wallet
@@ -363,8 +333,6 @@ async fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: f
 	   Ok(addr) => addr,
 	   Err(err) => return Ok(format!("{}", err.to_string()))
    };
-
-
 
    //below code block is for trying to use bitcoincore_rpc crate to generate psbt, method is currently bugged
    //alternatively going to do the below with Command::new() and will return to this method when it is fixed
@@ -474,8 +442,6 @@ let psbt: WalletCreateFundedPsbtResult = match serde_json::from_str(&psbt_str) {
 }
 
 
-
-
 #[tauri::command]
 //for testing only
 async fn test_function() -> String {
@@ -508,7 +474,6 @@ async fn init_iso() -> String {
 	Command::new("sudo").args(["apt", "-y", "update"]).output().unwrap();
 	Command::new("sudo").args(["apt", "install", "-y", "mkusb"]).output().unwrap();
 	Command::new("sudo").args(["apt", "install", "-y", "usb-pack-efi"]).output().unwrap();
-
 
 	//download dependencies required on each SD card
 	Command::new("sudo").args(["apt", "update"]).output().unwrap();
@@ -1971,7 +1936,6 @@ async fn decode_raw_tx(wallet: String, sdcard: String) -> Result<String, String>
 // //for testing only
 // async fn init_test() -> String {
 //     let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-//     //TODO: Create this in start_bitcoind and conversly set it to none if we close it.
 //     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 //     let mut keys = Vec::new();
 //     let (mut xpriv, mut xpub) = generate_keypair().expect("could not gen keypair");
@@ -1997,7 +1961,6 @@ async fn decode_raw_tx(wallet: String, sdcard: String) -> Result<String, String>
 //     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
 //     keys.push(xpub);
 //     let desc = build_high_descriptor(&Client, &keys).unwrap();
-
 //     format!("testing {} {}", desc, desc.sanity_check().unwrap() == ())
 // }
 
@@ -2005,7 +1968,6 @@ async fn decode_raw_tx(wallet: String, sdcard: String) -> Result<String, String>
 
 fn main() {
     let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    //TODO: Create this in start_bitcoind and conversly set it to none if we close it.
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 
   	tauri::Builder::default()
