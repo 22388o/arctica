@@ -688,7 +688,7 @@ async fn create_bootable_usb(number: String, setup: String) -> String {
     write("sdNumber".to_string(), number.to_string());
 	//write current setup step to config, values provided by front end
     write("setupStep".to_string(), setup.to_string());
-	println!("creating bootable ubuntu device writing config...SD {} Setupstep {}", number, setup);
+	println!("creating bootable ubuntu device writing config...HW {} Setupstep {}", number, setup);
 
 	// sleep for 4 seconds
 	Command::new("sleep").args(["4"]).output().unwrap();
@@ -1102,7 +1102,7 @@ async fn mount_internal() -> String {
 #[tauri::command]
 //install dependencies manually from files on each of the offline Hardware Wallets (2-7)
 async fn install_sd_deps() -> String {
-	println!("installing deps required by SD card");
+	println!("installing deps required by Hardware Wallet");
 	//these are required on all 7 Hardware Wallets
 	//install HW dependencies for genisoimage
 	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
@@ -1160,7 +1160,7 @@ async fn refresh_cd() -> String {
 	format!("SUCCESS in refreshing CD")
 }
 
-//The following "distribute_shards" fuctions are for distributing encryption key shards to each of the sd cards 2-7
+//The following "distribute_shards" fuctions are for distributing encryption key shards to each HW 2-7
 #[tauri::command]
 async fn distribute_shards_sd2() -> String {
 	//create local shards dir
@@ -1260,7 +1260,7 @@ async fn distribute_shards_sd7() -> String {
 //Low Descriptor is the 1 of 7 and will be used for the tripwire
 //acceptable params should be "1", "2", "3", "4", "5", "6", "7"
 #[tauri::command]
-async fn create_descriptor(sdcard: String) -> Result<String, String> {
+async fn create_descriptor(hw_number: String) -> Result<String, String> {
    println!("creating descriptors from 7 xpubs & 4 time machine keys");
    //convert all 11 public_keys in the ramdisk to an array vector
    println!("creating key array");
@@ -1292,11 +1292,11 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
 
    //build the delayed wallet descriptor
    println!("building high descriptor");
-   let high_descriptor = match build_high_descriptor(&key_array, &sdcard) {
+   let high_descriptor = match build_high_descriptor(&key_array, &hw_number) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build High Descriptor ".to_string()+&err)
    };
-   let high_file_dest = &("/mnt/ramdisk/sensitive/descriptors/delayed_descriptor".to_string()+&sdcard.to_string()).to_string();
+   let high_file_dest = &("/mnt/ramdisk/sensitive/descriptors/delayed_descriptor".to_string()+&hw_number.to_string()).to_string();
    //store the delayed wallet descriptor in the sensitive dir
    println!("storing high descriptor");
    match store_string(high_descriptor.to_string(), high_file_dest) {
@@ -1304,12 +1304,12 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
        Err(err) => return Err("ERROR could not store High Descriptor: ".to_string()+&err)
    };
    println!("creating delayed wallet");
-   match create_wallet("delayed".to_string(), &sdcard){
+   match create_wallet("delayed".to_string(), &hw_number){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not create Delayed Wallet: ".to_string()+&err)
    };
    println!("importing delayed descriptor");
-   match import_descriptor("delayed".to_string(), &sdcard){
+   match import_descriptor("delayed".to_string(), &hw_number){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not import Delayed Descriptor: ".to_string()+&err)
    };
@@ -1317,11 +1317,11 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
 
    //build the immediate wallet descriptor
    println!("building med descriptor");
-   let med_descriptor = match build_med_descriptor(&key_array, &sdcard) {
+   let med_descriptor = match build_med_descriptor(&key_array, &hw_number) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build Immediate Descriptor ".to_string()+&err)
    };
-   let med_file_dest = &("/mnt/ramdisk/sensitive/descriptors/immediate_descriptor".to_string()+&sdcard.to_string()).to_string();
+   let med_file_dest = &("/mnt/ramdisk/sensitive/descriptors/immediate_descriptor".to_string()+&hw_number.to_string()).to_string();
    //store the immediate wallet descriptor in the sensitive dir
    println!("storing med descriptor");
    match store_string(med_descriptor.to_string(), med_file_dest) {
@@ -1329,23 +1329,23 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
        Err(err) => return Err("ERROR could not store Immediate Descriptor: ".to_string()+&err)
    };
    println!("creating immediate wallet");
-   match create_wallet("immediate".to_string(), &sdcard){
+   match create_wallet("immediate".to_string(), &hw_number){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not create Immediate Wallet: ".to_string()+&err)
    };
    println!("importing immediate descriptor");
-   match import_descriptor("immediate".to_string(), &sdcard){
+   match import_descriptor("immediate".to_string(), &hw_number){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not import Immediate Descriptor: ".to_string()+&err)
    };
 
    //build the low security descriptor
    println!("building low descriptor");
-   let low_descriptor = match build_low_descriptor(&key_array, &sdcard) {
+   let low_descriptor = match build_low_descriptor(&key_array, &hw_number) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build Low Descriptor ".to_string()+&err)
    };
-   let low_file_dest = &("/mnt/ramdisk/sensitive/descriptors/low_descriptor".to_string()+&sdcard.to_string()).to_string();
+   let low_file_dest = &("/mnt/ramdisk/sensitive/descriptors/low_descriptor".to_string()+&hw_number.to_string()).to_string();
    //store the low security descriptor in the sensitive dir
    println!("storing low descriptor");
    match store_string(low_descriptor.to_string(), low_file_dest) {
@@ -1353,12 +1353,12 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
        Err(err) => return Err("ERROR could not store Low Descriptor: ".to_string()+&err)
    };
    println!("creating low wallet");
-   match create_wallet("low".to_string(), &sdcard){
+   match create_wallet("low".to_string(), &hw_number){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not create Low Wallet: ".to_string()+&err)
    };
    println!("importing low descriptor");
-   match import_descriptor("low".to_string(), &sdcard){
+   match import_descriptor("low".to_string(), &hw_number){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not import Low Descriptor: ".to_string()+&err)
    };
@@ -1671,28 +1671,28 @@ async fn convert_to_transfer_cd() -> String {
 //acceptable params here are "low", "immediate", "delayed"
 //this may not be useful for anything besides debugging on the fly
 #[tauri::command]
-async fn get_descriptor_info(wallet: String) -> String {
+async fn get_descriptor_info(wallet_name: String) -> String {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor")).expect("Error reading reading med descriptor from file");
+	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet_name.to_string())+"_descriptor")).expect("Error reading reading med descriptor from file");
 	let desc_info = Client.get_descriptor_info(&desc).unwrap();
 	format!("SUCCESS in getting descriptor info {:?}", desc_info)
 }
 
 #[tauri::command]
-async fn load_wallet(wallet: String, sdcard: String) -> Result<String, String> {
+async fn load_wallet(wallet_name: String, hw_number: String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 
 	//load the specified wallet
-	Client.load_wallet(&(wallet.to_string()+"_wallet"+&(sdcard.to_string())));
+	Client.load_wallet(&(wallet_name.to_string()+"_wallet"+&(hw_number.to_string())));
 
 	//parse list_wallets in a continuous loop to verify when rescan is completed
 	loop{
 		let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     	let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 		let list = Client.list_wallets().unwrap();
-		let search_string = &(wallet.to_string()+"_wallet"+&(sdcard.to_string()));
+		let search_string = &(wallet_name.to_string()+"_wallet"+&(hw_number.to_string()));
 		//listwallets returns the wallet name as expected...wallet is properly loaded and scanned
 		if list.contains(&search_string){
 			break;
@@ -1703,7 +1703,7 @@ async fn load_wallet(wallet: String, sdcard: String) -> Result<String, String> {
 			continue;
 		}
 	}
-	Ok(format!("Success in loading {} wallet", wallet))
+	Ok(format!("Success in loading {} wallet", wallet_name))
 	}
 
 #[tauri::command]
