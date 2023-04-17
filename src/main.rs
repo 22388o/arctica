@@ -164,9 +164,9 @@ async fn generate_store_simulated_time_machine_key_pair(number: String) -> Strin
 //accepts "low", "immediate", and "delayed" as a param
 //equivalent to... Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "getnewaddress"])
 //must be done with client url param URL=<hostname>/wallet/<wallet_name>
-async fn get_address(wallet: String, sdcard:String) -> Result<String, String> {
+async fn get_address(wallet_name: String, hw_number:String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
 	//address labels can be added here
 	let address_type = Some(AddressType::Bech32);
 	let address = match Client.get_new_address(None, address_type){
@@ -178,9 +178,9 @@ async fn get_address(wallet: String, sdcard:String) -> Result<String, String> {
 
 #[tauri::command]
 //calculate the current balance of the tripwire wallet
-async fn get_balance(wallet:String, sdcard:String) -> Result<String, String> {
+async fn get_balance(wallet_name:String, hw_number:String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
 	let balance = match Client.get_balance(None, Some(true)){
 		Ok(bal) => {
 			//split string into a vec and extract the number only without the BTC unit
