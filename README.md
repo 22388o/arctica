@@ -30,7 +30,7 @@
           <li>Counterfeit prevention. The only way to be certain that your balance represents genuine bitcoin is to use a bitcoin full node - in fact that is the primary purpose of a bitcoin full node - to verify that the bitcoin balance is correct and full of only genuine bitcoins. Any solution that does not involve a full node requires you trust someone else to tell you if you have real bitcoin.</li>
           <Li>Minimal hardware. You only need access to two relatively cheap computers. These computers will be dedicated to the purpose of running arctica. The primary laptop runs the bitcoin full node and should remain unused for other activities. The second laptop can be any device, but ideally is a dedicated signing device not used for other purposes. If you don't own a second laptop you can buy one from a big box store and return it after use if required. Once Arctica is set up, it will work on any computer by a user simply inserting an Arctica HWW and rebooting.</li>
           <li>The prompts are designed to be completed by non technologists with minimal effort.</li>
-          <li>Software instructions for recovering and spending the bitcoin are included with on every SD card to reduce the likelihood of loss and improve UX.</li>
+          <li>Software instructions for recovering and spending the bitcoin are included with on every Hardware Wallet to reduce the likelihood of loss and improve UX.</li>
       </ul>
       <p>Arctica provides the best balance of security, ease of use and privacy when storing significant sums of bitcoin, it has the following disadvantages that might not be expected:</p>
       <ul>
