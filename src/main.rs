@@ -85,7 +85,7 @@ fn read() -> std::string::String {
 #[tauri::command]
 //generates a public and private key pair and stores them as a text file
 async fn generate_store_key_pair(number: String) -> String {
-	//number corresponds to currentSD here and is provided by the front end
+	//number corresponds to currentHW here and is provided by the front end
 	let private_key_file = "/mnt/ramdisk/sensitive/private_key".to_string()+&number;
 	let public_key_file = "/mnt/ramdisk/sensitive/public_key".to_string()+&number;
 
@@ -122,7 +122,7 @@ async fn generate_store_key_pair(number: String) -> String {
 //this function simulates the creation of a time machine key. Eventually this creation will be performed by the BPS and 
 //the pubkeys will be shared with the user instead. 4 Time machine Keys are needed so this function will be run 4 times in total.
 //eventually these will need to be turned into descriptors and we will need an encryption scheme for the descriptors/keys that will be held by the BPS so as not to be privacy leaks
-//decryption key will be held within encrypted tarball on each SD card
+//decryption key will be held within encrypted tarball on each Hardware Wallet
 #[tauri::command]
 async fn generate_store_simulated_time_machine_key_pair(number: String) -> String {
 	//make the time machine key dir in the setupCD staging area if it does not already exist
@@ -475,7 +475,7 @@ async fn init_iso() -> String {
 	Command::new("sudo").args(["apt", "install", "-y", "mkusb"]).output().unwrap();
 	Command::new("sudo").args(["apt", "install", "-y", "usb-pack-efi"]).output().unwrap();
 
-	//download dependencies required on each SD card
+	//download dependencies required on each Hardware Wallet
 	Command::new("sudo").args(["apt", "update"]).output().unwrap();
 	Command::new("sudo").args(["apt", "download", "wodim", "genisoimage", "ssss"]).output().unwrap();
 
@@ -678,13 +678,13 @@ async fn init_iso() -> String {
 	format!("SUCCESS in init_iso")
 }
 
-//initial flash of all 7 SD cards
+//initial flash of all 7 Hardware Wallets
 //creates a bootable usb stick or SD card that will boot into an ubuntu live system when inserted into a computer
 #[tauri::command]
 async fn create_bootable_usb(number: String, setup: String) -> String {
 	//write device type to config, values provided by front end
     write("type".to_string(), "sdcard".to_string());
-	//write sd number to config, values provided by front end
+	//write HW number to config, values provided by front end
     write("sdNumber".to_string(), number.to_string());
 	//write current setup step to config, values provided by front end
     write("setupStep".to_string(), setup.to_string());
@@ -727,19 +727,19 @@ async fn create_setup_cd() -> String {
 	//create local shards dir
 	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
 
-	//install sd dependencies for genisoimage
+	//install HW dependencies for genisoimage
 	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in installing genisoimage for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 
-	//install sd dependencies for ssss
+	//install HW dependencies for ssss
 	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/ssss_0.5-5_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in installing ssss for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 
-	//install sd dependencies for wodim
+	//install HW dependencies for wodim
 	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in installing wodim for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -756,7 +756,7 @@ async fn create_setup_cd() -> String {
 	} 
 	//NOTE: EVENTUALLY THE APPROPRIATE SHARDS NEED TO GO TO THE BPS HERE
 
-	//copy first 2 shards to SD 1
+	//copy first 2 shards to HW 1
 	let output = Command::new("sudo").args(["cp", "/mnt/ramdisk/shards/shard1.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
     	return format!("ERROR in copying shard1.txt in create setup CD = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -850,7 +850,7 @@ async fn eject_cd() -> String {
 	format!("SUCCESS in ejecting CD")
 }
 
-//pack up and encrypt the contents of the sensitive directory in ramdisk into an encrypted directory on tpackuphe current SD card
+//pack up and encrypt the contents of the sensitive directory in ramdisk into an encrypted directory on the current Hardware Wallet
 #[tauri::command]
 async fn packup() -> String {
 	println!("packing up sensitive info");
@@ -876,7 +876,7 @@ async fn packup() -> String {
 
 }
 
-//decrypt & unpack the contents of an encrypted directory on the current SD card into the sensitive directory in ramdisk
+//decrypt & unpack the contents of an encrypted directory on the current Hardware Wallet into the sensitive directory in ramdisk
 #[tauri::command]
 async fn unpack() -> String {
 	println!("unpacking sensitive info");
@@ -951,7 +951,7 @@ async fn create_ramdisk() -> String {
 			return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 
-		//make the target dir for encrypted payload to or from SD cards
+		//make the target dir for encrypted payload to or from Hardware Wallets
 		let output = Command::new("mkdir").args(["/mnt/ramdisk/sensitive"]).output().unwrap();
 		if !output.status.success() {
 			return format!("ERROR in Creating /mnt/ramdiskamdisk/sensitive = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1100,29 +1100,29 @@ async fn mount_internal() -> String {
 }
 
 #[tauri::command]
-//install dependencies manually from files on each of the offline SD cards (2-7)
+//install dependencies manually from files on each of the offline Hardware Wallets (2-7)
 async fn install_sd_deps() -> String {
 	println!("installing deps required by SD card");
-	//these are required on all 7 SD cards
-	//install sd dependencies for genisoimage
+	//these are required on all 7 Hardware Wallets
+	//install HW dependencies for genisoimage
 	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in installing genisoimage {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 
-	//install sd dependencies for ssss
+	//install HW dependencies for ssss
 	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/ssss_0.5-5_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in installing ssss {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 
-	//install sd dependencies for wodim
+	//install HW dependencies for wodim
 	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in installing wodim {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 
-	format!("SUCCESS in installing SD dependencies")
+	format!("SUCCESS in installing HW dependencies")
 }
 
 #[tauri::command]
@@ -1168,15 +1168,15 @@ async fn distribute_shards_sd2() -> String {
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard2.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		return format!("ERROR in distributing shards to sd2 = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in distributing shards to HW 2 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard10.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		return format!("ERROR in distributing shards to sd2 = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in distributing shards to HW 2 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	format!("SUCCESS in distributing shards to SD 2")
+	format!("SUCCESS in distributing shards to HW 2")
 }
 
 #[tauri::command]
@@ -1186,15 +1186,15 @@ async fn distribute_shards_sd3() -> String {
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard3.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		return format!("ERROR in distributing shards to sd3 = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in distributing shards to HW 3 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard9.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		return format!("ERROR in distributing shards to sd3 = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in distributing shards to HW 3 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	format!("SUCCESS in distributing shards to SD 3")
+	format!("SUCCESS in distributing shards to HW 3")
 }
 
 #[tauri::command]
@@ -1204,15 +1204,15 @@ async fn distribute_shards_sd4() -> String {
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard4.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		return format!("ERROR in distributing shards to sd4 = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in distributing shards to HW 4 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard8.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		return format!("ERROR in distributing shards to sd4 = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in distributing shards to HW 4 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	format!("SUCCESS in distributing shards to SD 4")
+	format!("SUCCESS in distributing shards to HW 4")
 }
 
 #[tauri::command]
@@ -1222,10 +1222,10 @@ async fn distribute_shards_sd5() -> String {
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard5.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		return format!("ERROR in distributing shards to sd5 = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in distributing shards to HW 5 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	format!("SUCCESS in distributing shards to SD 5")
+	format!("SUCCESS in distributing shards to HW 5")
 }
 
 #[tauri::command]
@@ -1235,10 +1235,10 @@ async fn distribute_shards_sd6() -> String {
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard6.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		return format!("ERROR in distributing shards to sd6 = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in distributing shards to HW 6 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	format!("SUCCESS in distributing shards to SD 6")
+	format!("SUCCESS in distributing shards to HW 6")
 }
 
 #[tauri::command]
@@ -1248,10 +1248,10 @@ async fn distribute_shards_sd7() -> String {
 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard7.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
-		return format!("ERROR in distributing shards to sd7 = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in distributing shards to HW 7 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	format!("SUCCESS in distributing shards to SD 7")
+	format!("SUCCESS in distributing shards to HW 7")
 }
 
 //create arctica descriptors
@@ -1273,7 +1273,7 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
        println!("pushed key");
    }
 
-   //push the 4 time machine public keys into the key_array vector, only on SD 1.
+   //push the 4 time machine public keys into the key_array vector, only on HW 1.
 	println!("pushing 4 time machine pubkeys into key array");
 	for i in 1..=4{
 		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key from file".to_string()+&(i.to_string())));
@@ -1368,10 +1368,10 @@ async fn create_descriptor(sdcard: String) -> Result<String, String> {
 
 }
 
-//Create a backup directory of the currently inserted SD card
+//Create a backup directory of the currently inserted Hardware Wallet
 #[tauri::command]
 async fn create_backup(number: String) -> String {
-	println!("creating backup directory of the current SD");
+	println!("creating backup directory of the current HW");
 		//make backup dir for iso
 		Command::new("mkdir").args(["/mnt/ramdisk/backup"]).output().unwrap();
 		//Copy shards to backup
@@ -1395,13 +1395,13 @@ async fn create_backup(number: String) -> String {
 			return format!("ERROR in creating backup with creating iso= {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 	
-		format!("SUCCESS in creating backup of current SD")
+		format!("SUCCESS in creating backup of current HW")
 }
 
 //make the existing backup directory into an iso and burn to the currently inserted CD/DVD
 #[tauri::command]
 async fn make_backup(number: String) -> String {
-	println!("making backup iso of the current SD and burning to CD");
+	println!("making backup iso of the current HW and burning to CD");
 	// sleep for 4 seconds
 	Command::new("sleep").args(["4"]).output().unwrap();
 	//wipe the CD
@@ -1420,7 +1420,7 @@ async fn make_backup(number: String) -> String {
 		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 
-	format!("SUCCESS in making backup of current SD")
+	format!("SUCCESS in making backup of current HW")
 }
 
 //start bitcoin core daemon
@@ -1428,7 +1428,7 @@ async fn make_backup(number: String) -> String {
 async fn start_bitcoind() -> String {
 	//enable networking 
 	//the only time this  block should be required is immediately following initial setup
-	//networing is force disabled for key generation on all SD cards. 
+	//networing is force disabled for key generation on all Hardware Wallets. 
 	let output = Command::new("sudo").args(["nmcli", "networking", "on"]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -1569,7 +1569,7 @@ async fn check_for_masterkey() -> String {
 }
 
 #[tauri::command]
-//this fn is used to store decryption shards gathered from various SD cards to eventually be reconstituted into a masterkey when attempting to log in manually
+//this fn is used to store decryption shards gathered from various Hardware Wallets to eventually be reconstituted into a masterkey when attempting to log in manually
 async fn recovery_initiate() -> String {
 	//create the CDROM dir if it does not already exist
 	let a = std::path::Path::new("/mnt/ramdisk/CDROM").exists();
@@ -1585,10 +1585,10 @@ async fn recovery_initiate() -> String {
 	if !output.status.success() {
 		return format!("ERROR in creating recovery CD, with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-	//collect shards from SD card for export to transfer CD
+	//collect shards from Hardware Wallets for export to transfer CD
 	let output = Command::new("cp").args(["-R", &(get_home()+"/shards"), "/mnt/ramdisk/CDROM/shards"]).output().unwrap();
 	if !output.status.success() {
-    	return format!("ERROR in creating recovery CD with copying shards from SD = {}", std::str::from_utf8(&output.stderr).unwrap());
+    	return format!("ERROR in creating recovery CD with copying shards from HW = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 	//create iso from transferCD dir
 	let output = Command::new("genisoimage").args(["-r", "-J", "-o", "/mnt/ramdisk/transferCD.iso", "/mnt/ramdisk/CDROM"]).output().unwrap();
