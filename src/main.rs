@@ -230,9 +230,9 @@ struct CustomGetTransactionResultDetail {
 
 #[tauri::command]
 //retrieve the current transaction history for the immediate wallet
-async fn get_transactions(wallet: String, sdcard:String) -> Result<String, String> {
+async fn get_transactions(wallet_name: String, hw_number:String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
    let transactions: Vec<ListTransactionResult> = match Client.list_transactions(None, None, None, Some(true)) {
 	Ok(tx) => tx,
 	Err(err) => return Ok(format!("{}", err.to_string()))
@@ -309,10 +309,10 @@ async fn get_transactions(wallet: String, sdcard:String) -> Result<String, Strin
 #[tauri::command]
 //generate a PSBT for the immediate wallet
 //will require additional logic to spend when under decay threshold
-//currently only generates a PSBT for Key 1 and Key 2, which are SD 1 and SD 2 respectively
-async fn generate_psbt(wallet: String, sdcard:String, recipient: &str, amount: f64, fee: u64) -> Result<String, String> {
+//currently only generates a PSBT for Key 1 and Key 2, which are HW 1 and HW 2 respectively
+async fn generate_psbt(wallet_name: String, hw_number:String, recipient: &str, amount: f64, fee: u64) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
    //create the directory where the PSBT will live if it does not exist
    let a = std::path::Path::new("/mnt/ramdisk/psbt").exists();
    if a == false{
@@ -397,7 +397,7 @@ let change_arg = json!({
 let locktime = "0";
 
 let psbt_output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli"))
-.args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), 
+.args([&("-rpcwallet=".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), 
 "walletcreatefundedpsbt", 
 &json_input.to_string(), //empty array
 &json_output.to_string(), //receive address & output amount
