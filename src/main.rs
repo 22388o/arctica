@@ -683,9 +683,9 @@ async fn init_iso() -> String {
 #[tauri::command]
 async fn create_bootable_usb(number: String, setup: String) -> String {
 	//write device type to config, values provided by front end
-    write("type".to_string(), "sdcard".to_string());
+    write("type".to_string(), "hardwareWallet".to_string());
 	//write HW number to config, values provided by front end
-    write("sdNumber".to_string(), number.to_string());
+    write("hwNumber".to_string(), number.to_string());
 	//write current setup step to config, values provided by front end
     write("setupStep".to_string(), setup.to_string());
 	println!("creating bootable ubuntu device writing config...HW {} Setupstep {}", number, setup);
@@ -1101,7 +1101,7 @@ async fn mount_internal() -> String {
 
 #[tauri::command]
 //install dependencies manually from files on each of the offline Hardware Wallets (2-7)
-async fn install_sd_deps() -> String {
+async fn install_hw_deps() -> String {
 	println!("installing deps required by Hardware Wallet");
 	//these are required on all 7 Hardware Wallets
 	//install HW dependencies for genisoimage
@@ -1162,7 +1162,7 @@ async fn refresh_cd() -> String {
 
 //The following "distribute_shards" fuctions are for distributing encryption key shards to each HW 2-7
 #[tauri::command]
-async fn distribute_shards_sd2() -> String {
+async fn distribute_shards_hw2() -> String {
 	//create local shards dir
 	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
 
@@ -1180,7 +1180,7 @@ async fn distribute_shards_sd2() -> String {
 }
 
 #[tauri::command]
-async fn distribute_shards_sd3() -> String {
+async fn distribute_shards_hw3() -> String {
 	//create local shards dir
 	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
 
@@ -1198,7 +1198,7 @@ async fn distribute_shards_sd3() -> String {
 }
 
 #[tauri::command]
-async fn distribute_shards_sd4() -> String {
+async fn distribute_shards_hw4() -> String {
 	//create local shards dir
 	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
 
@@ -1216,7 +1216,7 @@ async fn distribute_shards_sd4() -> String {
 }
 
 #[tauri::command]
-async fn distribute_shards_sd5() -> String {
+async fn distribute_shards_hw5() -> String {
 	//create local shards dir
 	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
 
@@ -1229,7 +1229,7 @@ async fn distribute_shards_sd5() -> String {
 }
 
 #[tauri::command]
-async fn distribute_shards_sd6() -> String {
+async fn distribute_shards_hw6() -> String {
 	//create local shards dir
 	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
 
@@ -1242,7 +1242,7 @@ async fn distribute_shards_sd6() -> String {
 }
 
 #[tauri::command]
-async fn distribute_shards_sd7() -> String {
+async fn distribute_shards_hw7() -> String {
 	//create local shards dir
 	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
 
@@ -1766,9 +1766,9 @@ async fn export_psbt(progress: String) -> String{
 }
 
 #[tauri::command]
-async fn sign_psbt(wallet: String, sdcard: String, progress: String) -> Result<String, String>{
+async fn sign_psbt(wallet_name: String, hw_number: String, progress: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
 	//TODO
 	//import the psbt from ramdisk (perhaps break this into a seperate function? maybe not because it has to be used within scope)...but potentially we should analyze before signing
 	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
@@ -1810,9 +1810,9 @@ async fn sign_psbt(wallet: String, sdcard: String, progress: String) -> Result<S
 }
 
 #[tauri::command]
-async fn finalize_psbt(wallet: String, sdcard: String) -> Result<String, String>{
+async fn finalize_psbt(wallet_name: String, hw_number: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
 	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
 	//convert result to valid base64
 	let psbt: WalletProcessPsbtResult = match serde_json::from_str(&psbt_str) {
@@ -1834,9 +1834,9 @@ async fn finalize_psbt(wallet: String, sdcard: String) -> Result<String, String>
 }
 
 #[tauri::command]
-async fn broadcast_tx(wallet: String, sdcard: String) -> Result<String, String>{
+async fn broadcast_tx(wallet_name: String, hw_number: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
 	//read the psbt from the transfer CD
 	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
 	//convert result to valid base64
@@ -1867,9 +1867,9 @@ async fn broadcast_tx(wallet: String, sdcard: String) -> Result<String, String>{
 
 //used to decode a fully signed TX...might be able to remove the
 #[tauri::command]
-async fn decode_raw_tx(wallet: String, sdcard: String) -> Result<String, String>{
+async fn decode_raw_tx(wallet_name: String, hw_number: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+&sdcard.to_string()), auth).expect("could not connect to bitcoin core");
+    let Client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
 	//read the psbt from the transfer CD
 	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
 	//convert result to valid base64
@@ -1978,14 +1978,14 @@ fn main() {
         create_ramdisk,
         packup,
         unpack,
-        install_sd_deps,
+        install_hw_deps,
         refresh_cd,
-        distribute_shards_sd2,
-        distribute_shards_sd3,
-        distribute_shards_sd4,
-        distribute_shards_sd5,
-        distribute_shards_sd6,
-        distribute_shards_sd7,
+        distribute_shards_hw2,
+        distribute_shards_hw3,
+        distribute_shards_hw4,
+        distribute_shards_hw5,
+        distribute_shards_hw6,
+        distribute_shards_hw7,
     	create_descriptor,
         create_backup,
         make_backup,
