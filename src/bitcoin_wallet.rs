@@ -185,8 +185,6 @@ pub fn build_med_descriptor(keys: &Vec<String>, hw_number: &String) -> Result<St
 	println!("for years block height: {}", four_years_block_height);
 	let four_years = start_time_block_height + four_years_block_height;
 	println!("four years: {}", four_years);
-	//establish 1 month in estimated block height change
-    let month = 4383;
 	println!("reading xpriv");
 	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
 	println!("{}", xpriv);
@@ -354,7 +352,7 @@ pub async fn get_balance(wallet_name:String, hw_number:String) -> Result<String,
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
 	//get wallet balance
-	let balance = match client.get_balance(None, Some(true)){
+	match client.get_balance(None, Some(true)){
 		Ok(bal) => {
 			//split string into a vec and extract the number only without the BTC unit
 			let bal_output = bal.to_string();
@@ -421,15 +419,14 @@ pub async fn get_transactions(wallet_name: String, hw_number:String) -> Result<S
 			trusted: tx.trusted,
 			comment: tx.comment,
 		};
-
-		//check if the address is owned by the wallet, if so, assume change input/output and hide from the display
-		let addr: Address = tx.detail.address.unwrap();
-		let ismine_res = client.get_address_info(&addr);
-		let ismine = match ismine_res{
-			Ok(res)=>res,
-			Err(err)=>return Ok(format!("{}", err.to_string()))
-		};
 		//TODO commented out code below is not working as intended, was hoping to use it to filter out change inputs/outputs
+		//check if the address is owned by the wallet, if so, assume change input/output and hide from the display
+		// let addr: Address = tx.detail.address.unwrap();
+		// let ismine_res = client.get_address_info(&addr);
+		// let ismine = match ismine_res{
+		// 	Ok(res)=>res,
+		// 	Err(err)=>return Ok(format!("{}", err.to_string()))
+		// };
 		// if ismine.is_mine == Some(false)||Some(true){
 			custom_transactions.push(custom_tx);
 			x += 1;
