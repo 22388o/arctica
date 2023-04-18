@@ -535,7 +535,7 @@ async fn convert_to_transfer_cd() -> String {
 // //for testing only
 // async fn init_test() -> String {
 //     let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-//     let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+//     let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 //     let mut keys = Vec::new();
 //     let (mut xpriv, mut xpub) = generate_keypair().expect("could not gen keypair");
 //     keys.push(xpub);
@@ -559,14 +559,11 @@ async fn convert_to_transfer_cd() -> String {
 //     keys.push(xpub);
 //     (xpriv, xpub) = generate_keypair().expect("could not gen keypair");
 //     keys.push(xpub);
-//     let desc = build_high_descriptor(&Client, &keys).unwrap();
+//     let desc = build_high_descriptor(&client, &keys).unwrap();
 //     format!("testing {} {}", desc, desc.sanity_check().unwrap() == ())
 // }
 
 fn main() {
-    let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let Client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-
   	tauri::Builder::default()
 	//export all tauri functions to be handled by the front end
   	.manage(TauriState(Mutex::new(None))) 

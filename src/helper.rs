@@ -82,22 +82,22 @@ pub fn is_dir_empty(path: &str) -> bool {
 
 //used to store keypairs & descriptors as a file
 pub fn store_string(string: String, file_name: &String) -> Result<String, String> {
-	let mut fileRef = match std::fs::File::create(file_name) {
+	let mut file_ref = match std::fs::File::create(file_name) {
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
 	};
-	fileRef.write_all(&string.as_bytes());
+	file_ref.write_all(&string.as_bytes());
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
 //used to store the generated PSBT as a file
 pub fn store_psbt(psbt: &WalletProcessPsbtResult, file_name: String) -> Result<String, String> {
-    let mut fileRef = match std::fs::File::create(file_name) {
+    let mut file_ref = match std::fs::File::create(file_name) {
         Ok(file) => file,
         Err(err) => return Err(err.to_string()),
     };
     let psbt_json = to_string(&psbt).unwrap();
-    fileRef.write_all(&psbt_json.to_string().as_bytes());
+    file_ref.write_all(&psbt_json.to_string().as_bytes());
     Ok(format!("SUCCESS stored with no problems"))
  }
 
