@@ -41,8 +41,8 @@ use std::mem;
 use base64::decode;
 
 //import functions from helper
-use crate::helper::{get_user, print_rust, get_home, is_dir_empty, 
-	copy_shards_to_ramdisk, write, check_cd_mount, get_uuid, generate_keypair, 
+use crate::helper::{get_user, get_home, is_dir_empty, 
+	write, check_cd_mount, get_uuid, generate_keypair, 
 	store_string, store_psbt, get_descriptor_checksum, retrieve_start_time, 
     retrieve_start_time_integer
 };

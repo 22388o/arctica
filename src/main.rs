@@ -48,8 +48,8 @@ use base64::decode;
 //import functions from helper.rs
 mod helper;
 use helper::{
-	get_user, print_rust, type_of, get_home, is_dir_empty, 
-	copy_shards_to_ramdisk, write, check_cd_mount, get_uuid, generate_keypair, 
+	get_user, get_home, is_dir_empty, 
+	write, check_cd_mount, get_uuid, generate_keypair, 
 	store_string, store_psbt, get_descriptor_checksum, retrieve_start_time, 
 	retrieve_start_time_integer
 };

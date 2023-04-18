@@ -45,19 +45,6 @@ pub fn get_user() -> String {
 	home_dir().unwrap().to_str().unwrap().to_string().split("/").collect::<Vec<&str>>()[2].to_string()
 }
 
-//only useful when running the application in a dev envrionment
-//prints & error messages must be passed to the front end in a promise when running from a precompiled binary
-pub fn print_rust(data: &str) -> String {
-	println!("input = {}", data);
-	format!("completed with no problems")
-}
-
-//determine the data type of the provided variable
-pub fn type_of<T>(_: &T) -> &'static str{
-	type_name::<T>()
-}
-
-
 //get the current $HOME path
 pub fn get_home() -> String {
 	home_dir().unwrap().to_str().unwrap().to_string()
@@ -114,21 +101,6 @@ pub fn store_psbt(psbt: &WalletProcessPsbtResult, file_name: String) -> Result<S
     Ok(format!("SUCCESS stored with no problems"))
  }
 
-//copy any shards potentially on the recovery CD to ramdisk
-pub fn copy_shards_to_ramdisk() {
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard1.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard2.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard3.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard4.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard5.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard6.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard7.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard8.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard9.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard10.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-	Command::new("cp").args([&("/media/".to_string()+&get_user()+"/CDROM/shards/shard11.txt"), "/mnt/ramdisk/shards"]).output().unwrap();
-}
-
 //update the config.txt with the provided params
 pub fn write(name: String, value:String) {
 	let mut config_file = home_dir().expect("could not get home directory");
@@ -169,16 +141,15 @@ pub fn write(name: String, value:String) {
     file.write_all(newfile.as_bytes()).expect("Could not rewrite file");
 }
 
-
 //used to check the mountpoint of /media/$USER/CDROM
 pub fn check_cd_mount() -> std::string::String {
-	let mut mounted = "false";
+    //find the mountpoint of /media/user/CDROM
 	let output = Command::new("df").args(["-h", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
 	if !output.status.success() {
 		let er = "error";
 		return format!("{}", er)
 	}
-		
+    //obtain the stdout of the result from above
 	let df_output = std::str::from_utf8(&output.stdout).unwrap();
 	//use a closure to split the output of df -h /media/$USER/CDROM by whitespace and \n
 	let split = df_output.split(|c| c == ' ' || c == '\n');
@@ -189,30 +160,32 @@ pub fn check_cd_mount() -> std::string::String {
 		println!("{}", i);
 		//if any of the lines contain /dev/sr0 we know that /media/$USER/CDROM is mounted correctly
 		if i == "/dev/sr0"{
-			mounted = "true";
 			return format!("success")
-		}
+		}else{
+            continue
+        }
 	}
-	if mounted == "false"{
-		//check if filepath exists
-		let b = std::path::Path::new(&("/media/".to_string()+&get_user()+"/CDROM")).exists();
-		//if CD mount path does not exist...create it and mount the CD
-		if b == false{
-			let output = Command::new("sudo").args(["mkdir", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
-				if !output.status.success() {
-					return format!("error");
-				}
-			let output = Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
-			if !output.status.success() {
-				return format!("error");
-			}
-		//if CD mount path already exists...mount the CD
-		} else {
-			let output = Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
-				if !output.status.success() {
-					return format!("error");
-				}
-		}
+    //check if filepath exists
+    let b = std::path::Path::new(&("/media/".to_string()+&get_user()+"/CDROM")).exists();
+    //if CD mount path does not exist...create it and mount the CD
+    if b == false{
+        //create the dir
+        let output = Command::new("sudo").args(["mkdir", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
+            if !output.status.success() {
+                return format!("error");
+            }
+        //mount the CDROM
+        let output = Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
+        if !output.status.success() {
+            return format!("error");
+        }
+    //if CD mount path already exists...mount the CD
+    } else {
+        //mount the CDROM
+        let output = Command::new("sudo").args(["mount", "/dev/sr0", &("/media/".to_string()+&get_user()+"/CDROM")]).output().unwrap();
+            if !output.status.success() {
+                return format!("error");
+            }
 	}
 	format!("success")
 }
@@ -238,7 +211,6 @@ pub fn get_descriptor_checksum(descriptor: String) -> String {
     println!("output: {:?}", output);
     format!("{}", output)
 }
-
 
 //converts a unix timestamp to block height
 pub fn unix_to_block_height(unix_timestamp: i64) -> i64 {
