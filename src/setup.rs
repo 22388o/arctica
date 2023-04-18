@@ -246,11 +246,11 @@ pub async fn init_iso() -> String {
 	let start_time_output = std::str::from_utf8(&start_time.stdout).unwrap();
 	println!("capturing and storing current unix timestamp");
 	//capture and store current unix timestamp
-	let mut fileRef = match std::fs::File::create(&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/start_time")) {
+	let mut file_ref = match std::fs::File::create(&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/start_time")) {
 		Ok(file) => file,
 		Err(err) => return format!("Could not create start time file"),
 	};
-	fileRef.write_all(&start_time_output.to_string().as_bytes());
+	file_ref.write_all(&start_time_output.to_string().as_bytes());
 	format!("SUCCESS in init_iso")
 }
 
