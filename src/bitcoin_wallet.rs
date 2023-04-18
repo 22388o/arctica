@@ -60,11 +60,11 @@ struct CustomGetTransactionResultDetail {
 //RPC command
 // ./bitcoin-cli createwallet "wallet name" true true
 //creates a blank wallet
-pub fn create_wallet(wallet: String, sdcard: &String) -> Result<String, String> {
+pub fn create_wallet(wallet: String, hw_number: &String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 	//create blank wallet
-	let output = match client.create_wallet(&(wallet.to_string()+"_wallet"+&sdcard.to_string()), None, Some(true), None, None) {
+	let output = match client.create_wallet(&(wallet.to_string()+"_wallet"+&hw_number.to_string()), None, Some(true), None, None) {
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
 	};
@@ -72,7 +72,7 @@ pub fn create_wallet(wallet: String, sdcard: &String) -> Result<String, String> 
 }
 
 //builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
-pub fn build_high_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
+pub fn build_high_descriptor(keys: &Vec<String>, hw_number: &String) -> Result<String, String> {
 	println!("calculating 4 year block time span");
 	//retrieve start time from file
     let start_time = retrieve_start_time_integer(); 
@@ -89,81 +89,81 @@ pub fn build_high_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<Stri
     let month = 4383;
 	println!("reading xpriv");
 	//read xpriv from file to string
-	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(sdcard.to_string()))).expect(&("Error reading public_key from file".to_string()+&(sdcard.to_string())));
+	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
 	println!("{}", xpriv);
 	//determine how to format the descriptor based on which HW the user is currently using
-	if sdcard == "1"{
-		println!("Found sdcard = 1");
+	if hw_number == "1"{
+		println!("Found HW = 1");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", xpriv, keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output: String = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if sdcard == "2"{
-		println!("Found sdcard = 2");
+	}else if hw_number == "2"{
+		println!("Found HW = 2");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], xpriv, keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if sdcard == "3"{
-		println!("Found sdcard = 3");
+	}else if hw_number == "3"{
+		println!("Found HW = 3");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], xpriv, keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if sdcard == "4"{
-		println!("Found sdcard = 4");
+	}else if hw_number == "4"{
+		println!("Found HW = 4");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], xpriv, keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if sdcard == "5"{
-		println!("Found sdcard = 5");
+	}else if hw_number == "5"{
+		println!("Found HW = 5");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], xpriv, keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if sdcard == "6"{
-		println!("Found sdcard = 6");
+	}else if hw_number == "6"{
+		println!("Found HW = 6");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], xpriv, keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if sdcard == "7"{
-		println!("Found sdcard = 7");
+	}else if hw_number == "7"{
+		println!("Found HW = 7");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], xpriv, four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if sdcard == "timemachine1"{
-		println!("Found sdcard = timemachine1");
-		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(sdcard.to_string()))).expect(&("Error reading public_key from file".to_string()+&(sdcard.to_string())));
+	}else if hw_number == "timemachine1"{
+		println!("Found HW = timemachine1");
+		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), timemachinexpriv, keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
-	}else if sdcard == "timemachine2"{
-		println!("Found sdcard = timemachine2");
-		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(sdcard.to_string()))).expect(&("Error reading public_key from file".to_string()+&(sdcard.to_string())));
+	}else if hw_number == "timemachine2"{
+		println!("Found HW = timemachine2");
+		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], timemachinexpriv, keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
-	}else if sdcard == "timemachine3"{
-		println!("Found sdcard = timemachine3");
-		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(sdcard.to_string()))).expect(&("Error reading public_key from file".to_string()+&(sdcard.to_string())));
+	}else if hw_number == "timemachine3"{
+		println!("Found HW = timemachine3");
+		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], timemachinexpriv, keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
-	}else if sdcard == "timemachine4"{
-		println!("Found sdcard = timemachine4");
-		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(sdcard.to_string()))).expect(&("Error reading public_key from file".to_string()+&(sdcard.to_string())));
+	}else if hw_number == "timemachine4"{
+		println!("Found HW = timemachine4");
+		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], timemachinexpriv, four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
 	}else{
-		println!("no valid sdcard param found, creating read only desc");
+		println!("no valid hw_number param found, creating read only desc");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("Read only DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
@@ -173,7 +173,7 @@ pub fn build_high_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<Stri
 }
 
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
-pub fn build_med_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
+pub fn build_med_descriptor(keys: &Vec<String>, hw_number: &String) -> Result<String, String> {
 	println!("calculating 4 year block time span");
     let start_time = retrieve_start_time_integer(); 
 	println!("start time: {}", start_time);
@@ -188,53 +188,53 @@ pub fn build_med_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<Strin
 	//establish 1 month in estimated block height change
     let month = 4383;
 	println!("reading xpriv");
-	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(sdcard.to_string()))).expect(&("Error reading public_key from file".to_string()+&(sdcard.to_string())));
+	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
 	println!("{}", xpriv);
 	//determine how to format the descriptor based on which HW the user is currently using
-	if sdcard == "1"{
-		println!("Found sdcard = 1");
+	if hw_number == "1"{
+		println!("Found HW = 1");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", xpriv, keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if sdcard == "2"{
-		println!("Found sdcard = 2");
+	}else if hw_number == "2"{
+		println!("Found HW = 2");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], xpriv, keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if sdcard == "3"{
-		println!("Found sdcard = 3");
+	}else if hw_number == "3"{
+		println!("Found HW = 3");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], xpriv, keys[3], keys[4], keys[5], keys[6], four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if sdcard == "4"{
-		println!("Found sdcard = 4");
+	}else if hw_number == "4"{
+		println!("Found HW = 4");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], xpriv, keys[4], keys[5], keys[6], four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if sdcard == "5"{
-		println!("Found sdcard = 5");
+	}else if hw_number == "5"{
+		println!("Found HW = 5");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], xpriv, keys[5], keys[6], four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if sdcard == "6"{
-		println!("Found sdcard = 6");
+	}else if hw_number == "6"{
+		println!("Found HW = 6");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], xpriv, keys[3], keys[4], xpriv, keys[6], four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if sdcard == "7"{
-		println!("Found sdcard = 7");
+	}else if hw_number == "7"{
+		println!("Found HW = 7");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], xpriv, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else{
-		println!("no valid sdcard param found, creating read only desc");
+		println!("no valid hw_number param found, creating read only desc");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
@@ -245,49 +245,49 @@ pub fn build_med_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<Strin
 //builds the low security descriptor, 1 of 7 thresh, used for tripwire
 //TODO this needs to use its own special keypair or it will be a privacy leak once implemented
 //TODO this may not need child key designators /* because it seems to use hardened keys but have not tested this descriptor yet
-	pub fn build_low_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<String, String> {
+	pub fn build_low_descriptor(keys: &Vec<String>, hw_number: &String) -> Result<String, String> {
 		println!("reading xpriv");
-		let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(sdcard.to_string()))).expect(&("Error reading public_key from file".to_string()+&(sdcard.to_string())));
+		let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
 		println!("{}", xpriv);
 		//determine how to format the descriptor based on which HW the user is currently using
-		if sdcard == "1"{
-			println!("Found sdcard = 1");
+		if hw_number == "1"{
+			println!("Found HW = 1");
 			let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", xpriv, keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
 			println!("DESC: {}", descriptor);
 			let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-		}else if sdcard == "2"{
-			println!("Found sdcard = 2");
+		}else if hw_number == "2"{
+			println!("Found HW = 2");
 			let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], xpriv, keys[2], keys[3], keys[4], keys[5], keys[6]);
 			println!("DESC: {}", descriptor);
 			let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-		}else if sdcard == "3"{
-			println!("Found sdcard = 3");
+		}else if hw_number == "3"{
+			println!("Found HW = 3");
 			let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], xpriv, keys[3], keys[4], keys[5], keys[6]);
 			println!("DESC: {}", descriptor);
 			let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-		}else if sdcard == "4"{
-			println!("Found sdcard = 4");
+		}else if hw_number == "4"{
+			println!("Found HW = 4");
 			let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], xpriv, keys[4], keys[5], keys[6]);
 			println!("DESC: {}", descriptor);
 			let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-		}else if sdcard == "5"{
-			println!("Found sdcard = 5");
+		}else if hw_number == "5"{
+			println!("Found HW = 5");
 			let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], xpriv, keys[5], keys[6]);
 			println!("DESC: {}", descriptor);
 			let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-		}else if sdcard == "6"{
-			println!("Found sdcard = 6");
+		}else if hw_number == "6"{
+			println!("Found HW = 6");
 			let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], xpriv, keys[6]);
 			println!("DESC: {}", descriptor);
 			let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-		}else if sdcard == "7"{
-			println!("Found sdcard = 7");
+		}else if hw_number == "7"{
+			println!("Found HW = 7");
 			let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], xpriv);
 			println!("DESC: {}", descriptor);
 			let output = get_descriptor_checksum(descriptor);
@@ -307,11 +307,11 @@ pub fn build_med_descriptor(keys: &Vec<String>, sdcard: &String) -> Result<Strin
 //'[{"desc": "<descriptor goes here>", "active":true, "range":[0,100], "next_index":0, "timestamp": <start_time_timestamp>}]'
 //acceptable params here are "low", "immediate", "delayed"
 //TODO timestamp is not currently fucntional due to a type mismatch, timestamp within the ImportDescriptors struct wants bitcoin::timelock:time
-pub fn import_descriptor(wallet: String, sdcard: &String) -> Result<String, String> {
+pub fn import_descriptor(wallet: String, hw_number: &String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+ &(sdcard.to_string())), auth).expect("could not connect to bitcoin core");
+    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+ &(hw_number.to_string())), auth).expect("could not connect to bitcoin core");
 	//read the descriptor to a string from file
-	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor" + &(sdcard.to_string()))).expect("Error reading reading descriptor from file");
+	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor" + &(hw_number.to_string()))).expect("Error reading reading descriptor from file");
 	//obtain the start time from file
 	let start_time = retrieve_start_time();
 	//import the descriptors into the wallet file
