@@ -930,28 +930,29 @@ pub async fn decode_raw_tx(wallet_name: String, hw_number: String) -> Result<Str
 
 	let clone = decoded.vout[0].clone();
 	let address: String = clone.script_pub_key.address.unwrap().to_string();
+	//TODO this is broken sometimes, unclear as to why
 	let amount = clone.value;
-
-	// Calculate the total value of the transaction outputs
-	let output_total: Amount = decoded
-		.vout
-		.iter()
-		.filter_map(|output| Some(output.value))
-		.sum();
+	//TODO the fee calc logic is currently broken
+	// // Calculate the total value of the transaction outputs
+	// let output_total: Amount = decoded
+	// 	.vout
+	// 	.iter()
+	// 	.filter_map(|output| Some(output.value))
+	// 	.sum();
 	
-	// Calculate the total value of the transaction inputs
-	let input_total: Amount = decoded
-		.vin
-		.iter()
-		.filter_map(|input| {
-			// Get the transaction output for this input
-			// Find the output corresponding to this input index
-			decoded.vout
-				.iter()
-				.find(|out| out.n == input.vout.unwrap())
-				.map(|out| out.value)
-		})
-		.sum();
+	// // Calculate the total value of the transaction inputs
+	// let input_total: Amount = decoded
+	// 	.vin
+	// 	.iter()
+	// 	.filter_map(|input| {
+	// 		// Get the transaction output for this input
+	// 		// Find the output corresponding to this input index
+	// 		decoded.vout
+	// 			.iter()
+	// 			.find(|out| out.n == input.vout.unwrap())
+	// 			.map(|out| out.value)
+	// 	})
+	// 	.sum();
 	
 	// Calculate the total fees for the transaction
 	let fee = 0;
