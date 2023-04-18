@@ -200,7 +200,7 @@ pub fn retrieve_start_time() -> Timestamp {
         //read the start_time file to a string
 		let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
         //parse the start_time
-		let result = match start_time.trim().parse() {
+		match start_time.trim().parse() {
 			Ok(result) => 
 			return Timestamp::Time(result),
 			Err(..) => 

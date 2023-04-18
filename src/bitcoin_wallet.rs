@@ -1,6 +1,6 @@
 use bitcoincore_rpc::RpcApi;
 use bitcoincore_rpc::bitcoincore_rpc_json::{AddressType, ImportDescriptors};
-use bitcoincore_rpc::bitcoincore_rpc_json::{WalletProcessPsbtResult, ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtOptions, WalletCreateFundedPsbtResult, FinalizePsbtResult};
+use bitcoincore_rpc::bitcoincore_rpc_json::{WalletProcessPsbtResult, ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtResult};
 use bitcoin;
 use bitcoin::Address;
 use bitcoin::consensus::serialize;
