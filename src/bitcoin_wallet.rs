@@ -930,7 +930,7 @@ pub async fn decode_raw_tx(wallet_name: String, hw_number: String) -> Result<Str
 	// 		// Find the output corresponding to this input index
 	// 		decoded.vout
 	// 			.iter()
-	// 			.find(|out| out.n == input.vout.unwrap())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
+	// 			.find(|out| out.n == input.vout.unwrap())
 	// 			.map(|out| out.value)
 	// 	})
 	// 	.sum();

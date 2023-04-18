@@ -4,7 +4,6 @@
 )]
 
 use bitcoincore_rpc::{Client};
-use bitcoin;
 use std::sync::{Mutex};
 use std::process::Command;
 use std::fs;
@@ -14,10 +13,8 @@ use home::home_dir;
 //import functions from helper.rs
 mod helper;
 use helper::{
-	get_user, get_home, is_dir_empty, 
-	write, check_cd_mount, get_uuid, generate_keypair, 
-	store_string, store_psbt, get_descriptor_checksum, retrieve_start_time, 
-	retrieve_start_time_integer
+	get_user, get_home, is_dir_empty, get_uuid,
+	write, check_cd_mount,
 };
 
 //import functions from setup.rs
