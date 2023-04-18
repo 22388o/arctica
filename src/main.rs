@@ -54,13 +54,14 @@ fn read() -> std::string::String {
     let mut config_file = home_dir().expect("could not get home directory");
     println!("{}", config_file.display());
     config_file.push("config.txt");
+	//read the config file in $HOME to string
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
         Err(_) => {
         	"".to_string()
         }
     };
-
+	//split the config string
     for line in contents.split("\n") {
         let parts: Vec<&str> = line.split("=").collect();
         if parts.len() == 2 {
@@ -81,7 +82,6 @@ async fn copy_cd_to_ramdisk() -> String {
 		let er = "ERROR in copy_cd_to_ramdisk: No CD inserted";
 		return format!("{}", er)
 	}
-
 	//check if CDROM is mounted at the proper filepath, if not, mount it
 	let mounted = check_cd_mount().to_string();
 	if mounted == "error" {
@@ -112,14 +112,12 @@ fn read_cd() -> std::string::String {
 		let er = "ERROR in read_CD: No CD inserted";
 		return format!("{}", er)
 	}
-
 	//check if CDROM is mounted at the proper filepath, if not, mount it
 	let mounted = check_cd_mount();
 	if mounted == "error" {
 		let er = "ERROR in read_CD: error checking CD mount";
 		return format!("{}", er)
 	}
-	
 	//check for config
     // let config_file = "/mnt/ramdisk/CDROM/config.txt";
 	let config_file = &("/media/".to_string()+&get_user()+"/CDROM/"+"config.txt");
@@ -129,7 +127,7 @@ fn read_cd() -> std::string::String {
         	"".to_string()
         }
     };
-
+	//split the config string
     for line in contents.split("\n") {
         let parts: Vec<&str> = line.split("=").collect();
         if parts.len() == 2 {
@@ -181,7 +179,6 @@ async fn eject_cd() -> String {
 	if !output.status.success() {
     	return format!("ERROR in ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
-
 	format!("SUCCESS in ejecting CD")
 }
 
@@ -191,24 +188,19 @@ async fn packup() -> String {
 	println!("packing up sensitive info");
 	//remove stale encrypted dir
 	Command::new("sudo").args(["rm", &(get_home()+"/encrypted.gpg")]).output().unwrap();
-
 	//remove stale tarball
 	Command::new("sudo").args(["rm", "/mnt/ramdisk/unecrypted.tar"]).output().unwrap();
-
 	//pack the sensitive directory into a tarball
 	let output = Command::new("tar").args(["cvf", "/mnt/ramdisk/unencrypted.tar", "/mnt/ramdisk/sensitive"]).output().unwrap();
 	if !output.status.success() {
     	return format!("ERROR in packup = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
-
 	//encrypt the sensitive directory tarball 
 	let output = Command::new("gpg").args(["--batch", "--passphrase-file", "/mnt/ramdisk/CDROM/masterkey", "--output", &(get_home()+"/encrypted.gpg"), "--symmetric", "/mnt/ramdisk/unencrypted.tar"]).output().unwrap();
 	if !output.status.success() {
     	return format!("ERROR in packup = {}", std::str::from_utf8(&output.stderr).unwrap());
     }
-
 	format!("SUCCESS in packup")
-
 }
 
 //decrypt & unpack the contents of an encrypted directory on the current Hardware Wallet into the sensitive directory in ramdisk
@@ -278,19 +270,16 @@ async fn create_ramdisk() -> String {
 		if !output.status.success() {
 			return format!("ERROR in Creating Ramdisk = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
-
 		//make the target dir for encrypted payload to or from Hardware Wallets
 		let output = Command::new("mkdir").args(["/mnt/ramdisk/sensitive"]).output().unwrap();
 		if !output.status.success() {
 			return format!("ERROR in Creating /mnt/ramdiskamdisk/sensitive = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
-
 		//make the debug.log file
 		let output = Command::new("echo").args(["/mnt/ramdisk/debug.log"]).output().unwrap();
 		if !output.status.success() {
 			return format!("ERROR in Creating debug.log = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
-
 	format!("SUCCESS in Creating Ramdisk")
 	}
 }
@@ -311,7 +300,6 @@ async fn mount_internal() -> String {
 		Command::new("udisksctl").args(["mount", "--block-device", "/dev/nvme0n1p2"]).output().unwrap();
 		//mount internal drive if SATA
 		Command::new("udisksctl").args(["mount", "--block-device", "/dev/sda2"]).output().unwrap();
-		
 		//Attempt to shut down bitcoin core
 		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli")).args(["stop"]).output().unwrap();
 		//bitcoin core shutdown fails (meaning it was not running)...
@@ -360,7 +348,6 @@ async fn mount_internal() -> String {
 		}else{
 			format!("ERROR mounting internal drive, final check failed")
 		}
-		
 	}//in the following condition, get_uuid() returns a valid uuid.
 	// So we can assume that the internal drive is already mounted
 	else {
@@ -372,6 +359,7 @@ async fn mount_internal() -> String {
 #[tauri::command]
 async fn combine_shards() -> String {
 	println!("combining shards in /mnt/ramdisk/shards");
+	//execute the combine-shards bash script
 	let output = Command::new("bash")
 		.args([get_home()+"/scripts/combine-shards.sh"])
 		.output()
@@ -444,7 +432,6 @@ async fn recovery_initiate() -> String {
 	if !output.status.success() {
 		return format!("ERROR in refreshing setupCD with ejecting CD = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
 	format!("SUCCESS in creating recovery CD")
 }
 
