@@ -1,24 +1,22 @@
 use bitcoincore_rpc::RpcApi;
-use bitcoincore_rpc::{Auth, Client, Error, RawTx};
 use bitcoincore_rpc::bitcoincore_rpc_json::{AddressType, ImportDescriptors};
-use bitcoincore_rpc::bitcoincore_rpc_json::{GetRawTransactionResult, WalletProcessPsbtResult, CreateRawTransactionInput, ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtOptions, WalletCreateFundedPsbtResult, FinalizePsbtResult};
+use bitcoincore_rpc::bitcoincore_rpc_json::{WalletProcessPsbtResult, ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtOptions, WalletCreateFundedPsbtResult, FinalizePsbtResult};
 use bitcoin;
 use bitcoin::Address;
 use bitcoin::consensus::serialize;
 use bitcoin::consensus::deserialize;
 use bitcoin::psbt::PartiallySignedTransaction;
-use bitcoin::Amount;
 use std::process::Command;
 use std::fs;
 use std::fs::File;
 use std::{time::Duration};
 use std::process::Stdio;
 use serde_json::{json};
-use serde::{Serialize, Serializer};
+use serde::{Serialize};
 
 //import functions from helper
-use crate::helper::{get_user, get_home, is_dir_empty, 
-	get_uuid, store_psbt, get_descriptor_checksum, retrieve_start_time, 
+use crate::helper::{
+	get_user, get_home, is_dir_empty, get_uuid, store_psbt, get_descriptor_checksum, retrieve_start_time, 
 	retrieve_start_time_integer, unix_to_block_height
 };
 

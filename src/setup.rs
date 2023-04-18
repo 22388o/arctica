@@ -1,50 +1,14 @@
-use bitcoincore_rpc::RpcApi;
-use bitcoincore_rpc::{Auth, Client, Error, RawTx};
-use bitcoincore_rpc::bitcoincore_rpc_json::{AddressType, ImportDescriptors, Timestamp};
-use bitcoincore_rpc::bitcoincore_rpc_json::{GetRawTransactionResult, WalletProcessPsbtResult, CreateRawTransactionInput, ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtOptions, WalletCreateFundedPsbtResult, FinalizePsbtResult};
 use bitcoin;
-use bitcoin::locktime::Time;
-use bitcoin::Address;
-use bitcoin::consensus::serialize;
-use bitcoin::consensus::deserialize;
-use bitcoin::psbt::PartiallySignedTransaction;
-use bitcoin::util::bip32::ExtendedPubKey;
-use bitcoin::util::bip32::ExtendedPrivKey;
-use bitcoin::util::amount::SignedAmount;
-use bitcoin::Amount;
-use bitcoin::Txid;
-use bitcoin::Transaction;
-use bitcoin::psbt::Psbt;
-use std::sync::{Arc, Mutex};
-use std::ops::Deref;
 use std::process::Command;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
-use std::str::FromStr;
-use std::collections::BTreeMap;
-use home::home_dir;
-use secp256k1::{rand, Secp256k1, SecretKey};
-use secp256k1::rand::Rng;
-use tauri::State;
-use std::{thread, time::Duration};
 use std::path::Path;
 use std::process::Stdio;
-use std::io::BufReader;
-use std::any::type_name;
-use std::num::ParseIntError;
-use hex;
-use serde_json::{json, to_string, Value};
-use serde::{Serialize, Serializer};
-use std::collections::HashMap;
-use std::mem;
-use base64::decode;
 
 //import functions from helper
-use crate::helper::{get_user, get_home, is_dir_empty, 
-	write, check_cd_mount, get_uuid, generate_keypair, 
-	store_string, store_psbt, get_descriptor_checksum, retrieve_start_time, 
-    retrieve_start_time_integer
+use crate::helper::{
+    get_user, get_home, write, generate_keypair, store_string,
 };
 
 use crate::bitcoin_wallet::{
