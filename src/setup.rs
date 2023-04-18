@@ -209,7 +209,7 @@ pub async fn init_iso() -> String {
 	//capture and store current unix timestamp
 	let mut file_ref = match std::fs::File::create(&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/start_time")) {
 		Ok(file) => file,
-		Err(err) => return format!("Could not create start time file"),
+		Err() => return format!("Could not create start time file"),
 	};
 	file_ref.write_all(&start_time_output.to_string().as_bytes());
 	format!("SUCCESS in init_iso")
@@ -463,6 +463,9 @@ pub async fn create_setup_cd() -> String {
 	//create setupCD config
 	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
 	let output = Command::new("echo").args(["type=setupcd" ]).stdout(file).output().unwrap();
+    if !output.status.success() {
+		return format!("ERROR in editing config.txt with setupcd type", std::str::from_utf8(&output.stderr).unwrap());
+	} 
 	//create masterkey and derive shards
 	let output = Command::new("bash").args([&(get_home()+"/scripts/create-setup-cd.sh")]).output().unwrap();
 	if !output.status.success() {
