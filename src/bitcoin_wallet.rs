@@ -698,7 +698,7 @@ pub async fn load_wallet(wallet_name: String, hw_number: String) -> Result<Strin
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 	//load the specified wallet
-	client.load_wallet(&(wallet_name.to_string()+"_wallet"+&(hw_number.to_string())));
+	client.load_wallet(&(wallet_name.to_string()+"_wallet"+&(hw_number.to_string()))).expect("could not load requested wallet");
 	//parse list_wallets in a continuous loop to verify when rescan is completed
 	loop{
 		let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());

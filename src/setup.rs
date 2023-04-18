@@ -211,7 +211,7 @@ pub async fn init_iso() -> String {
 		Ok(file) => file,
 		Err(_) => return format!("Could not create start time file"),
 	};
-	file_ref.write_all(&start_time_output.to_string().as_bytes());
+	file_ref.write_all(&start_time_output.to_string().as_bytes()).expect("could not write start_time to file");
 	format!("SUCCESS in init_iso")
 }
 
