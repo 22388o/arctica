@@ -56,7 +56,7 @@ pub fn store_string(string: String, file_name: &String) -> Result<String, String
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
 	};
-	file_ref.write_all(&string.as_bytes());
+	file_ref.write_all(&string.as_bytes()).expect("Could not write string to file");
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
@@ -67,7 +67,7 @@ pub fn store_psbt(psbt: &WalletProcessPsbtResult, file_name: String) -> Result<S
         Err(err) => return Err(err.to_string()),
     };
     let psbt_json = to_string(&psbt).unwrap();
-    file_ref.write_all(&psbt_json.to_string().as_bytes());
+    file_ref.write_all(&psbt_json.to_string().as_bytes()).expect("Could not write string to file");
     Ok(format!("SUCCESS stored with no problems"))
  }
 
