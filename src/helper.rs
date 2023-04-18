@@ -80,7 +80,7 @@ pub fn is_dir_empty(path: &str) -> bool {
 	false
 }
 
-//used to store keypairs & descriptors as a file
+//used to store a string param as a file
 pub fn store_string(string: String, file_name: &String) -> Result<String, String> {
 	let mut file_ref = match std::fs::File::create(file_name) {
 		Ok(file) => file,
@@ -90,7 +90,7 @@ pub fn store_string(string: String, file_name: &String) -> Result<String, String
 	Ok(format!("SUCCESS stored with no problems"))
 }
 
-//used to store the generated PSBT as a file
+//used to store a PSBT param as a file
 pub fn store_psbt(psbt: &WalletProcessPsbtResult, file_name: String) -> Result<String, String> {
     let mut file_ref = match std::fs::File::create(file_name) {
         Ok(file) => file,
@@ -107,14 +107,14 @@ pub fn write(name: String, value:String) {
     config_file.push("config.txt");
     let mut written = false;
     let mut newfile = String::new();
-
+    //read the config file to a string
     let contents = match fs::read_to_string(&config_file) {
         Ok(ct) => ct,
         Err(_) => {
             "".to_string()       
         }
     };
-
+    //split the contents of the string
     for line in contents.split("\n") {
         let parts: Vec<&str> = line.split("=").collect();
         if parts.len() == 2 {
@@ -130,14 +130,13 @@ pub fn write(name: String, value:String) {
            newfile += "\n";
         }
     }
-
     if !written {
         newfile += &name;
         newfile += "=";
         newfile += &value;
     }
-
     let mut file = File::create(&config_file).expect("Could not Open file");
+    //write the contents to the config file
     file.write_all(newfile.as_bytes()).expect("Could not rewrite file");
 }
 
@@ -190,7 +189,7 @@ pub fn check_cd_mount() -> std::string::String {
 	format!("success")
 }
 
-//used to generate an extended public and private keypair
+//generate an extended public and private keypair
 pub fn generate_keypair() -> Result<(String, String), bitcoin::Error> {
 	let secp = Secp256k1::new();
     let seed = SecretKey::new(&mut rand::thread_rng()).secret_bytes();
@@ -203,8 +202,10 @@ pub fn generate_keypair() -> Result<(String, String), bitcoin::Error> {
 pub fn get_descriptor_checksum(descriptor: String) -> String {
     let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+    //retrieve descriptor info
     let desc_info = client.get_descriptor_info(&descriptor).unwrap();
     println!("Descriptor info: {:?}", desc_info);
+    //parse the checksum
     let checksum = desc_info.checksum;
     println!("Checksum: {:?}", checksum);
     let output = &(descriptor.to_string() + "#" + &checksum.to_string());
@@ -226,7 +227,9 @@ pub fn unix_to_block_height(unix_timestamp: i64) -> i64 {
 pub fn retrieve_start_time() -> Timestamp {
 	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
 	if start_time_complete == true{
+        //read the start_time file to a string
 		let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
+        //parse the start_time
 		let result = match start_time.trim().parse() {
 			Ok(result) => 
 			return Timestamp::Time(result),
@@ -244,7 +247,9 @@ pub fn retrieve_start_time() -> Timestamp {
 pub fn retrieve_start_time_integer() -> i64 {
 	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
 	if start_time_complete == true{
+        //read the start_time file to a string
 		let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
+        //parse the start_time
 		let result = match start_time.trim().parse() {
 			Ok(result) => 
 			return result,

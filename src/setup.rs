@@ -201,22 +201,20 @@ pub async fn init_iso() -> String {
 	if !output.status.success() {
 		return format!("ERROR in init iso with copying arctica.desktop = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
 	//keeping this commented out for dev work due to regular binary swapping
+    //make arctica binary autostart after OS boot
 	// println!("make arctica autostart at boot");
 	// Command::new("mkdir").args([&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.config/autostart")]).output().unwrap();
 	// let output = Command::new("sudo").args(["cp", &(get_home()+"/arctica/shortcut/Arctica.desktop"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.config/autostart")]).output().unwrap();
 	// if !output.status.success() {
 	// 	return format!("ERROR in init iso with copying arctica.desktop = {}", std::str::from_utf8(&output.stderr).unwrap());
 	// }
-
 	println!("making arctica binary an executable");
 	//make the binary an executable file
 	let output = Command::new("sudo").args(["chmod", "+x", &("/media/".to_string()+&get_user()+"/writable/upper/usr/share/applications/Arctica.desktop")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in init iso with making binary executable = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
 	println!("copying scripts library");
 	//copy over scripts directory and its contents. 
 	let output = Command::new("cp").args(["-r", &(get_home()+"/arctica/scripts"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
@@ -303,15 +301,17 @@ pub async fn generate_store_key_pair(number: String) -> String {
 	//number corresponds to currentHW here and is provided by the front end
 	let private_key_file = "/mnt/ramdisk/sensitive/private_key".to_string()+&number;
 	let public_key_file = "/mnt/ramdisk/sensitive/public_key".to_string()+&number;
+    //generate an extended private and public keypair
     let (xpriv, xpub) = match generate_keypair() {
 		Ok((xpriv, xpub)) => (xpriv, xpub),
 		Err(err) => return "ERROR could not generate keypair: ".to_string()+&err.to_string()
 	}; 
-
+    //store the xpriv as a file
 	match store_string(xpriv.to_string()+"/*", &private_key_file) {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store private key: ".to_string()+&err
 	}
+    //store the xpub as a file
 	match store_string(xpub.to_string()+"/*", &public_key_file) {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store public key: ".to_string()+&err
@@ -353,10 +353,12 @@ pub async fn generate_store_simulated_time_machine_key_pair(number: String) -> S
 		Ok((xpriv, xpub)) => (xpriv, xpub),
 		Err(err) => return "ERROR could not generate keypair: ".to_string()+&err.to_string()
 	};
+    //store the xpriv as a file
 	match store_string(xpriv.to_string()+"/*", &private_key_file) {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store private key: ".to_string()+&err
 	}
+    //store the xpub as a file
 	match store_string(xpub.to_string()+"/*", &public_key_file) {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store public key: ".to_string()+&err
@@ -576,17 +578,16 @@ pub async fn install_hw_deps() -> String {
 pub async fn distribute_shards_hw2() -> String {
 	//create local shards dir
 	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
-
+    //copy the shards to the target destination
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard2.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 2 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
+    //copy the shards to the target destination
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard10.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 2 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
 	format!("SUCCESS in distributing shards to HW 2")
 }
 
@@ -594,17 +595,16 @@ pub async fn distribute_shards_hw2() -> String {
 pub async fn distribute_shards_hw3() -> String {
 	//create local shards dir
 	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
-
+    //copy the shards to the target destination
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard3.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 3 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
+    //copy the shards to the target destination
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard9.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 3 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
 	format!("SUCCESS in distributing shards to HW 3")
 }
 
@@ -612,17 +612,16 @@ pub async fn distribute_shards_hw3() -> String {
 pub async fn distribute_shards_hw4() -> String {
 	//create local shards dir
 	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
-
+    //copy the shards to the target destination
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard4.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 4 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
+    //copy the shards to the target destination
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard8.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 4 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
 	format!("SUCCESS in distributing shards to HW 4")
 }
 
@@ -630,12 +629,11 @@ pub async fn distribute_shards_hw4() -> String {
 pub async fn distribute_shards_hw5() -> String {
 	//create local shards dir
 	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
-
+    //copy the shards to the target destination
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard5.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 5 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
 	format!("SUCCESS in distributing shards to HW 5")
 }
 
@@ -643,12 +641,11 @@ pub async fn distribute_shards_hw5() -> String {
 pub async fn distribute_shards_hw6() -> String {
 	//create local shards dir
 	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
-
+    //copy the shards to the target destination
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard6.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 6 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
 	format!("SUCCESS in distributing shards to HW 6")
 }
 
@@ -656,12 +653,11 @@ pub async fn distribute_shards_hw6() -> String {
 pub async fn distribute_shards_hw7() -> String {
 	//create local shards dir
 	Command::new("mkdir").args([&(get_home()+"/shards")]).output().unwrap();
-
+    //copy the shards to the target destination
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard7.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 7 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-
 	format!("SUCCESS in distributing shards to HW 7")
 }
 
