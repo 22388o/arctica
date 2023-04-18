@@ -2,7 +2,6 @@ use bitcoincore_rpc::RpcApi;
 use bitcoincore_rpc::bitcoincore_rpc_json::{AddressType, ImportDescriptors};
 use bitcoincore_rpc::bitcoincore_rpc_json::{WalletProcessPsbtResult, ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtResult};
 use bitcoin;
-use bitcoin::Address;
 use bitcoin::consensus::serialize;
 use bitcoin::consensus::deserialize;
 use bitcoin::psbt::PartiallySignedTransaction;
@@ -569,11 +568,6 @@ pub async fn start_bitcoind() -> String {
 	else if uuid == "none"{
 		return format!("ERROR could not find a valid UUID in /media/$user");
 	}else{
-		let host = Command::new(&("ls")).args([&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home")]).output().unwrap();
-		if !host.status.success() {
-			return format!("ERROR in parsing /media/user/uuid/home {}", std::str::from_utf8(&host.stderr).unwrap());
-		} 
-		let host_user = std::str::from_utf8(&host.stdout).unwrap().trim();
 		//check if walletdir exists and if not create it
 		let a = std::path::Path::new("/mnt/ramdisk/sensitive/wallets").exists();
 		if a == false {
@@ -616,7 +610,7 @@ pub async fn start_bitcoind() -> String {
 					}
 				},
 				//error is returned when the daemon is still performing initial block db verification
-				Err(error) => {
+				Err(_) => {
 					//sleep and continue the loop
 					std::thread::sleep(Duration::from_secs(5));
 					continue;
