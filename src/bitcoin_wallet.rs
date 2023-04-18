@@ -448,7 +448,9 @@ pub async fn get_transactions(wallet_name: String, hw_number:String) -> Result<S
 pub async fn generate_psbt(wallet_name: String, hw_number:String, recipient: &str, amount: f64, fee: u64) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
-   //create the directory where the PSBT will live if it does not exist
+   //TODO implement custom fees
+   println!("{}", fee);
+	//create the directory where the PSBT will live if it does not exist
    let a = std::path::Path::new("/mnt/ramdisk/psbt").exists();
    if a == false{
        //remove the stale dir

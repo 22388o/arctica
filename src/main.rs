@@ -436,7 +436,7 @@ async fn recovery_initiate() -> String {
 #[tauri::command]
 async fn calculate_number_of_shards() -> u32 {
 	let mut x = 0;
-    for file in fs::read_dir("/mnt/ramdisk/CDROM/shards").unwrap() {
+    for _file in fs::read_dir("/mnt/ramdisk/CDROM/shards").unwrap() {
 		x = x + 1;
 	}
 	return x;
