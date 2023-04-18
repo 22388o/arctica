@@ -11,23 +11,14 @@ use bitcoin::Amount;
 use std::process::Command;
 use std::fs;
 use std::fs::File;
-use std::{thread, time::Duration};
+use std::{time::Duration};
 use std::process::Stdio;
-use std::io::BufReader;
-use std::any::type_name;
-use std::num::ParseIntError;
-use hex;
-use serde_json::{json, to_string, Value};
+use serde_json::{json};
 use serde::{Serialize, Serializer};
-use std::collections::HashMap;
-use std::mem;
-use base64::decode;
-
 
 //import functions from helper
 use crate::helper::{get_user, get_home, is_dir_empty, 
-	write, check_cd_mount, get_uuid, generate_keypair, 
-	store_string, store_psbt, get_descriptor_checksum, retrieve_start_time, 
+	get_uuid, store_psbt, get_descriptor_checksum, retrieve_start_time, 
 	retrieve_start_time_integer, unix_to_block_height
 };
 
@@ -526,7 +517,7 @@ pub async fn generate_psbt(wallet_name: String, hw_number:String, recipient: &st
 let json_input = json!([]);
 
 
-let mut json_output = json!([{
+let json_output = json!([{
 	recipient: amount
 }]);
 
