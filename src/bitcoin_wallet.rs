@@ -61,7 +61,10 @@ struct CustomGetTransactionResultDetail {
 //creates a blank wallet
 pub fn create_wallet(wallet: String, hwnumber: &String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+    let client = match bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth){
+		Ok(client)=> client,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	//create blank wallet
 	let output = match client.create_wallet(&(wallet.to_string()+"_wallet"+&hwnumber.to_string()), None, Some(true), None, None) {
 		Ok(file) => file,
@@ -306,7 +309,10 @@ pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<Str
 //TODO timestamp is not currently fucntional due to a type mismatch, timestamp within the ImportDescriptors struct wants bitcoin::timelock:time
 pub fn import_descriptor(wallet: String, hwnumber: &String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+ &(hwnumber.to_string())), auth).expect("could not connect to bitcoin core");
+    let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+ &(hwnumber.to_string())), auth){
+		Ok(client)=> client,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	//read the descriptor to a string from file
 	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor" + &(hwnumber.to_string()))).expect("Error reading reading descriptor from file");
 	//obtain the start time from file
@@ -335,7 +341,10 @@ pub fn import_descriptor(wallet: String, hwnumber: &String) -> Result<String, St
 //must be done with client url param URL=<hostname>/wallet/<wallet_name>
 pub async fn get_address(walletname: String, hwnumber:String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
+		Ok(client)=> client,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	//address labels can be added here
 	let address_type = Some(AddressType::Bech32);
 	let address = match client.get_new_address(None, address_type){
@@ -349,7 +358,10 @@ pub async fn get_address(walletname: String, hwnumber:String) -> Result<String, 
 //calculate the current balance of the tripwire wallet
 pub async fn get_balance(walletname:String, hwnumber:String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
+		Ok(client)=> client,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	//get wallet balance
 	match client.get_balance(None, Some(true)){
 		Ok(bal) => {
@@ -368,7 +380,10 @@ pub async fn get_balance(walletname:String, hwnumber:String) -> Result<String, S
 //retrieve the current transaction history for the immediate wallet
 pub async fn get_transactions(walletname: String, hwnumber:String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
+		Ok(client)=> client,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
    let transactions: Vec<ListTransactionResult> = match client.list_transactions(None, None, None, Some(true)) {
 	Ok(tx) => tx,
 	Err(err) => return Ok(format!("{}", err.to_string()))
@@ -447,7 +462,10 @@ pub async fn get_transactions(walletname: String, hwnumber:String) -> Result<Str
 //currently only generates a PSBT for Key 1 and Key 2, which are HW 1 and HW 2 respectively
 pub async fn generate_psbt(walletname: String, hwnumber:String, recipient: &str, amount: f64, fee: u64) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
+		Ok(client)=> client,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
    //TODO implement custom fees
    println!("{}", fee);
 	//create the directory where the PSBT will live if it does not exist
@@ -606,7 +624,10 @@ pub async fn start_bitcoind() -> String {
 		loop{
 			//redeclare the client object within the new scope
 			let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-			let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+			let client = match bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth){
+				Ok(client)=> client,
+				Err(err)=> return format!("{}", err.to_string())
+			};
 			//query getblockchaininfo
 			match client.get_blockchain_info(){
 				//if a valid response is received...
@@ -696,7 +717,10 @@ pub async fn stop_bitcoind() -> String {
 #[tauri::command]
 pub async fn get_descriptor_info(walletname: String) -> String {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+    let client = match bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth){
+		Ok(client)=> client,
+		Err(err)=> return format!("{}", err.to_string())
+	};
 	//read descriptor to a string from file
 	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(walletname.to_string())+"_descriptor")).expect("Error reading reading med descriptor from file");
 	//get descriptor info
@@ -707,13 +731,22 @@ pub async fn get_descriptor_info(walletname: String) -> String {
 #[tauri::command]
 pub async fn load_wallet(walletname: String, hwnumber: String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+    let client = match bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth){
+		Ok(client)=> client,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	// load the specified wallet
-	client.load_wallet(&(walletname.to_string()+"_wallet"+&(hwnumber.to_string()))).expect("could not load wallet");
+	match client.load_wallet(&(walletname.to_string()+"_wallet"+&(hwnumber.to_string()))){
+		Ok(load)=> load,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	// parse list_wallets in a continuous loop to verify when rescan is completed
 	loop{
 		let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    	let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+    	let client = match bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth){
+			Ok(client)=> client,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+		};
 		let list = client.list_wallets().unwrap();
 		let search_string = &(walletname.to_string()+"_wallet"+&(hwnumber.to_string()));
 		//listwallets returns the wallet name as expected...wallet is properly loaded and scanned
@@ -732,7 +765,10 @@ pub async fn load_wallet(walletname: String, hwnumber: String) -> Result<String,
 #[tauri::command]
 pub async fn get_blockchain_info() -> String {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+    let client = match bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth){
+		Ok(client)=> client,
+		Err(err)=> return format!("{}", err.to_string())
+	};
 	//get blockchain info
 	let info = client.get_blockchain_info();
 	format!("Results: {:?}", info)
@@ -792,7 +828,10 @@ pub async fn export_psbt(progress: String) -> String{
 #[tauri::command]
 pub async fn sign_psbt(walletname: String, hwnumber: String, progress: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
+		Ok(client)=> client,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	//TODO
 	//import the psbt from ramdisk (perhaps break this into a seperate function? maybe not because it has to be used within scope)...but potentially we should analyze before signing
 	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
@@ -835,7 +874,10 @@ pub async fn sign_psbt(walletname: String, hwnumber: String, progress: String) -
 #[tauri::command]
 pub async fn finalize_psbt(walletname: String, hwnumber: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
+		Ok(client)=> client,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	//read psbt to string from a file
 	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
 	//convert result to valid base64
@@ -858,7 +900,10 @@ pub async fn finalize_psbt(walletname: String, hwnumber: String) -> Result<Strin
 #[tauri::command]
 pub async fn broadcast_tx(walletname: String, hwnumber: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
+		Ok(client)=> client,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	//read the psbt from the transfer CD
 	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
 	//convert result to valid base64
@@ -888,7 +933,10 @@ pub async fn broadcast_tx(walletname: String, hwnumber: String) -> Result<String
 #[tauri::command]
 pub async fn decode_raw_tx(walletname: String, hwnumber: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
+		Ok(client)=> client,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	//read the psbt from the transfer CD
 	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
 	//convert result to valid base64

@@ -171,7 +171,10 @@ pub fn generate_keypair() -> Result<(String, String), bitcoin::Error> {
 //returns the checksum of the descriptor param
 pub fn get_descriptor_checksum(descriptor: String) -> String {
     let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+    let client = match bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth){
+		Ok(client)=> client,
+		Err(err)=> return format!("{}", err.to_string())
+	};
     //retrieve descriptor info
     let desc_info = client.get_descriptor_info(&descriptor).unwrap();
     println!("Descriptor info: {:?}", desc_info);

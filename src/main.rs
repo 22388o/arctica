@@ -487,7 +487,10 @@ async fn convert_to_transfer_cd() -> String {
 // //for testing only
 // async fn init_test() -> String {
 //     let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-//     let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+//     let client = match bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth){
+	// 	Ok(client)=> client,
+	// 	Err(err)=> return Ok(format!("{}", err.to_string()))
+	// };
 //     let mut keys = Vec::new();
 //     let (mut xpriv, mut xpub) = generate_keypair().expect("could not gen keypair");
 //     keys.push(xpub);
