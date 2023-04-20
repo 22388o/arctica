@@ -348,15 +348,20 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
    //push the 7 standard public keys into the key_array vector
    println!("pushing 7 standard pubkeys into key array");
    for i in 1..=7{
-       let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))).expect(&("Error reading public_key from file".to_string()+&(i.to_string())));
+       let key = match fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_key".to_string()+&(i.to_string()))){
+        Ok(key)=> key,
+        Err(err)=> return Ok(format!("{}", err.to_string()))
+    };
        key_array.push(key);
        println!("pushed key");
    }
    //push the 4 time machine public keys into the key_array vector, only on HW 1.
 	println!("pushing 4 time machine pubkeys into key array");
 	for i in 1..=4{
-		let key = fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))).expect(&("Error reading time_machine_public_key from file".to_string()+&(i.to_string())));
-		key_array.push(key);
+		let key = match fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_key".to_string()+&(i.to_string()))){
+			Ok(key)=> key,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+		};
 		println!("pushed key");
 	}
    println!("printing key array");

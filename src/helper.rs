@@ -201,7 +201,11 @@ pub fn retrieve_start_time() -> Timestamp {
 	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
 	if start_time_complete == true{
         //read the start_time file to a string
-		let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
+		let start_time: String = match fs::read_to_string(&(get_home()+"/start_time")){
+			Ok(start_time)=> start_time,
+			//return default timestamp
+			Err(err)=> return Timestamp::Time(1676511266)
+		};
         //parse the start_time
 		match start_time.trim().parse() {
 			Ok(result) => 
@@ -221,7 +225,11 @@ pub fn retrieve_start_time_integer() -> i64 {
 	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
 	if start_time_complete == true{
         //read the start_time file to a string
-		let start_time: String = fs::read_to_string(&(get_home()+"/start_time")).expect("could not read start_time");
+		let start_time: String = match fs::read_to_string(&(get_home()+"/start_time")){
+			Ok(start_time)=> start_time,
+			//return default time stamp
+			Err(err)=> return 0
+		};
         //parse the start_time
 		match start_time.trim().parse() {
 			Ok(result) => 

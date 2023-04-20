@@ -91,7 +91,10 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<St
     let month = 4383;
 	println!("reading xpriv");
 	//read xpriv from file to string
-	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hwnumber.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hwnumber.to_string())));
+	let xpriv = match fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hwnumber.to_string()))){
+		Ok(xpriv)=> xpriv,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	println!("{}", xpriv);
 	//determine how to format the descriptor based on which HW the user is currently using
 	if hwnumber == "1"{
@@ -138,28 +141,40 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<St
 		Ok(format!("{}", output))
 	}else if hwnumber == "timemachine1"{
 		println!("Found HW = timemachine1");
-		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hwnumber.to_string())));
+		let timemachinexpriv = match fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))){
+			Ok(xpriv)=> xpriv,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+		};
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), timemachinexpriv, keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
 	}else if hwnumber == "timemachine2"{
 		println!("Found HW = timemachine2");
-		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hwnumber.to_string())));
+		let timemachinexpriv = match fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))){
+			Ok(xpriv)=> xpriv,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+		};
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], timemachinexpriv, keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
 	}else if hwnumber == "timemachine3"{
 		println!("Found HW = timemachine3");
-		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hwnumber.to_string())));
+		let timemachinexpriv = match fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))){
+			Ok(xpriv)=> xpriv,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+		};
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], timemachinexpriv, keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
 	}else if hwnumber == "timemachine4"{
 		println!("Found HW = timemachine4");
-		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hwnumber.to_string())));
+		let timemachinexpriv = match fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))){
+			Ok(xpriv)=> xpriv,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+		};
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], timemachinexpriv, four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
@@ -188,7 +203,10 @@ pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<Str
 	let four_years = start_time_block_height + four_years_block_height;
 	println!("four years: {}", four_years);
 	println!("reading xpriv");
-	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hwnumber.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hwnumber.to_string())));
+	let xpriv = match fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hwnumber.to_string()))){
+		Ok(xpriv)=> xpriv,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	println!("{}", xpriv);
 	//determine how to format the descriptor based on which HW the user is currently using
 	if hwnumber == "1"{
@@ -247,7 +265,10 @@ pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<Str
 //TODO this may not need child key designators /* because it seems to use hardened keys but have not tested this descriptor yet
 	pub fn build_low_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<String, String> {
 		println!("reading xpriv");
-		let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hwnumber.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hwnumber.to_string())));
+		let xpriv = match fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hwnumber.to_string()))){
+			Ok(xpriv)=> xpriv,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+		};
 		println!("{}", xpriv);
 		//determine how to format the descriptor based on which HW the user is currently using
 		if hwnumber == "1"{
@@ -314,7 +335,10 @@ pub fn import_descriptor(wallet: String, hwnumber: &String) -> Result<String, St
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
 	//read the descriptor to a string from file
-	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor" + &(hwnumber.to_string()))).expect("Error reading reading descriptor from file");
+	let desc: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor" + &(hwnumber.to_string()))){
+		Ok(desc)=> desc,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	//obtain the start time from file
 	let start_time = retrieve_start_time();
 	//import the descriptors into the wallet file
@@ -722,8 +746,10 @@ pub async fn get_descriptor_info(walletname: String) -> String {
 		Err(err)=> return format!("{}", err.to_string())
 	};
 	//read descriptor to a string from file
-	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(walletname.to_string())+"_descriptor")).expect("Error reading reading med descriptor from file");
-	//get descriptor info
+	let desc: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(walletname.to_string())+"_descriptor")){
+		Ok(desc)=> desc,
+		Err(err)=> return format!("{}", err.to_string())
+	};
 	let desc_info = client.get_descriptor_info(&desc).unwrap();
 	format!("SUCCESS in getting descriptor info {:?}", desc_info)
 }
@@ -834,7 +860,10 @@ pub async fn sign_psbt(walletname: String, hwnumber: String, progress: String) -
 	};
 	//TODO
 	//import the psbt from ramdisk (perhaps break this into a seperate function? maybe not because it has to be used within scope)...but potentially we should analyze before signing
-	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
+	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/CDROM/psbt"){
+		Ok(psbt_str)=> psbt_str,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	//convert result to valid base64
 	let psbt: WalletProcessPsbtResult = match serde_json::from_str(&psbt_str) {
 		Ok(psbt)=> psbt,
@@ -879,7 +908,10 @@ pub async fn finalize_psbt(walletname: String, hwnumber: String) -> Result<Strin
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
 	//read psbt to string from a file
-	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
+	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/CDROM/psbt"){
+		Ok(psbt_str)=> psbt_str,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	//convert result to valid base64
 	let psbt: WalletProcessPsbtResult = match serde_json::from_str(&psbt_str) {
 		Ok(psbt)=> psbt,
@@ -905,7 +937,10 @@ pub async fn broadcast_tx(walletname: String, hwnumber: String) -> Result<String
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
 	//read the psbt from the transfer CD
-	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
+	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/CDROM/psbt"){
+		Ok(psbt_str)=> psbt_str,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	//convert result to valid base64
 	let psbt: WalletProcessPsbtResult = match serde_json::from_str(&psbt_str) {
 		Ok(psbt)=> psbt,
@@ -938,7 +973,10 @@ pub async fn decode_raw_tx(walletname: String, hwnumber: String) -> Result<Strin
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
 	//read the psbt from the transfer CD
-	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
+	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/CDROM/psbt"){
+		Ok(psbt_str)=> psbt_str,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 	//convert result to valid base64
 	let psbt: WalletProcessPsbtResult = match serde_json::from_str(&psbt_str) {
 		Ok(psbt)=> psbt,
