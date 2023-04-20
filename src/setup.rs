@@ -340,7 +340,7 @@ pub async fn generate_store_simulated_time_machine_key_pair(number: String) -> S
 //Low Descriptor is the 1 of 7 and will be used for the tripwire
 //acceptable params should be "1", "2", "3", "4", "5", "6", "7"
 #[tauri::command]
-pub async fn create_descriptor(hw_number: String) -> Result<String, String> {
+pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
    println!("creating descriptors from 7 xpubs & 4 time machine keys");
    //convert all 11 public_keys in the ramdisk to an array vector
    println!("creating key array");
@@ -368,11 +368,11 @@ pub async fn create_descriptor(hw_number: String) -> Result<String, String> {
 
    //build the delayed wallet descriptor
    println!("building high descriptor");
-   let high_descriptor = match build_high_descriptor(&key_array, &hw_number) {
+   let high_descriptor = match build_high_descriptor(&key_array, &hwnumber) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build High Descriptor ".to_string()+&err)
    };
-   let high_file_dest = &("/mnt/ramdisk/sensitive/descriptors/delayed_descriptor".to_string()+&hw_number.to_string()).to_string();
+   let high_file_dest = &("/mnt/ramdisk/sensitive/descriptors/delayed_descriptor".to_string()+&hwnumber.to_string()).to_string();
    //store the delayed wallet descriptor in the sensitive dir
    println!("storing high descriptor");
    match store_string(high_descriptor.to_string(), high_file_dest) {
@@ -380,22 +380,22 @@ pub async fn create_descriptor(hw_number: String) -> Result<String, String> {
        Err(err) => return Err("ERROR could not store High Descriptor: ".to_string()+&err)
    };
    println!("creating delayed wallet");
-   match create_wallet("delayed".to_string(), &hw_number){
+   match create_wallet("delayed".to_string(), &hwnumber){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not create Delayed Wallet: ".to_string()+&err)
    };
    println!("importing delayed descriptor");
-   match import_descriptor("delayed".to_string(), &hw_number){
+   match import_descriptor("delayed".to_string(), &hwnumber){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not import Delayed Descriptor: ".to_string()+&err)
    };
    //build the immediate wallet descriptor
    println!("building med descriptor");
-   let med_descriptor = match build_med_descriptor(&key_array, &hw_number) {
+   let med_descriptor = match build_med_descriptor(&key_array, &hwnumber) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build Immediate Descriptor ".to_string()+&err)
    };
-   let med_file_dest = &("/mnt/ramdisk/sensitive/descriptors/immediate_descriptor".to_string()+&hw_number.to_string()).to_string();
+   let med_file_dest = &("/mnt/ramdisk/sensitive/descriptors/immediate_descriptor".to_string()+&hwnumber.to_string()).to_string();
    //store the immediate wallet descriptor in the sensitive dir
    println!("storing med descriptor");
    match store_string(med_descriptor.to_string(), med_file_dest) {
@@ -403,22 +403,22 @@ pub async fn create_descriptor(hw_number: String) -> Result<String, String> {
        Err(err) => return Err("ERROR could not store Immediate Descriptor: ".to_string()+&err)
    };
    println!("creating immediate wallet");
-   match create_wallet("immediate".to_string(), &hw_number){
+   match create_wallet("immediate".to_string(), &hwnumber){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not create Immediate Wallet: ".to_string()+&err)
    };
    println!("importing immediate descriptor");
-   match import_descriptor("immediate".to_string(), &hw_number){
+   match import_descriptor("immediate".to_string(), &hwnumber){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not import Immediate Descriptor: ".to_string()+&err)
    };
    //build the low security descriptor
    println!("building low descriptor");
-   let low_descriptor = match build_low_descriptor(&key_array, &hw_number) {
+   let low_descriptor = match build_low_descriptor(&key_array, &hwnumber) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build Low Descriptor ".to_string()+&err)
    };
-   let low_file_dest = &("/mnt/ramdisk/sensitive/descriptors/low_descriptor".to_string()+&hw_number.to_string()).to_string();
+   let low_file_dest = &("/mnt/ramdisk/sensitive/descriptors/low_descriptor".to_string()+&hwnumber.to_string()).to_string();
    //store the low security descriptor in the sensitive dir
    println!("storing low descriptor");
    match store_string(low_descriptor.to_string(), low_file_dest) {
@@ -426,12 +426,12 @@ pub async fn create_descriptor(hw_number: String) -> Result<String, String> {
        Err(err) => return Err("ERROR could not store Low Descriptor: ".to_string()+&err)
    };
    println!("creating low wallet");
-   match create_wallet("low".to_string(), &hw_number){
+   match create_wallet("low".to_string(), &hwnumber){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not create Low Wallet: ".to_string()+&err)
    };
    println!("importing low descriptor");
-   match import_descriptor("low".to_string(), &hw_number){
+   match import_descriptor("low".to_string(), &hwnumber){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not import Low Descriptor: ".to_string()+&err)
    };

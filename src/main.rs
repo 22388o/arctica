@@ -1,3 +1,5 @@
+//WARNING: Never use snake_case for function params that will be invoked by tauri, it converts them to camelCase and breaks the app
+
 #![cfg_attr(
   all(not(debug_assertions), target_os = "windows"),
   windows_subsystem = "windows"

@@ -59,11 +59,11 @@ struct CustomGetTransactionResultDetail {
 //RPC command
 // ./bitcoin-cli createwallet "wallet name" true true
 //creates a blank wallet
-pub fn create_wallet(wallet: String, hw_number: &String) -> Result<String, String> {
+pub fn create_wallet(wallet: String, hwnumber: &String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 	//create blank wallet
-	let output = match client.create_wallet(&(wallet.to_string()+"_wallet"+&hw_number.to_string()), None, Some(true), None, None) {
+	let output = match client.create_wallet(&(wallet.to_string()+"_wallet"+&hwnumber.to_string()), None, Some(true), None, None) {
 		Ok(file) => file,
 		Err(err) => return Err(err.to_string()),
 	};
@@ -71,7 +71,7 @@ pub fn create_wallet(wallet: String, hw_number: &String) -> Result<String, Strin
 }
 
 //builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
-pub fn build_high_descriptor(keys: &Vec<String>, hw_number: &String) -> Result<String, String> {
+pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<String, String> {
 	println!("calculating 4 year block time span");
 	//retrieve start time from file
     let start_time = retrieve_start_time_integer(); 
@@ -88,81 +88,81 @@ pub fn build_high_descriptor(keys: &Vec<String>, hw_number: &String) -> Result<S
     let month = 4383;
 	println!("reading xpriv");
 	//read xpriv from file to string
-	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
+	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hwnumber.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hwnumber.to_string())));
 	println!("{}", xpriv);
 	//determine how to format the descriptor based on which HW the user is currently using
-	if hw_number == "1"{
+	if hwnumber == "1"{
 		println!("Found HW = 1");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", xpriv, keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output: String = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if hw_number == "2"{
+	}else if hwnumber == "2"{
 		println!("Found HW = 2");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], xpriv, keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if hw_number == "3"{
+	}else if hwnumber == "3"{
 		println!("Found HW = 3");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], xpriv, keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if hw_number == "4"{
+	}else if hwnumber == "4"{
 		println!("Found HW = 4");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], xpriv, keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if hw_number == "5"{
+	}else if hwnumber == "5"{
 		println!("Found HW = 5");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], xpriv, keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if hw_number == "6"{
+	}else if hwnumber == "6"{
 		println!("Found HW = 6");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], xpriv, keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if hw_number == "7"{
+	}else if hwnumber == "7"{
 		println!("Found HW = 7");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], xpriv, four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if hw_number == "timemachine1"{
+	}else if hwnumber == "timemachine1"{
 		println!("Found HW = timemachine1");
-		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
+		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hwnumber.to_string())));
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), timemachinexpriv, keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
-	}else if hw_number == "timemachine2"{
+	}else if hwnumber == "timemachine2"{
 		println!("Found HW = timemachine2");
-		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
+		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hwnumber.to_string())));
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], timemachinexpriv, keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
-	}else if hw_number == "timemachine3"{
+	}else if hwnumber == "timemachine3"{
 		println!("Found HW = timemachine3");
-		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
+		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hwnumber.to_string())));
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], timemachinexpriv, keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
-	}else if hw_number == "timemachine4"{
+	}else if hwnumber == "timemachine4"{
 		println!("Found HW = timemachine4");
-		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
+		let timemachinexpriv = fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hwnumber.to_string())));
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], timemachinexpriv, four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
 	}else{
-		println!("no valid hw_number param found, creating read only desc");
+		println!("no valid hwnumber param found, creating read only desc");
 		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("Read only DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
@@ -172,7 +172,7 @@ pub fn build_high_descriptor(keys: &Vec<String>, hw_number: &String) -> Result<S
 }
 
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
-pub fn build_med_descriptor(keys: &Vec<String>, hw_number: &String) -> Result<String, String> {
+pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<String, String> {
 	println!("calculating 4 year block time span");
     let start_time = retrieve_start_time_integer(); 
 	println!("start time: {}", start_time);
@@ -185,53 +185,53 @@ pub fn build_med_descriptor(keys: &Vec<String>, hw_number: &String) -> Result<St
 	let four_years = start_time_block_height + four_years_block_height;
 	println!("four years: {}", four_years);
 	println!("reading xpriv");
-	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
+	let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hwnumber.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hwnumber.to_string())));
 	println!("{}", xpriv);
 	//determine how to format the descriptor based on which HW the user is currently using
-	if hw_number == "1"{
+	if hwnumber == "1"{
 		println!("Found HW = 1");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", xpriv, keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if hw_number == "2"{
+	}else if hwnumber == "2"{
 		println!("Found HW = 2");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], xpriv, keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if hw_number == "3"{
+	}else if hwnumber == "3"{
 		println!("Found HW = 3");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], xpriv, keys[3], keys[4], keys[5], keys[6], four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if hw_number == "4"{
+	}else if hwnumber == "4"{
 		println!("Found HW = 4");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], xpriv, keys[4], keys[5], keys[6], four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if hw_number == "5"{
+	}else if hwnumber == "5"{
 		println!("Found HW = 5");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], xpriv, keys[5], keys[6], four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if hw_number == "6"{
+	}else if hwnumber == "6"{
 		println!("Found HW = 6");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], xpriv, keys[3], keys[4], xpriv, keys[6], four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-	}else if hw_number == "7"{
+	}else if hwnumber == "7"{
 		println!("Found HW = 7");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], xpriv, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else{
-		println!("no valid hw_number param found, creating read only desc");
+		println!("no valid hwnumber param found, creating read only desc");
 		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
@@ -242,48 +242,48 @@ pub fn build_med_descriptor(keys: &Vec<String>, hw_number: &String) -> Result<St
 //builds the low security descriptor, 1 of 7 thresh, used for tripwire
 //TODO this needs to use its own special keypair or it will be a privacy leak once implemented
 //TODO this may not need child key designators /* because it seems to use hardened keys but have not tested this descriptor yet
-	pub fn build_low_descriptor(keys: &Vec<String>, hw_number: &String) -> Result<String, String> {
+	pub fn build_low_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<String, String> {
 		println!("reading xpriv");
-		let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hw_number.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hw_number.to_string())));
+		let xpriv = fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hwnumber.to_string()))).expect(&("Error reading public_key from file".to_string()+&(hwnumber.to_string())));
 		println!("{}", xpriv);
 		//determine how to format the descriptor based on which HW the user is currently using
-		if hw_number == "1"{
+		if hwnumber == "1"{
 			println!("Found HW = 1");
 			let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", xpriv, keys[1], keys[2], keys[3], keys[4], keys[5], keys[6]);
 			println!("DESC: {}", descriptor);
 			let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-		}else if hw_number == "2"{
+		}else if hwnumber == "2"{
 			println!("Found HW = 2");
 			let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], xpriv, keys[2], keys[3], keys[4], keys[5], keys[6]);
 			println!("DESC: {}", descriptor);
 			let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-		}else if hw_number == "3"{
+		}else if hwnumber == "3"{
 			println!("Found HW = 3");
 			let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], xpriv, keys[3], keys[4], keys[5], keys[6]);
 			println!("DESC: {}", descriptor);
 			let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-		}else if hw_number == "4"{
+		}else if hwnumber == "4"{
 			println!("Found HW = 4");
 			let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], xpriv, keys[4], keys[5], keys[6]);
 			println!("DESC: {}", descriptor);
 			let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-		}else if hw_number == "5"{
+		}else if hwnumber == "5"{
 			println!("Found HW = 5");
 			let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], xpriv, keys[5], keys[6]);
 			println!("DESC: {}", descriptor);
 			let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-		}else if hw_number == "6"{
+		}else if hwnumber == "6"{
 			println!("Found HW = 6");
 			let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], xpriv, keys[6]);
 			println!("DESC: {}", descriptor);
 			let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
-		}else if hw_number == "7"{
+		}else if hwnumber == "7"{
 			println!("Found HW = 7");
 			let descriptor = format!("wsh(c:or_i(pk_k({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),or_i(pk_h({}),pk_h({}))))))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], xpriv);
 			println!("DESC: {}", descriptor);
@@ -304,11 +304,11 @@ pub fn build_med_descriptor(keys: &Vec<String>, hw_number: &String) -> Result<St
 //'[{"desc": "<descriptor goes here>", "active":true, "range":[0,100], "next_index":0, "timestamp": <start_time_timestamp>}]'
 //acceptable params here are "low", "immediate", "delayed"
 //TODO timestamp is not currently fucntional due to a type mismatch, timestamp within the ImportDescriptors struct wants bitcoin::timelock:time
-pub fn import_descriptor(wallet: String, hw_number: &String) -> Result<String, String> {
+pub fn import_descriptor(wallet: String, hwnumber: &String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+ &(hw_number.to_string())), auth).expect("could not connect to bitcoin core");
+    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+ &(hwnumber.to_string())), auth).expect("could not connect to bitcoin core");
 	//read the descriptor to a string from file
-	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor" + &(hw_number.to_string()))).expect("Error reading reading descriptor from file");
+	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor" + &(hwnumber.to_string()))).expect("Error reading reading descriptor from file");
 	//obtain the start time from file
 	let start_time = retrieve_start_time();
 	//import the descriptors into the wallet file
@@ -333,9 +333,9 @@ pub fn import_descriptor(wallet: String, hw_number: &String) -> Result<String, S
 //accepts "low", "immediate", and "delayed" as a param
 //equivalent to... Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "getnewaddress"])
 //must be done with client url param URL=<hostname>/wallet/<wallet_name>
-pub async fn get_address(wallet_name: String, hw_number:String) -> Result<String, String> {
+pub async fn get_address(walletname: String, hwnumber:String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
 	//address labels can be added here
 	let address_type = Some(AddressType::Bech32);
 	let address = match client.get_new_address(None, address_type){
@@ -347,9 +347,9 @@ pub async fn get_address(wallet_name: String, hw_number:String) -> Result<String
 
 #[tauri::command]
 //calculate the current balance of the tripwire wallet
-pub async fn get_balance(wallet_name:String, hw_number:String) -> Result<String, String> {
+pub async fn get_balance(walletname:String, hwnumber:String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
 	//get wallet balance
 	match client.get_balance(None, Some(true)){
 		Ok(bal) => {
@@ -366,9 +366,9 @@ pub async fn get_balance(wallet_name:String, hw_number:String) -> Result<String,
 
 #[tauri::command]
 //retrieve the current transaction history for the immediate wallet
-pub async fn get_transactions(wallet_name: String, hw_number:String) -> Result<String, String> {
+pub async fn get_transactions(walletname: String, hwnumber:String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
    let transactions: Vec<ListTransactionResult> = match client.list_transactions(None, None, None, Some(true)) {
 	Ok(tx) => tx,
 	Err(err) => return Ok(format!("{}", err.to_string()))
@@ -445,9 +445,9 @@ pub async fn get_transactions(wallet_name: String, hw_number:String) -> Result<S
 //generate a PSBT for the immediate wallet
 //will require additional logic to spend when under decay threshold
 //currently only generates a PSBT for Key 1 and Key 2, which are HW 1 and HW 2 respectively
-pub async fn generate_psbt(wallet_name: String, hw_number:String, recipient: &str, amount: f64, fee: u64) -> Result<String, String> {
+pub async fn generate_psbt(walletname: String, hwnumber:String, recipient: &str, amount: f64, fee: u64) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
    //TODO implement custom fees
    println!("{}", fee);
 	//create the directory where the PSBT will live if it does not exist
@@ -516,7 +516,7 @@ let change_arg = json!({
 });
 let locktime = "0";
 let psbt_output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli"))
-.args([&("-rpcwallet=".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), 
+.args([&("-rpcwallet=".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), 
 "walletcreatefundedpsbt", 
 &json_input.to_string(), //empty array
 &json_output.to_string(), //receive address & output amount
@@ -694,22 +694,22 @@ pub async fn stop_bitcoind() -> String {
 //acceptable params here are "low", "immediate", "delayed"
 //this may not be useful for anything besides debugging on the fly
 #[tauri::command]
-pub async fn get_descriptor_info(wallet_name: String) -> String {
+pub async fn get_descriptor_info(walletname: String) -> String {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 	//read descriptor to a string from file
-	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet_name.to_string())+"_descriptor")).expect("Error reading reading med descriptor from file");
+	let desc: String = fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(walletname.to_string())+"_descriptor")).expect("Error reading reading med descriptor from file");
 	//get descriptor info
 	let desc_info = client.get_descriptor_info(&desc).unwrap();
 	format!("SUCCESS in getting descriptor info {:?}", desc_info)
 }
 
 #[tauri::command]
-pub async fn load_wallet(wallet_name: String, hw_number: String) -> Result<String, String> {
-	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+pub async fn load_wallet(walletname: String, hwnumber: String) -> Result<String, String> {
+	// let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    // let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 	//load the specified wallet
-	let wallet = &(wallet_name.to_string()+"_wallet"+&(hw_number.to_string()));
+	let wallet = &(walletname.to_string()+"_wallet"+&(hwnumber.to_string()));
 	Ok(format!("{}", wallet))
 	// client.load_wallet(&wallet).expect("could not load wallet");
 	// // parse list_wallets in a continuous loop to verify when rescan is completed
@@ -717,7 +717,7 @@ pub async fn load_wallet(wallet_name: String, hw_number: String) -> Result<Strin
 	// 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     // 	let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 	// 	let list = client.list_wallets().unwrap();
-	// 	let search_string = &(wallet_name.to_string()+"_wallet"+&(hw_number.to_string()));
+	// 	let search_string = &(walletname.to_string()+"_wallet"+&(hwnumber.to_string()));
 	// 	//listwallets returns the wallet name as expected...wallet is properly loaded and scanned
 	// 	if list.contains(&search_string){
 	// 		break;
@@ -728,7 +728,7 @@ pub async fn load_wallet(wallet_name: String, hw_number: String) -> Result<Strin
 	// 		continue;
 	// 	}
 	// }
-	// Ok(format!("Success in loading {} wallet", wallet_name))
+	// Ok(format!("Success in loading {} wallet", walletname))
 	}
 
 #[tauri::command]
@@ -792,9 +792,9 @@ pub async fn export_psbt(progress: String) -> String{
 }
 
 #[tauri::command]
-pub async fn sign_psbt(wallet_name: String, hw_number: String, progress: String) -> Result<String, String>{
+pub async fn sign_psbt(walletname: String, hwnumber: String, progress: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
 	//TODO
 	//import the psbt from ramdisk (perhaps break this into a seperate function? maybe not because it has to be used within scope)...but potentially we should analyze before signing
 	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
@@ -835,9 +835,9 @@ pub async fn sign_psbt(wallet_name: String, hw_number: String, progress: String)
 }
 
 #[tauri::command]
-pub async fn finalize_psbt(wallet_name: String, hw_number: String) -> Result<String, String>{
+pub async fn finalize_psbt(walletname: String, hwnumber: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
 	//read psbt to string from a file
 	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
 	//convert result to valid base64
@@ -858,9 +858,9 @@ pub async fn finalize_psbt(wallet_name: String, hw_number: String) -> Result<Str
 }
 
 #[tauri::command]
-pub async fn broadcast_tx(wallet_name: String, hw_number: String) -> Result<String, String>{
+pub async fn broadcast_tx(walletname: String, hwnumber: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
 	//read the psbt from the transfer CD
 	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
 	//convert result to valid base64
@@ -888,9 +888,9 @@ pub async fn broadcast_tx(wallet_name: String, hw_number: String) -> Result<Stri
 
 //used to decode a fully signed TX...might be able to remove the
 #[tauri::command]
-pub async fn decode_raw_tx(wallet_name: String, hw_number: String) -> Result<String, String>{
+pub async fn decode_raw_tx(walletname: String, hwnumber: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet_name.to_string())+"_wallet"+&hw_number.to_string()), auth).expect("could not connect to bitcoin core");
+    let client = bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth).expect("could not connect to bitcoin core");
 	//read the psbt from the transfer CD
 	let psbt_str: String = fs::read_to_string("/mnt/ramdisk/CDROM/psbt").expect("Error reading PSBT from file");
 	//convert result to valid base64
