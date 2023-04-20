@@ -362,6 +362,7 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
 			Ok(key)=> key,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
+		key_array.push(key);
 		println!("pushed key");
 	}
    println!("printing key array");

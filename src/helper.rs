@@ -204,7 +204,7 @@ pub fn retrieve_start_time() -> Timestamp {
 		let start_time: String = match fs::read_to_string(&(get_home()+"/start_time")){
 			Ok(start_time)=> start_time,
 			//return default timestamp
-			Err(err)=> return Timestamp::Time(1676511266)
+			Err(..)=> return Timestamp::Time(1676511266)
 		};
         //parse the start_time
 		match start_time.trim().parse() {
@@ -228,7 +228,7 @@ pub fn retrieve_start_time_integer() -> i64 {
 		let start_time: String = match fs::read_to_string(&(get_home()+"/start_time")){
 			Ok(start_time)=> start_time,
 			//return default time stamp
-			Err(err)=> return 0
+			Err(..)=> return 0
 		};
         //parse the start_time
 		match start_time.trim().parse() {
