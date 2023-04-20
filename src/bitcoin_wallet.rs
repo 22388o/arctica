@@ -468,6 +468,7 @@ pub async fn generate_psbt(wallet_name: String, hw_number:String, recipient: &st
 	   Ok(addr) => addr,
 	   Err(err) => return Ok(format!("{}", err.to_string()))
    };
+
    //below code block is for trying to use bitcoincore_rpc crate to generate psbt, method is currently bugged
    //alternatively going to do the below with Command::new() and will return to this method when it is fixed
 //    //define the inputs struct, leave empty for dynamic input selection
@@ -505,6 +506,7 @@ pub async fn generate_psbt(wallet_name: String, hw_number:String, recipient: &st
 // 	let psbt = decode(&psbt_res.psbt).unwrap();
 // 	//convert the decoded psbt to a string
 // 	let psbt_str = to_string(&psbt).unwrap();
+
 let json_input = json!([]);
 let json_output = json!([{
 	recipient: amount
@@ -532,23 +534,32 @@ let psbt: WalletCreateFundedPsbtResult = match serde_json::from_str(&psbt_str) {
 	Ok(psbt)=> psbt,
 	Err(err)=> return Ok(format!("{}", err.to_string()))
 };
-	// sign the PSBT
-	let signed_result = client.wallet_process_psbt(
-		&psbt.psbt,
-		Some(true),
-		None,
-		None,
-	);
-	let signed = match signed_result{
-		Ok(psbt)=> psbt,
-		Err(err)=> return Ok(format!("{}", err.to_string()))	
-	};
-   //store the transaction as a file
-       match store_psbt(&signed, file_dest) {
-       Ok(_) => {},
-       Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
-       };
-   Ok(format!("PSBT: {:?}", signed))
+
+Ok(format!("PSBT: {:?}", psbt))
+
+
+//write the funded psbt to a file
+//break the sign and store process into a seperate function call so that transaction can be decoded and displayed with the user manually acknowledging the details
+//prior to signing with HW 1 and burning to disc
+
+
+// 	// sign the PSBT
+// 	let signed_result = client.wallet_process_psbt(
+// 		&psbt.psbt,
+// 		Some(true),
+// 		None,
+// 		None,
+// 	);
+// 	let signed = match signed_result{
+// 		Ok(psbt)=> psbt,
+// 		Err(err)=> return Ok(format!("{}", err.to_string()))	
+// 	};
+//    //store the transaction as a file
+//        match store_psbt(&signed, file_dest) {
+//        Ok(_) => {},
+//        Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
+//        };
+//    Ok(format!("PSBT: {:?}", signed))
 }
 
 //start bitcoin core daemon
@@ -698,24 +709,26 @@ pub async fn load_wallet(wallet_name: String, hw_number: String) -> Result<Strin
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
 	//load the specified wallet
-	client.load_wallet(&(wallet_name.to_string()+"_wallet"+&(hw_number.to_string()))).expect("could not load requested wallet");
-	//parse list_wallets in a continuous loop to verify when rescan is completed
-	loop{
-		let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    	let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
-		let list = client.list_wallets().unwrap();
-		let search_string = &(wallet_name.to_string()+"_wallet"+&(hw_number.to_string()));
-		//listwallets returns the wallet name as expected...wallet is properly loaded and scanned
-		if list.contains(&search_string){
-			break;
-		}
-		//listwallets does not return the wallet name...wallet not yet loaded
-		else{
-			std::thread::sleep(Duration::from_secs(5));
-			continue;
-		}
-	}
-	Ok(format!("Success in loading {} wallet", wallet_name))
+	let wallet = &(wallet_name.to_string()+"_wallet"+&(hw_number.to_string()));
+	Ok(format!("{}", wallet))
+	// client.load_wallet(&wallet).expect("could not load wallet");
+	// // parse list_wallets in a continuous loop to verify when rescan is completed
+	// loop{
+	// 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    // 	let client = bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth).expect("could not connect to bitcoin core");
+	// 	let list = client.list_wallets().unwrap();
+	// 	let search_string = &(wallet_name.to_string()+"_wallet"+&(hw_number.to_string()));
+	// 	//listwallets returns the wallet name as expected...wallet is properly loaded and scanned
+	// 	if list.contains(&search_string){
+	// 		break;
+	// 	}
+	// 	//listwallets does not return the wallet name...wallet not yet loaded
+	// 	else{
+	// 		std::thread::sleep(Duration::from_secs(5));
+	// 		continue;
+	// 	}
+	// }
+	// Ok(format!("Success in loading {} wallet", wallet_name))
 	}
 
 #[tauri::command]
