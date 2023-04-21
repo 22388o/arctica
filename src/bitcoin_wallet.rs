@@ -1102,6 +1102,9 @@ pub async fn decode_funded_psbt(walletname: String, hwnumber: String) -> Result<
 		};
 	//currently only outputting the fee here
 	let fee = psbt.fee.to_btc();
+
+	let address = "placeholder";
+	let amount = "placeholder";
 	//TODO also decode the raw tx to get address and amount and output those in addition to fee then split on the front end as needed.
-	Ok(format!("{:?}", fee))
+	Ok(format!("address={:?}, amount={:?}, fee={:?}", address, amount, fee))
 }
