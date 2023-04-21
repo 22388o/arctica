@@ -1,6 +1,6 @@
 use bitcoincore_rpc::RpcApi;
 use bitcoincore_rpc::bitcoincore_rpc_json::{Timestamp};
-use bitcoincore_rpc::bitcoincore_rpc_json::{WalletProcessPsbtResult};
+use bitcoincore_rpc::bitcoincore_rpc_json::{WalletProcessPsbtResult, WalletCreateFundedPsbtResult};
 use bitcoin;
 use std::process::Command;
 use std::fs;
@@ -62,6 +62,17 @@ pub fn store_string(string: String, file_name: &String) -> Result<String, String
 
 //used to store a PSBT param as a file
 pub fn store_psbt(psbt: &WalletProcessPsbtResult, file_name: String) -> Result<String, String> {
+    let mut file_ref = match std::fs::File::create(file_name) {
+        Ok(file) => file,
+        Err(err) => return Err(err.to_string()),
+    };
+    let psbt_json = to_string(&psbt).unwrap();
+    file_ref.write_all(&psbt_json.to_string().as_bytes()).expect("Could not write string to file");
+    Ok(format!("SUCCESS stored with no problems"))
+ }
+
+ //used to store a PSBT param as a file
+pub fn store_unsigned_psbt(psbt: &WalletCreateFundedPsbtResult, file_name: String) -> Result<String, String> {
     let mut file_ref = match std::fs::File::create(file_name) {
         Ok(file) => file,
         Err(err) => return Err(err.to_string()),

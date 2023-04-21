@@ -16,7 +16,7 @@ use serde::{Serialize};
 //import functions from helper
 use crate::helper::{
 	get_user, get_home, is_dir_empty, get_uuid, store_psbt, get_descriptor_checksum, retrieve_start_time, 
-	retrieve_start_time_integer, unix_to_block_height
+	retrieve_start_time_integer, unix_to_block_height, store_unsigned_psbt
 };
 
 //custom structs
@@ -577,13 +577,17 @@ let psbt: WalletCreateFundedPsbtResult = match serde_json::from_str(&psbt_str) {
 	Err(err)=> return Ok(format!("{}", err.to_string()))
 };
 
+//store the transaction as a file
+match store_unsigned_psbt(&psbt, file_dest) {
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
+	};
 Ok(format!("PSBT: {:?}", psbt))
 
-
-//write the funded psbt to a file
-//break the sign and store process into a seperate function call so that transaction can be decoded and displayed with the user manually acknowledging the details
-//prior to signing with HW 1 and burning to disc
-
+//sign with HW 1
+//send user to immediate transfer
+//load psbt from file
+//burn to transfer CD
 
 // 	// sign the PSBT
 // 	let signed_result = client.wallet_process_psbt(
@@ -596,12 +600,7 @@ Ok(format!("PSBT: {:?}", psbt))
 // 		Ok(psbt)=> psbt,
 // 		Err(err)=> return Ok(format!("{}", err.to_string()))	
 // 	};
-//    //store the transaction as a file
-//        match store_psbt(&signed, file_dest) {
-//        Ok(_) => {},
-//        Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
-//        };
-//    Ok(format!("PSBT: {:?}", signed))
+
 }
 
 //start bitcoin core daemon
@@ -851,6 +850,8 @@ pub async fn export_psbt(progress: String) -> String{
 	format!("SUCCESS in Creating transferCD")
 }
 
+//this is diffent from sign_funded_psbt in that this function is used to sign for a psbt that has already been signed with another wallet and expects the 
+//WalletProcessPsbtResult struct rather than the WalletCreateFundedPsbtResult struct. PSBT originates from transfer CDROM here. 
 #[tauri::command]
 pub async fn sign_psbt(walletname: String, hwnumber: String, progress: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
@@ -858,8 +859,7 @@ pub async fn sign_psbt(walletname: String, hwnumber: String, progress: String) -
 		Ok(client)=> client,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
-	//TODO
-	//import the psbt from ramdisk (perhaps break this into a seperate function? maybe not because it has to be used within scope)...but potentially we should analyze before signing
+	//import the psbt from CDROM
 	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/CDROM/psbt"){
 		Ok(psbt_str)=> psbt_str,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
@@ -869,6 +869,58 @@ pub async fn sign_psbt(walletname: String, hwnumber: String, progress: String) -
 		Ok(psbt)=> psbt,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
+	//attempt to sign the tx
+	let signed_result = client.wallet_process_psbt(
+		&psbt.psbt,
+		Some(true),
+		None,
+		None,
+	);
+	let signed = match signed_result{
+		Ok(psbt)=> psbt,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
+	//declare file dest
+	let file_dest = "/mnt/ramdisk/CDROM/psbt".to_string();
+	//remove stale psbt from /mnt/ramdisk/CDROM/psbt
+	Command::new("sudo").args(["rm", "/mnt/ramdisk/CDROM/psbt"]).output().unwrap();
+	//store the signed transaction as a file
+	match store_psbt(&signed, file_dest) {
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
+	};
+	//remove the stale config.txt
+	Command::new("sudo").args(["rm", "/mnt/ramdisk/CDROM/config.txt"]).output().unwrap();
+	let file = File::create(&("/mnt/ramdisk/CDROM/config.txt")).unwrap();
+	let output = Command::new("echo").args(["-e", &("psbt=".to_string()+&progress.to_string())]).stdout(file).output().unwrap();
+	if !output.status.success() {
+		return Ok(format!("ERROR in sign_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap()));
+	}
+
+	Ok(format!("Reading PSBT from file: {:?}", signed))
+}
+
+#[tauri::command]
+//this is different than sign_psbt in that it is used to sign for the first key in the quorum which will be in the WalletCreateFundedPsbtResult format rather
+//than the WalletProcessPsbtResult format used in other circumstances. PSBT originates from RAM here.
+//TODO maybe refactor sign_psbt to look for either situation and act accordingly
+pub async fn sign_funded_psbt(walletname: String, hwnumber: String, progress: String) -> Result<String, String>{
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
+		Ok(client)=> client,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
+	//read the psbt from file
+	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/psbt/psbt"){
+		Ok(psbt_str)=> psbt_str,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
+	//convert result to WalletCreateFundedPsbtResult
+	let psbt: WalletCreateFundedPsbtResult = match serde_json::from_str(&psbt_str) {
+		Ok(psbt)=> psbt,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
+
 	//attempt to sign the tx
 	let signed_result = client.wallet_process_psbt(
 		&psbt.psbt,
@@ -964,7 +1016,7 @@ pub async fn broadcast_tx(walletname: String, hwnumber: String) -> Result<String
 	Ok(format!("Broadcasting Fully Signed TX: {:?}", broadcast))
 }
 
-//used to decode a fully signed TX...might be able to remove the
+//used to decode a PSBT and display tx parameters on the front end
 #[tauri::command]
 pub async fn decode_raw_tx(walletname: String, hwnumber: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
@@ -1026,4 +1078,30 @@ pub async fn decode_raw_tx(walletname: String, hwnumber: String) -> Result<Strin
 	let fee = 0;
 	// Ok(format!("decoded: {:?}", decoded))
 	Ok(format!("address = {}, amount = {}, fee = {}", address, amount, fee))
+}
+
+//used to decode a walletcreatefundedpsbt result
+#[tauri::command]
+pub async fn decode_funded_psbt(walletname: String, hwnumber: String) -> Result<String, String> {
+	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
+		Ok(client)=> client,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
+
+	//read the psbt from file
+	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/psbt/psbt"){
+		Ok(psbt_str)=> psbt_str,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
+
+		//convert result to WalletCreateFundedPsbtResult
+		let psbt: WalletCreateFundedPsbtResult = match serde_json::from_str(&psbt_str) {
+			Ok(psbt)=> psbt,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+		};
+	//currently only outputting the fee here
+	let fee = psbt.fee.to_btc();
+	//TODO also decode the raw tx to get address and amount and output those in addition to fee then split on the front end as needed.
+	Ok(format!("{:?}", fee))
 }
