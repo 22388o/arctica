@@ -174,9 +174,9 @@ pub fn check_cd_mount() -> std::string::String {
 pub fn generate_keypair() -> Result<(String, String), bitcoin::Error> {
 	let secp = Secp256k1::new();
     let seed = SecretKey::new(&mut rand::thread_rng()).secret_bytes();
-    let xpriv = bitcoin::util::bip32::ExtendedPrivKey::new_master(bitcoin::Network::Bitcoin, &seed).unwrap();
-	let xpub = bitcoin::util::bip32::ExtendedPubKey::from_priv(&secp, &xpriv);
-	Ok((bitcoin::util::base58::check_encode_slice(&xpriv.encode()), bitcoin::util::base58::check_encode_slice(&xpub.encode())))
+    let xpriv = bitcoin::bip32::ExtendedPrivKey::new_master(bitcoin::Network::Bitcoin, &seed).unwrap();
+	let xpub = bitcoin::bip32::ExtendedPubKey::from_priv(&secp, &xpriv);
+	Ok((bitcoin::base58::check_encode_slice(&xpriv.encode()), bitcoin::base58::check_encode_slice(&xpub.encode())))
 }
 
 //returns the checksum of the descriptor param

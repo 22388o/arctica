@@ -1036,7 +1036,10 @@ pub async fn decode_raw_tx(walletname: String, hwnumber: String) -> Result<Strin
 	};
 	//decode the psbt
 	let psbt_bytes = base64::decode(&psbt.psbt).unwrap();
-	let psbtx: PartiallySignedTransaction = deserialize(&psbt_bytes[..]).unwrap();
+	let psbtx: PartiallySignedTransaction = PartiallySignedTransaction::deserialize(&psbt_bytes[..]).unwrap();
+	// Calculate the total fees for the transaction
+	let fee = psbtx.fee().unwrap();
+	// let fee = 0;
 	//extract the raw tx
 	let unsigned_tx = psbtx.extract_tx();
 	//serialize the raw tx
@@ -1053,7 +1056,6 @@ pub async fn decode_raw_tx(walletname: String, hwnumber: String) -> Result<Strin
 	let address: String = clone.script_pub_key.address.unwrap().to_string();
 	//TODO this is broken sometimes, unclear as to why
 	let amount = clone.value;
-	//TODO the fee calc logic is currently broken
 	// // Calculate the total value of the transaction outputs
 	// let output_total: Amount = decoded
 	// 	.vout
@@ -1074,8 +1076,6 @@ pub async fn decode_raw_tx(walletname: String, hwnumber: String) -> Result<Strin
 	// 			.map(|out| out.value)
 	// 	})
 	// 	.sum();
-	// Calculate the total fees for the transaction
-	let fee = 0;
 	// Ok(format!("decoded: {:?}", decoded))
 	Ok(format!("address = {}, amount = {}, fee = {}", address, amount, fee))
 }
@@ -1103,8 +1103,13 @@ pub async fn decode_funded_psbt(walletname: String, hwnumber: String) -> Result<
 	//currently only outputting the fee here
 	let fee = psbt.fee.to_btc();
 
-	let address = "placeholder";
-	let amount = "placeholder";
-	//TODO also decode the raw tx to get address and amount and output those in addition to fee then split on the front end as needed.
+	//testing using PartiallySignedTransaction Struct
+	let psbt_bytes = base64::decode(&psbt.psbt).unwrap();
+	let psbtx: PartiallySignedTransaction = PartiallySignedTransaction::deserialize(&psbt_bytes[..]).unwrap();
+
+	let amount = psbtx.unsigned_tx.output[0].value;
+
+	let address = psbtx.unsigned_tx.output[0].script_pubkey.clone(); //this is currently a script pub key, need to figure out how to get address
+
 	Ok(format!("address={:?}, amount={:?}, fee={:?}", address, amount, fee))
 }
