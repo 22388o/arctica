@@ -18,7 +18,7 @@ use std::fs::File;
 use std::{time::Duration};
 use std::process::Stdio;
 use serde_json::{json};
-use serde::{Serialize};
+use serde::{Serialize, Deserialize};
 
 
 //import functions from helper
@@ -1124,25 +1124,21 @@ pub async fn decode_funded_psbt(walletname: String, hwnumber: String) -> Result<
 	//attempt to filter out change output
 	while length > x {
 		//obtain scriptpubkey for output at index x
-		let pubkey_script_buf = psbtx.unsigned_tx.output[x].script_pubkey.clone(); 
-
-		//since the above output is a scriptbuf type, we need to conver it to a Script type for Address::from_script() to accept it as a param
-		let pubkey_script = Scriptbuf::as_script(&pubkey_script_buf).unwrap();
+		let script_pubkey = psbtx.unsigned_tx.output[x].script_pubkey.as_script(); 
 
 		//obtain amount of output
 		let amount = psbtx.unsigned_tx.output[x].value;
 
 		//derive address from scriptpubkey
-		let address = match Address::from_script(&pubkey_script, Network::Bitcoin){
+		let address = match bitcoin::Address::from_script(script_pubkey, bitcoin::Network::Bitcoin){
 			Ok(address)=> address,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
-		};
-
-		// let core_address: bitcoincore_rpc::bitcoin::Address = address;
-
+        };
 
 		//check if address ismine: true
-		let address_info = match client.get_address_info(&address){
+		let address_info_result: Result<bitcoincore_rpc::json::GetAddressInfoResult, bitcoincore_rpc::Error> = client.call("getaddressinfo", &[address.to_string().into()]); 
+
+        let address_info = match address_info_result {
 			Ok(info)=>info,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
@@ -1158,19 +1154,16 @@ pub async fn decode_funded_psbt(walletname: String, hwnumber: String) -> Result<
 
 	//fallback if the user is sending to their own wallet
 	//obtain scriptpubkey for output at index 0
-	let pubkey_script_buf = psbtx.unsigned_tx.output[0].script_pubkey.clone(); 
-
-	//since the above output is a scriptbuf type, we need to conver it to a Script type for Address::from_script() to accept it as a param
-	let pubkey_script = Scriptbuf::as_script(&pubkey_script_buf).unwrap();
+	let script_pubkey = psbtx.unsigned_tx.output[0].script_pubkey.as_script(); 
 
 	//obtain amount of output
 	let amount = psbtx.unsigned_tx.output[0].value;
 
 	//derive address from scriptpubkey
-	let address = match Address::from_script(&pubkey_script, Network::Bitcoin){
+	let address = match bitcoin::Address::from_script(script_pubkey, bitcoin::Network::Bitcoin){
 		Ok(address)=> address,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
-	};
+    };
 
 	Ok(format!("address={:?}, amount={:?}, fee={:?}", address, amount, fee))
 
