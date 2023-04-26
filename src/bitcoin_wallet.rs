@@ -1,7 +1,14 @@
 use bitcoincore_rpc::RpcApi;
 use bitcoincore_rpc::bitcoincore_rpc_json::{AddressType, ImportDescriptors};
 use bitcoincore_rpc::bitcoincore_rpc_json::{WalletProcessPsbtResult, ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtResult};
+use bitcoincore_rpc::bitcoin::Address;
+use bitcoincore_rpc::bitcoin::Network;
+use bitcoincore_rpc::bitcoin::Script;
+// use bitcoincore_rpc::bitcoin::blockdata::script::Scriptbuf;
 use bitcoin;
+// use bitcoin::Network;
+// use bitcoin::Address;
+// use bitcoin::Script;
 use bitcoin::consensus::serialize;
 use bitcoin::consensus::deserialize;
 use bitcoin::psbt::PartiallySignedTransaction;
@@ -12,6 +19,7 @@ use std::{time::Duration};
 use std::process::Stdio;
 use serde_json::{json};
 use serde::{Serialize};
+
 
 //import functions from helper
 use crate::helper::{
@@ -563,7 +571,8 @@ let psbt_output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli"))
 &json_input.to_string(), //empty array
 &json_output.to_string(), //receive address & output amount
 &locktime, //locktime should always be 0
-&change_arg.to_string() ]) //manually providing change address
+&change_arg.to_string() //manually providing change address
+]) 
 .output()
 .unwrap();
 if !psbt_output.status.success() {
@@ -1095,21 +1104,81 @@ pub async fn decode_funded_psbt(walletname: String, hwnumber: String) -> Result<
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
 
-		//convert result to WalletCreateFundedPsbtResult
-		let psbt: WalletCreateFundedPsbtResult = match serde_json::from_str(&psbt_str) {
-			Ok(psbt)=> psbt,
-			Err(err)=> return Ok(format!("{}", err.to_string()))
-		};
-	//currently only outputting the fee here
+	//convert result to WalletCreateFundedPsbtResult
+	let psbt: WalletCreateFundedPsbtResult = match serde_json::from_str(&psbt_str) {
+		Ok(psbt)=> psbt,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
+
+	//calculate the fee 
 	let fee = psbt.fee.to_btc();
 
-	//testing using PartiallySignedTransaction Struct
+	//convert the byte slice to a PartiallySignedTransaction Struct
 	let psbt_bytes = base64::decode(&psbt.psbt).unwrap();
 	let psbtx: PartiallySignedTransaction = PartiallySignedTransaction::deserialize(&psbt_bytes[..]).unwrap();
 
+	//establish a baseline index for the output vector
+	let mut x = 0;
+	let length = psbtx.unsigned_tx.output.len();
+
+	//attempt to filter out change output
+	while length > x {
+		//obtain scriptpubkey for output at index x
+		let pubkey_script_buf = psbtx.unsigned_tx.output[x].script_pubkey.clone(); 
+
+		//since the above output is a scriptbuf type, we need to conver it to a Script type for Address::from_script() to accept it as a param
+		let pubkey_script = Scriptbuf::as_script(&pubkey_script_buf).unwrap();
+
+		//obtain amount of output
+		let amount = psbtx.unsigned_tx.output[x].value;
+
+		//derive address from scriptpubkey
+		let address = match Address::from_script(&pubkey_script, Network::Bitcoin){
+			Ok(address)=> address,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+		};
+
+		// let core_address: bitcoincore_rpc::bitcoin::Address = address;
+
+
+		//check if address ismine: true
+		let address_info = match client.get_address_info(&address){
+			Ok(info)=>info,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+		};
+
+		//if the address is not recognized, return the results
+		if address_info.is_mine == Some(false) {
+			return Ok(format!("address={:?}, amount={:?}, fee={:?}", address, amount, fee))
+		//else continue to iterate through the vector
+		}else{
+			x += 1;
+		}
+	}
+
+	//fallback if the user is sending to their own wallet
+	//obtain scriptpubkey for output at index 0
+	let pubkey_script_buf = psbtx.unsigned_tx.output[0].script_pubkey.clone(); 
+
+	//since the above output is a scriptbuf type, we need to conver it to a Script type for Address::from_script() to accept it as a param
+	let pubkey_script = Scriptbuf::as_script(&pubkey_script_buf).unwrap();
+
+	//obtain amount of output
 	let amount = psbtx.unsigned_tx.output[0].value;
 
-	let address = psbtx.unsigned_tx.output[0].script_pubkey.clone(); //this is currently a script pub key, need to figure out how to get address
+	//derive address from scriptpubkey
+	let address = match Address::from_script(&pubkey_script, Network::Bitcoin){
+		Ok(address)=> address,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 
 	Ok(format!("address={:?}, amount={:?}, fee={:?}", address, amount, fee))
+
+	//need to obtain the script pub keys for each index
+	//convert them to addresses
+	//query each address and check ismine
+	//use this logic to only display the outputs that are not ismine: true
+	//have a fall back for when the user is trying to consolidate utxos
+
+
 }
