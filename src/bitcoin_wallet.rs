@@ -1027,7 +1027,7 @@ pub async fn broadcast_tx(walletname: String, hwnumber: String) -> Result<String
 
 //used to decode a PSBT and display tx parameters on the front end
 #[tauri::command]
-pub async fn decode_raw_tx(walletname: String, hwnumber: String) -> Result<String, String>{
+pub async fn decode_processed_psbt(walletname: String, hwnumber: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
 		Ok(client)=> client,
@@ -1048,45 +1048,73 @@ pub async fn decode_raw_tx(walletname: String, hwnumber: String) -> Result<Strin
 	let psbtx: PartiallySignedTransaction = PartiallySignedTransaction::deserialize(&psbt_bytes[..]).unwrap();
 	// Calculate the total fees for the transaction
 	let fee = psbtx.fee().unwrap();
-	// let fee = 0;
-	//extract the raw tx
-	let unsigned_tx = psbtx.extract_tx();
-	//serialize the raw tx
-	let hex_tx = serialize(&unsigned_tx);
-	//decode the raw tx
-	let decoded_result = client.decode_raw_transaction(&hex_tx[..], None);
-	let decoded = match decoded_result{
-		Ok(result) => result,
+
+
+	//establish a baseline index for the output vector
+	let mut x = 0;
+	let length = psbtx.unsigned_tx.output.len();
+
+	//attempt to filter out change output
+	while length > x {
+		//obtain scriptpubkey for output at index x
+		let script_pubkey = psbtx.unsigned_tx.output[x].script_pubkey.as_script(); 
+
+		//obtain amount of output
+		let amount = psbtx.unsigned_tx.output[x].value;
+
+		//derive address from scriptpubkey
+		let address = match bitcoin::Address::from_script(script_pubkey, bitcoin::Network::Bitcoin){
+			Ok(address)=> address,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+        };
+
+		//check if address ismine: true
+		let address_info_result: Result<bitcoincore_rpc::json::GetAddressInfoResult, bitcoincore_rpc::Error> = client.call("getaddressinfo", &[address.to_string().into()]); 
+
+        let address_info = match address_info_result {
+			Ok(info)=>info,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+		};
+
+		//if the address is not recognized, return the results
+		if address_info.is_mine == Some(false) {
+			return Ok(format!("address={:?}, amount={:?}, fee={:?}", address, amount, fee))
+		//else continue to iterate through the vector
+		}else{
+			x += 1;
+		}
+	}
+
+	//fallback if the user is sending to their own wallet
+	//obtain scriptpubkey for output at index 0
+	let script_pubkey = psbtx.unsigned_tx.output[0].script_pubkey.as_script(); 
+
+	//obtain amount of output
+	let amount = psbtx.unsigned_tx.output[0].value;
+
+	//derive address from scriptpubkey
+	let address = match bitcoin::Address::from_script(script_pubkey, bitcoin::Network::Bitcoin){
+		Ok(address)=> address,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
-	};
-	//clone the output 
-	let clone = decoded.vout[0].clone();
-	//TODO this is broken sometimes, unclear as to why
-	let address: String = clone.script_pub_key.address.unwrap().to_string();
-	//TODO this is broken sometimes, unclear as to why
-	let amount = clone.value;
-	// // Calculate the total value of the transaction outputs
-	// let output_total: Amount = decoded
-	// 	.vout
-	// 	.iter()
-	// 	.filter_map(|output| Some(output.value))
-	// 	.sum();
-	
-	// // Calculate the total value of the transaction inputs
-	// let input_total: Amount = decoded
-	// 	.vin
-	// 	.iter()
-	// 	.filter_map(|input| {
-	// 		// Get the transaction output for this input
-	// 		// Find the output corresponding to this input index
-	// 		decoded.vout
-	// 			.iter()
-	// 			.find(|out| out.n == input.vout.unwrap())
-	// 			.map(|out| out.value)
-	// 	})
-	// 	.sum();
-	// Ok(format!("decoded: {:?}", decoded))
-	Ok(format!("address = {}, amount = {}, fee = {}", address, amount, fee))
+    };
+
+	Ok(format!("address={:?}, amount={:?}, fee={:?}", address, amount, fee))
+	// //extract the raw tx
+	// let unsigned_tx = psbtx.extract_tx();
+	// //serialize the raw tx
+	// let hex_tx = serialize(&unsigned_tx);
+	// //decode the raw tx
+	// let decoded_result = client.decode_raw_transaction(&hex_tx[..], None);
+	// let decoded = match decoded_result{
+	// 	Ok(result) => result,
+	// 	Err(err)=> return Ok(format!("{}", err.to_string()))
+	// };
+	// //clone the output 
+	// let clone = decoded.vout[0].clone();
+	// //TODO this is broken sometimes, unclear as to why
+	// let address: String = clone.script_pub_key.address.unwrap().to_string();
+	// //TODO this is broken sometimes, unclear as to why
+	// let amount = clone.value;
 }
 
 //used to decode a walletcreatefundedpsbt result
@@ -1166,12 +1194,4 @@ pub async fn decode_funded_psbt(walletname: String, hwnumber: String) -> Result<
     };
 
 	Ok(format!("address={:?}, amount={:?}, fee={:?}", address, amount, fee))
-
-	//need to obtain the script pub keys for each index
-	//convert them to addresses
-	//query each address and check ismine
-	//use this logic to only display the outputs that are not ismine: true
-	//have a fall back for when the user is trying to consolidate utxos
-
-
 }

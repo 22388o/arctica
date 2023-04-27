@@ -32,7 +32,7 @@ use setup::{
 mod bitcoin_wallet;
 use bitcoin_wallet::{
 	get_address, get_balance, get_transactions, generate_psbt, start_bitcoind, start_bitcoind_network_off,
-	stop_bitcoind, decode_raw_tx, broadcast_tx, finalize_psbt, sign_psbt, export_psbt, get_blockchain_info, 
+	stop_bitcoind, decode_processed_psbt, broadcast_tx, finalize_psbt, sign_psbt, export_psbt, get_blockchain_info, 
 	load_wallet, get_descriptor_info, decode_funded_psbt, sign_funded_psbt,
 };
 
@@ -571,7 +571,7 @@ fn main() {
 		sign_funded_psbt,
 		finalize_psbt,
 		broadcast_tx,
-		decode_raw_tx,
+		decode_processed_psbt,
 		decode_funded_psbt,
         ])
     .run(tauri::generate_context!())
