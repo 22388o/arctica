@@ -498,8 +498,6 @@ pub async fn generate_psbt(walletname: String, hwnumber:String, recipient: &str,
 		Ok(client)=> client,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
-   //TODO implement custom fees
-   println!("{}", fee);
 	//create the directory where the PSBT will live if it does not exist
    let a = std::path::Path::new("/mnt/ramdisk/psbt").exists();
    if a == false{
@@ -557,13 +555,21 @@ pub async fn generate_psbt(walletname: String, hwnumber:String, recipient: &str,
 // 	//convert the decoded psbt to a string
 // 	let psbt_str = to_string(&psbt).unwrap();
 
+//create the input JSON
 let json_input = json!([]);
+//creat the output JSON
 let json_output = json!([{
 	recipient: amount
 }]);
-let change_arg = json!({
+//create and options JSON and give it the change address
+let mut options = json!({
 	"changeAddress": change_address
 });
+//if the user specifies a custom fee, append it to the options JSON
+if fee != 0{
+	options["fee_rate"] = json!(fee);
+}
+
 let locktime = "0";
 let psbt_output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli"))
 .args([&("-rpcwallet=".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), 
@@ -571,7 +577,7 @@ let psbt_output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli"))
 &json_input.to_string(), //empty array
 &json_output.to_string(), //receive address & output amount
 &locktime, //locktime should always be 0
-&change_arg.to_string() //manually providing change address
+&options.to_string() //manually providing change address
 ]) 
 .output()
 .unwrap();
