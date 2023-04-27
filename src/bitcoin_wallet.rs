@@ -501,7 +501,7 @@ pub async fn generate_psbt(walletname: String, hwnumber:String, recipient: &str,
 	//create the directory where the PSBT will live if it does not exist
    let a = std::path::Path::new("/mnt/ramdisk/psbt").exists();
    if a == false{
-       //remove the stale dir
+       //make psbt dir
        let output = Command::new("mkdir").args(["/mnt/ramdisk/psbt"]).output().unwrap();
        if !output.status.success() {
        return Ok(format!("ERROR in creating /mnt/ramdisk/psbt dir {}", std::str::from_utf8(&output.stderr).unwrap()));
@@ -887,8 +887,15 @@ pub async fn sign_processed_psbt(walletname: String, hwnumber: String, progress:
 	);
 	let signed = match signed_result{
 		Ok(psbt)=> psbt,
-		Err(err)=> return Ok(format!("{}", err.to_string()))
+		Err(err)=> return Ok(format!("Could not sign processed PSBT: {}", err.to_string()))
 	};
+	let a = std::path::Path::new("/mnt/ramdisk/psbt").exists();
+	if a == false {
+		let output = Command::new("mkdir").args(["/mnt/ramdisk/psbt"]).output().unwrap();
+		if !output.status.success() {
+		return Ok(format!("ERROR in creating /mnt/ramdisk/psbt dir {}", std::str::from_utf8(&output.stderr).unwrap()));
+		}
+	}
 	//declare file dest
 	let file_dest = "/mnt/ramdisk/psbt/psbt".to_string();
 	//remove stale psbt from /mnt/ramdisk/CDROM/psbt
