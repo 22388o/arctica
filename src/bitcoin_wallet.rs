@@ -806,13 +806,13 @@ pub async fn get_blockchain_info() -> String {
 pub async fn export_psbt(progress: String) -> String{
 	// sleep for 4 seconds
 	Command::new("sleep").args(["4"]).output().unwrap();
-	//create conf for CD
+	//create conf for transfer CD
 	let a = std::path::Path::new("/mnt/ramdisk/psbt/config.txt").exists();
 	if a == false{
 		let file = File::create(&("/mnt/ramdisk/psbt/config.txt")).unwrap();
 		let output = Command::new("echo").args(["-e", &("psbt=".to_string()+&progress.to_string())]).stdout(file).output().unwrap();
 		if !output.status.success() {
-			return format!("ERROR in export_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
+			return format!("ERROR with creating config: {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 	}
 	let b = std::path::Path::new("/mnt/ramdisk/psbt/masterkey").exists();
@@ -820,7 +820,7 @@ pub async fn export_psbt(progress: String) -> String{
 	if b == false{
 		let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/masterkey", "/mnt/ramdisk/psbt"]).output().unwrap();
 		if !output.status.success() {
-			return format!("ERROR in export_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap());
+			return format!("ERROR with copying masterkey = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 	}
 	//create iso from psbt dir
@@ -884,9 +884,9 @@ pub async fn sign_processed_psbt(walletname: String, hwnumber: String, progress:
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
 	//declare file dest
-	let file_dest = "/mnt/ramdisk/CDROM/psbt".to_string();
+	let file_dest = "/mnt/ramdisk/psbt/psbt".to_string();
 	//remove stale psbt from /mnt/ramdisk/CDROM/psbt
-	Command::new("sudo").args(["rm", "/mnt/ramdisk/CDROM/psbt"]).output().unwrap();
+	Command::new("sudo").args(["rm", "/mnt/ramdisk/psbt/psbt"]).output().unwrap();
 	//store the signed transaction as a file
 	match store_psbt(&signed, file_dest) {
 	Ok(_) => {},
@@ -911,17 +911,17 @@ pub async fn sign_funded_psbt(walletname: String, hwnumber: String, progress: St
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
 		Ok(client)=> client,
-		Err(err)=> return Ok(format!("{}", err.to_string()))
+		Err(err)=> return Ok(format!("Error establishing client connection: {}", err.to_string()))
 	};
 	//read the psbt from file
 	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/psbt/psbt"){
 		Ok(psbt_str)=> psbt_str,
-		Err(err)=> return Ok(format!("{}", err.to_string()))
+		Err(err)=> return Ok(format!("Error reading PSBT from file: {}", err.to_string()))
 	};
 	//convert result to WalletCreateFundedPsbtResult
 	let psbt: WalletCreateFundedPsbtResult = match serde_json::from_str(&psbt_str) {
 		Ok(psbt)=> psbt,
-		Err(err)=> return Ok(format!("{}", err.to_string()))
+		Err(err)=> return Ok(format!("Error parsing PSBT: {}", err.to_string()))
 	};
 
 	//attempt to sign the tx
@@ -933,24 +933,17 @@ pub async fn sign_funded_psbt(walletname: String, hwnumber: String, progress: St
 	);
 	let signed = match signed_result{
 		Ok(psbt)=> psbt,
-		Err(err)=> return Ok(format!("{}", err.to_string()))
+		Err(err)=> return Ok(format!("Error signing PSBT: {}", err.to_string()))
 	};
 	//declare file dest
-	let file_dest = "/mnt/ramdisk/CDROM/psbt".to_string();
+	let file_dest = "/mnt/ramdisk/psbt/psbt".to_string();
 	//remove stale psbt from /mnt/ramdisk/CDROM/psbt
-	Command::new("sudo").args(["rm", "/mnt/ramdisk/CDROM/psbt"]).output().unwrap();
+	Command::new("sudo").args(["rm", "/mnt/ramdisk/psbt/psbt"]).output().unwrap();
 	//store the signed transaction as a file
 	match store_psbt(&signed, file_dest) {
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
 	};
-	//remove the stale config.txt
-	Command::new("sudo").args(["rm", "/mnt/ramdisk/CDROM/config.txt"]).output().unwrap();
-	let file = File::create(&("/mnt/ramdisk/CDROM/config.txt")).unwrap();
-	let output = Command::new("echo").args(["-e", &("psbt=".to_string()+&progress.to_string())]).stdout(file).output().unwrap();
-	if !output.status.success() {
-		return Ok(format!("ERROR in sign_funded_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap()));
-	}
 
 	Ok(format!("Reading PSBT from file: {:?}", signed))
 }
