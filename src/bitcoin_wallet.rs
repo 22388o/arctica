@@ -767,21 +767,16 @@ pub async fn load_wallet(walletname: String, hwnumber: String) -> Result<String,
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = match bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth){
 		Ok(client)=> client,
-		Err(err)=> return Ok(format!("{}", err.to_string()))
+		Err(err)=> return Ok(format!("error connecting to client: {}", err.to_string()))
 	};
-	// load the specified wallet
-	match client.load_wallet(&(walletname.to_string()+"_wallet"+&(hwnumber.to_string()))){
-		Ok(load)=> load,
-		Err(err)=> return Ok(format!("{}", err.to_string()))
-	};
+	// load the specified wallet...using a match statement here throws a JSON RPC error that breaks the loop logic
+	client.load_wallet(&(walletname.to_string()+"_wallet"+&(hwnumber.to_string())));
 	// parse list_wallets in a continuous loop to verify when rescan is completed
 	loop{
-		let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    	let client = match bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth){
-			Ok(client)=> client,
-			Err(err)=> return Ok(format!("{}", err.to_string()))
+		let list = match client.list_wallets(){
+			Ok(list)=> list,
+			Err(err)=> return Ok(format!("error listing wallets: {}", err.to_string()))
 		};
-		let list = client.list_wallets().unwrap();
 		let search_string = &(walletname.to_string()+"_wallet"+&(hwnumber.to_string()));
 		//listwallets returns the wallet name as expected...wallet is properly loaded and scanned
 		if list.contains(&search_string){
@@ -790,7 +785,6 @@ pub async fn load_wallet(walletname: String, hwnumber: String) -> Result<String,
 		//listwallets does not return the wallet name...wallet not yet loaded
 		else{
 			std::thread::sleep(Duration::from_secs(5));
-			continue;
 		}
 	}
 	Ok(format!("Success in loading {} wallet", walletname))
