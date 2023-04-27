@@ -1040,7 +1040,8 @@ pub async fn decode_processed_psbt(walletname: String, hwnumber: String) -> Resu
 	let psbt_bytes = base64::decode(&psbt.psbt).unwrap();
 	let psbtx: PartiallySignedTransaction = PartiallySignedTransaction::deserialize(&psbt_bytes[..]).unwrap();
 	// Calculate the total fees for the transaction
-	let fee = psbtx.fee().unwrap();
+	let fee_amount = psbtx.fee().unwrap();
+	let fee = fee_amount.to_btc();
 
 
 	//establish a baseline index for the output vector
