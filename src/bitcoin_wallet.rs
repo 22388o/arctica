@@ -862,7 +862,7 @@ pub async fn export_psbt(progress: String) -> String{
 //this is diffent from sign_funded_psbt in that this function is used to sign for a psbt that has already been signed with another wallet and expects the 
 //WalletProcessPsbtResult struct rather than the WalletCreateFundedPsbtResult struct. PSBT originates from transfer CDROM here. 
 #[tauri::command]
-pub async fn sign_psbt(walletname: String, hwnumber: String, progress: String) -> Result<String, String>{
+pub async fn sign_processed_psbt(walletname: String, hwnumber: String, progress: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
 		Ok(client)=> client,
@@ -903,16 +903,16 @@ pub async fn sign_psbt(walletname: String, hwnumber: String, progress: String) -
 	let file = File::create(&("/mnt/ramdisk/CDROM/config.txt")).unwrap();
 	let output = Command::new("echo").args(["-e", &("psbt=".to_string()+&progress.to_string())]).stdout(file).output().unwrap();
 	if !output.status.success() {
-		return Ok(format!("ERROR in sign_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap()));
+		return Ok(format!("ERROR in sign_processed_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap()));
 	}
 
 	Ok(format!("Reading PSBT from file: {:?}", signed))
 }
 
 #[tauri::command]
-//this is different than sign_psbt in that it is used to sign for the first key in the quorum which will be in the WalletCreateFundedPsbtResult format rather
+//this is different than sign_processed_psbt in that it is used to sign for the first key in the quorum which will be in the WalletCreateFundedPsbtResult format rather
 //than the WalletProcessPsbtResult format used in other circumstances. PSBT originates from RAM here.
-//TODO maybe refactor sign_psbt to look for either situation and act accordingly
+//TODO maybe refactor sign_processed_psbt to look for either situation and act accordingly
 pub async fn sign_funded_psbt(walletname: String, hwnumber: String, progress: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
@@ -955,7 +955,7 @@ pub async fn sign_funded_psbt(walletname: String, hwnumber: String, progress: St
 	let file = File::create(&("/mnt/ramdisk/CDROM/config.txt")).unwrap();
 	let output = Command::new("echo").args(["-e", &("psbt=".to_string()+&progress.to_string())]).stdout(file).output().unwrap();
 	if !output.status.success() {
-		return Ok(format!("ERROR in sign_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap()));
+		return Ok(format!("ERROR in sign_funded_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap()));
 	}
 
 	Ok(format!("Reading PSBT from file: {:?}", signed))
@@ -1151,11 +1151,12 @@ pub async fn decode_funded_psbt(walletname: String, hwnumber: String) -> Result<
 
 	//attempt to filter out change output
 	while length > x {
-		//obtain scriptpubkey for output at index x
-		let script_pubkey = psbtx.unsigned_tx.output[x].script_pubkey.as_script(); 
 
 		//obtain amount of output
 		let amount = psbtx.unsigned_tx.output[x].value;
+
+		//obtain scriptpubkey for output at index x
+		let script_pubkey = psbtx.unsigned_tx.output[x].script_pubkey.as_script(); 
 
 		//derive address from scriptpubkey
 		let address = match bitcoin::Address::from_script(script_pubkey, bitcoin::Network::Bitcoin){
