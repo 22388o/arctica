@@ -4,11 +4,7 @@ use bitcoincore_rpc::bitcoincore_rpc_json::{WalletProcessPsbtResult, ListTransac
 use bitcoincore_rpc::bitcoin::Address;
 use bitcoincore_rpc::bitcoin::Network;
 use bitcoincore_rpc::bitcoin::Script;
-// use bitcoincore_rpc::bitcoin::blockdata::script::Scriptbuf;
 use bitcoin;
-// use bitcoin::Network;
-// use bitcoin::Address;
-// use bitcoin::Script;
 use bitcoin::consensus::serialize;
 use bitcoin::consensus::deserialize;
 use bitcoin::psbt::PartiallySignedTransaction;
@@ -17,9 +13,9 @@ use std::fs;
 use std::fs::File;
 use std::{time::Duration};
 use std::process::Stdio;
+use std::collections::{HashMap, HashSet};
 use serde_json::{json};
 use serde::{Serialize, Deserialize};
-
 
 //import functions from helper
 use crate::helper::{
@@ -28,7 +24,7 @@ use crate::helper::{
 };
 
 //custom structs
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 struct CustomTransaction {
 	id: i32,
     info: CustomWalletTxInfo,
@@ -37,7 +33,7 @@ struct CustomTransaction {
     comment: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 struct CustomWalletTxInfo {
     confirmations: i32,
     blockhash: Option<String>,
@@ -51,7 +47,7 @@ struct CustomWalletTxInfo {
     wallet_conflicts: Vec<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 struct CustomGetTransactionResultDetail {
     address: Option<String>,
     category: String,
@@ -61,6 +57,16 @@ struct CustomGetTransactionResultDetail {
     fee: Option<i64>,
     abandoned: Option<bool>,
 }
+
+impl PartialEq for CustomTransaction {
+    fn eq(&self, other: &Self) -> bool {
+        self.info.txid == other.info.txid &&
+        self.detail.address == other.detail.address &&
+        self.detail.amount == other.detail.amount
+    }
+}
+
+
 
 //functions library
 
@@ -465,23 +471,32 @@ pub async fn get_transactions(walletname: String, hwnumber:String) -> Result<Str
 			trusted: tx.trusted,
 			comment: tx.comment,
 		};
-		//TODO commented out code below is not working as intended, was hoping to use it to filter out change inputs/outputs
-		//check if the address is owned by the wallet, if so, assume change input/output and hide from the display
-		// let addr: Address = tx.detail.address.unwrap();
-		// let ismine_res = client.get_address_info(&addr);
-		// let ismine = match ismine_res{
-		// 	Ok(res)=>res,
-		// 	Err(err)=>return Ok(format!("{}", err.to_string()))
-		// };
-		// if ismine.is_mine == Some(false)||Some(true){
 			custom_transactions.push(custom_tx);
 			x += 1;
-		// }
-		// else{
-		// 	continue
-		// }
 		
 	}
+
+	    // Group transactions into a hashmap by their transaction ID
+		// let mut tx_groups: HashMap<&str, Vec<CustomTransaction>> = HashMap::new();
+		// // let mut txids = Vec::new();
+		// for tx in custom_transactions {
+		// 	let custom_tx = {
+		// 		txid: tx.info.txid.to_string(),
+		// 	};
+
+		// 	//add the txid to the hashmap
+		// 	let txid = tx.info.txid.to_string();
+		// 	let tx_group = tx_groups.entry(&txid).or_insert(vec![]);
+		// 	tx_group.push(custom_tx);
+		// }
+		//iterate through each group of transactions with the same txid
+		//if any txs are found in a batch of txids to have indentical address and amount fields, exclude them from the results
+
+	
+
+		// let txids: Vec<String> = custom_transactions.iter().map(|tx| tx.info.txid.to_string()).collect();
+	//check for duplicate txids. 
+	//if a batch of txids has >2 outputs & atleast two duplicate amounts & addresses...assume change and filter from results
 	let json_string = serde_json::to_string(&custom_transactions).unwrap();
 	println!("{}", json_string);
 	Ok(format!("{}", json_string))
@@ -770,8 +785,10 @@ pub async fn get_descriptor_info(walletname: String) -> String {
 
 #[tauri::command]
 pub async fn load_wallet(walletname: String, hwnumber: String) -> Result<String, String> {
+	//sleep time to ensure daemon is running before making an RPC call
+	std::thread::sleep(Duration::from_secs(5));
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
-    let client = match bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth){
+    let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
 		Ok(client)=> client,
 		Err(err)=> return Ok(format!("error connecting to client: {}", err.to_string()))
 	};
