@@ -264,20 +264,34 @@ pub async fn generate_store_key_pair(number: String) -> String {
 	//number corresponds to currentHW here and is provided by the front end
 	let private_key_file = "/mnt/ramdisk/sensitive/private_key".to_string()+&number;
 	let public_key_file = "/mnt/ramdisk/sensitive/public_key".to_string()+&number;
+	let private_change_key_file = "/mnt/ramdisk/sensitive/private_change_key".to_string()+&number;
+	let public_change_key_file = "/mnt/ramdisk/sensitive/public_change_key".to_string()+&number;
     //generate an extended private and public keypair
     let (xpriv, xpub) = match generate_keypair() {
 		Ok((xpriv, xpub)) => (xpriv, xpub),
 		Err(err) => return "ERROR could not generate keypair: ".to_string()+&err.to_string()
 	}; 
+	//note that change xkeys and standard xkeys are the same but simply given different derviation paths, they are stored seperately for ease of use
+	//change keys are assigned /1/* and external keys are assigned /0/*
     //store the xpriv as a file
-	match store_string(xpriv.to_string()+"/*", &private_key_file) {
+	match store_string(xpriv.to_string()+"/0/*", &private_key_file) {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store private key: ".to_string()+&err
 	}
     //store the xpub as a file
-	match store_string(xpub.to_string()+"/*", &public_key_file) {
+	match store_string(xpub.to_string()+"/0/*", &public_key_file) {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store public key: ".to_string()+&err
+	}
+	//store the change_xpriv as a file
+	match store_string(xpriv.to_string()+"/1/*", &private_change_key_file) {
+		Ok(_) => {},
+		Err(err) => return "ERROR could not store private change key: ".to_string()+&err
+	}
+	//store the change_xpub as a file
+	match store_string(xpub.to_string()+"/1/*", &public_change_key_file) {
+		Ok(_) => {},
+		Err(err) => return "ERROR could not store public change key: ".to_string()+&err
 	}
 	//make the pubkey dir in the setupCD staging area if it does not already exist
 	let a = std::path::Path::new("/mnt/ramdisk/CDROM/pubkeys").exists();
@@ -290,8 +304,13 @@ pub async fn generate_store_key_pair(number: String) -> String {
 	//copy public key to setupCD dir
 	let output = Command::new("cp").args([&("/mnt/ramdisk/sensitive/public_key".to_string()+&number), "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
 	if !output.status.success() {
-    	return format!("ERROR in generate store key pair with copying pubkey= {}", std::str::from_utf8(&output.stderr).unwrap());
+    	return format!("ERROR in generate store key pair with copying pub key= {}", std::str::from_utf8(&output.stderr).unwrap());
     }
+	//copy public change key to setupCD dir
+	let output = Command::new("cp").args([&("/mnt/ramdisk/sensitive/public_change_key".to_string()+&number), "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in generate store key pair with copying pub change key= {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 	format!("SUCCESS generated and stored Private and Public Key Pair")
 }
 
@@ -312,26 +331,45 @@ pub async fn generate_store_simulated_time_machine_key_pair(number: String) -> S
 	//number param is provided by the front end
 	let private_key_file = "/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&number;
 	let public_key_file = "/mnt/ramdisk/CDROM/timemachinekeys/time_machine_public_key".to_string()+&number;
+	let private_change_key_file = "/mnt/ramdisk/sensitive/time_machine_private_change_key".to_string()+&number;
+	let public_change_key_file = "/mnt/ramdisk/sensitive/time_machine_public_change_key".to_string()+&number;
 	let (xpriv, xpub) = match generate_keypair() {
 		Ok((xpriv, xpub)) => (xpriv, xpub),
 		Err(err) => return "ERROR could not generate keypair: ".to_string()+&err.to_string()
 	};
+	//note that change xkeys and standard xkeys are the same but simply given different derviation paths, they are stored seperately for ease of use
+	//change keys are assigned /1/* and external keys are assigned /0/*
     //store the xpriv as a file
-	match store_string(xpriv.to_string()+"/*", &private_key_file) {
+	match store_string(xpriv.to_string()+"/0/*", &private_key_file) {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store private key: ".to_string()+&err
 	}
     //store the xpub as a file
-	match store_string(xpub.to_string()+"/*", &public_key_file) {
+	match store_string(xpub.to_string()+"/0/*", &public_key_file) {
 		Ok(_) => {},
 		Err(err) => return "ERROR could not store public key: ".to_string()+&err
+	}
+	//store the change_xpriv as a file
+	match store_string(xpriv.to_string()+"/1/*", &private_change_key_file) {
+		Ok(_) => {},
+		Err(err) => return "ERROR could not store private change key: ".to_string()+&err
+	}
+	//store the change_xpub as a file
+	match store_string(xpub.to_string()+"/1/*", &public_change_key_file) {
+		Ok(_) => {},
+		Err(err) => return "ERROR could not store public change key: ".to_string()+&err
 	}
 	//copy public key to setupCD dir
 	let output = Command::new("cp").args([&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_public_key".to_string()+&number), "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
 	if !output.status.success() {
-    	return format!("ERROR in generate store key pair with copying pubkey= {}", std::str::from_utf8(&output.stderr).unwrap());
+    	return format!("ERROR in generate store key pair with copying pub key= {}", std::str::from_utf8(&output.stderr).unwrap());
     }
-	format!("SUCCESS generated and stored Private and Public Key Pair")
+	//copy public change key to setupCD dir
+	let output = Command::new("cp").args([&("/mnt/ramdisk/sensitive/time_machine_public_change_key".to_string()+&number), "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in generate store key pair with copying pub change key= {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	format!("SUCCESS generated and stored Private and Public Time Machine Key Pair")
 }
 
 //create arctica descriptors
@@ -345,6 +383,7 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
    //convert all 11 public_keys in the ramdisk to an array vector
    println!("creating key array");
    let mut key_array = Vec::new();
+   let mut change_key_array = Vec::new();
    //push the 7 standard public keys into the key_array vector
    println!("pushing 7 standard pubkeys into key array");
    for i in 1..=7{
