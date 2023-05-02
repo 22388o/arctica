@@ -383,7 +383,7 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
    //convert all 11 public_keys in the ramdisk to an array vector
    println!("creating key array");
    let mut key_array = Vec::new();
-   let mut change_key_array = Vec::new();
+//    let mut change_key_array = Vec::new();
    //push the 7 standard public keys into the key_array vector
    println!("pushing 7 standard pubkeys into key array");
    for i in 1..=7{
