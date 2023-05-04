@@ -383,7 +383,7 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
    //convert all 11 public_keys in the ramdisk to an array vector
    println!("creating key array");
    let mut key_array = Vec::new();
-//    let mut change_key_array = Vec::new();
+   let mut change_key_array = Vec::new();
    //push the 7 standard public keys into the key_array vector
    println!("pushing 7 standard pubkeys into key array");
    for i in 1..=7{
@@ -406,6 +406,29 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
 	}
    println!("printing key array");
    println!("{:?}", key_array);
+
+      //push the 7 public change keys into the change_key_array vector
+	  println!("pushing 7 pub change keys into change key array");
+	  for i in 1..=7{
+		  let key = match fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/public_change_key".to_string()+&(i.to_string()))){
+		   Ok(key)=> key,
+		   Err(err)=> return Ok(format!("{}", err.to_string()))
+	   };
+		  change_key_array.push(key);
+		  println!("pushed key");
+	  }
+	  //push the 4 time machine public keys into the key_array vector, only on HW 1.
+	   println!("pushing 4 time machine pub change keys into change key array");
+	   for i in 1..=4{
+		   let key = match fs::read_to_string(&("/mnt/ramdisk/CDROM/pubkeys/time_machine_public_change_key".to_string()+&(i.to_string()))){
+			   Ok(key)=> key,
+			   Err(err)=> return Ok(format!("{}", err.to_string()))
+		   };
+		   change_key_array.push(key);
+		   println!("pushed key");
+	   }
+	println!("printing change key array");
+   	println!("{:?}", change_key_array);
 
    //create the descriptors directory inside of ramdisk
    println!("Making descriptors dir");
