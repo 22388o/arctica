@@ -340,21 +340,26 @@ pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<Str
 // ./bitcoin-cli -rpcwallet=<filepath>|"wallet_name" importdescriptors "requests"
 //requests is a JSON and is formatted as follows
 //'[{"desc": "<descriptor goes here>", "active":true, "range":[0,100], "next_index":0, "timestamp": <start_time_timestamp>}]'
-//acceptable params here are "low", "immediate", "delayed"
+//acceptable params here are "low" & "low_change", "immediate" & "immediate_change", "delayed" & "delayed_change"; hwNumber 1-7; internal: true designates change descriptor
 //TODO timestamp is not currently fucntional due to a type mismatch, timestamp within the ImportDescriptors struct wants bitcoin::timelock:time
-pub fn import_descriptor(wallet: String, hwnumber: &String) -> Result<String, String> {
+pub fn import_descriptor(wallet: String, hwnumber: &String, internal: bool) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+ &(hwnumber.to_string())), auth){
 		Ok(client)=> client,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
 	//read the descriptor to a string from file
-	let desc: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor" + &(hwnumber.to_string()))){
-		Ok(desc)=> desc,
-		Err(err)=> return Ok(format!("{}", err.to_string()))
-	};
+		let desc: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor" + &(hwnumber.to_string()))){
+			Ok(desc)=> desc,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+		};
+
 	//obtain the start time from file
 	let start_time = retrieve_start_time();
+	let mut change = Some(true);
+	if internal == false {
+		change = Some(false);
+	}
 	//import the descriptors into the wallet file
 	let output = match client.import_descriptors(ImportDescriptors {
 		descriptor: desc,
@@ -362,7 +367,7 @@ pub fn import_descriptor(wallet: String, hwnumber: &String) -> Result<String, St
 		active: Some(true),
 		range: Some((0, 100)),
 		next_index: Some(0),
-		internal: Some(true),
+		internal: change,
 		label: None
 	}){
 			Ok(file) => file,
