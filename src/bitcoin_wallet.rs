@@ -1,5 +1,5 @@
 use bitcoincore_rpc::RpcApi;
-use bitcoincore_rpc::bitcoincore_rpc_json::{AddressType, ImportDescriptors};
+use bitcoincore_rpc::bitcoincore_rpc_json::{AddressType};
 use bitcoincore_rpc::bitcoincore_rpc_json::{WalletProcessPsbtResult, ListTransactionResult, Bip125Replaceable, GetTransactionResultDetailCategory, WalletCreateFundedPsbtResult};
 use bitcoincore_rpc::bitcoin::Address;
 use bitcoincore_rpc::bitcoin::Network;
@@ -357,38 +357,48 @@ pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: boo
 //'[{"desc": "<descriptor goes here>", "active":true, "range":[0,100], "next_index":0, "timestamp": <start_time_timestamp>}]'
 //acceptable params here are "low" & "low_change", "immediate" & "immediate_change", "delayed" & "delayed_change"; hwNumber 1-7; internal: true designates change descriptor
 //TODO timestamp is not currently fucntional due to a type mismatch, timestamp within the ImportDescriptors struct wants bitcoin::timelock:time
-pub fn import_descriptor(wallet: String, hwnumber: &String, internal: bool) -> Result<String, String> {
+pub fn import_descriptor(wallet: String, hwnumber: &String) -> Result<String, String> {
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(wallet.to_string())+"_wallet"+ &(hwnumber.to_string())), auth){
 		Ok(client)=> client,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
-	let mut descriptor_str = "_descriptor";
-	if internal == true {
-		descriptor_str = "_change_descriptor"
-	}
 	//read the descriptor to a string from file
-		let desc: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+&(descriptor_str.to_string()) + &(hwnumber.to_string()))){
+		let desc: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+&"_descriptor".to_string()+ &(hwnumber.to_string()))){
 			Ok(desc)=> desc,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
+	//read the change descriptor to a string from file
+	let change_desc: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors".to_string()+&(wallet.to_string())+&"_change_descriptor".to_string() + &(hwnumber.to_string()))){
+		Ok(desc)=> desc,
+		Err(err)=> return Ok(format!("{}", err.to_string()))
+	};
 
 	//obtain the start time from file
 	let start_time = retrieve_start_time();
-	let mut change = Some(true);
-	if internal == false {
-		change = Some(false);
-	}
+
+	let descriptors = vec![
+		json!({
+			"desc": desc,
+			"timestamp": start_time,
+			"active": true,
+			"range": [0, 100],
+			"next_index": 0,
+			"internal": false
+		}),
+		json!({
+			"desc": change_desc,
+			"timestamp": start_time,
+			"active": true,
+			"range": [0, 100],
+			"next_index": 0,
+			"internal": true
+		})
+	];
+
 	//import the descriptors into the wallet file
-	let output = match client.import_descriptors(ImportDescriptors {
-		descriptor: desc,
-		timestamp: start_time,
-		active: Some(true),
-		range: Some((0, 100)),
-		next_index: Some(0),
-		internal: change,
-		label: None
-	}){
+	let output = match client.call("importdescriptors", &[json!(descriptors)]
+	){
 			Ok(file) => file,
 			Err(err) => return Err(err.to_string()),
 		
@@ -549,10 +559,10 @@ pub async fn generate_psbt(walletname: String, hwnumber:String, recipient: &str,
    //declare the destination for the PSBT file
    let file_dest = "/mnt/ramdisk/psbt/psbt".to_string();
 
-   //TODO COMMENTING OUT THIS FOR TESTING INTERNAL CHANGE DESCRIPTORS
-   //define change address type
+//TODO this can be removed once change descriptors are working properly
+// //    define change address type
 //    let address_type = Some(AddressType::Bech32);
-   //obtain a change address
+// //    obtain a change address
 //    let change_address = match client.get_new_address(None, address_type){
 // 	   Ok(addr) => addr,
 // 	   Err(err) => return Ok(format!("{}", err.to_string()))
@@ -602,8 +612,9 @@ let json_input = json!([]);
 let json_output = json!([{
 	recipient: amount
 }]);
-//create and options JSON and give it the change address
+//empty options JSON
 let mut options = json!({
+	//TODO this can be removed once change descriptors are working properly
 	// "changeAddress": change_address
 });
 //if the user specifies a custom fee, append it to the options JSON
