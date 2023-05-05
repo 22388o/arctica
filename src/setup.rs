@@ -443,13 +443,13 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
    let high_file_dest = &("/mnt/ramdisk/sensitive/descriptors/delayed_descriptor".to_string()+&hwnumber.to_string()).to_string();
    //store the delayed wallet descriptor in the sensitive dir
    println!("storing high descriptor");
-   match store_string(high_descriptor.to_string(), high_file_dest) {
+   match store_string(high_descriptor.to_string(), high_file_dest, false) {
        Ok(_) => {},
        Err(err) => return Err("ERROR could not store High Descriptor: ".to_string()+&err)
    };
    //build delayed wallet change descriptor
    println!("building high change descriptor");
-   let high_change_descriptor = match build_high_descriptor(&change_key_array, &hwnumber) {
+   let high_change_descriptor = match build_high_descriptor(&change_key_array, &hwnumber, true) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build High Change Descriptor ".to_string()+&err)
    };
@@ -481,7 +481,7 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
 
    //build the immediate wallet descriptor
    println!("building med descriptor");
-   let med_descriptor = match build_med_descriptor(&key_array, &hwnumber) {
+   let med_descriptor = match build_med_descriptor(&key_array, &hwnumber, false) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build Immediate Descriptor ".to_string()+&err)
    };
@@ -494,7 +494,7 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
    };
    //build the immediate change descriptor
    println!("building med change descriptor");
-   let med_change_descriptor = match build_med_descriptor(&change_key_array, &hwnumber) {
+   let med_change_descriptor = match build_med_descriptor(&change_key_array, &hwnumber, true) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build Immediate Change Descriptor ".to_string()+&err)
    };
@@ -526,7 +526,7 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
 
    //build the low security descriptor
    println!("building low descriptor");
-   let low_descriptor = match build_low_descriptor(&key_array, &hwnumber) {
+   let low_descriptor = match build_low_descriptor(&key_array, &hwnumber, false) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build Low Descriptor ".to_string()+&err)
    };
@@ -540,7 +540,7 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
 
    //build the low change descriptor
    println!("building low change descriptor");
-   let low_change_descriptor = match build_low_descriptor(&change_key_array, &hwnumber) {
+   let low_change_descriptor = match build_low_descriptor(&change_key_array, &hwnumber, true) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build Low Change Descriptor ".to_string()+&err)
    };

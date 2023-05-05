@@ -88,7 +88,7 @@ pub fn create_wallet(wallet: String, hwnumber: &String) -> Result<String, String
 }
 
 //builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
-pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<String, String> {
+pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bool) -> Result<String, String> {
 	println!("calculating 4 year block time span");
 	//retrieve start time from file
     let start_time = retrieve_start_time_integer(); 
@@ -105,7 +105,12 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<St
     let month = 4383;
 	println!("reading xpriv");
 	//read xpriv from file to string
-	let xpriv = match fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hwnumber.to_string()))){
+	let mut private_key = "private_key"
+	//internal change condition is true
+	if internal == true {
+		private_key = "private_change_key";
+	}
+	let xpriv = match fs::read_to_string(&("/mnt/ramdisk/sensitive/".to_string()+&(private_key.to_string())&(hwnumber.to_string()))){
 		Ok(xpriv)=> xpriv,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
@@ -165,7 +170,7 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<St
 		Ok(format!("{}", output))	
 	}else if hwnumber == "timemachine2"{
 		println!("Found HW = timemachine2");
-		let timemachinexpriv = match fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))){
+		let timemachinexpriv = match fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_".to_string()+&(private_key.to_string())+&(hwnumber.to_string()))){
 			Ok(xpriv)=> xpriv,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
@@ -175,7 +180,7 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<St
 		Ok(format!("{}", output))	
 	}else if hwnumber == "timemachine3"{
 		println!("Found HW = timemachine3");
-		let timemachinexpriv = match fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))){
+		let timemachinexpriv = match fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_".to_string()+(private_key.to_string())+&(hwnumber.to_string()))){
 			Ok(xpriv)=> xpriv,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
@@ -185,7 +190,7 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<St
 		Ok(format!("{}", output))	
 	}else if hwnumber == "timemachine4"{
 		println!("Found HW = timemachine4");
-		let timemachinexpriv = match fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&(hwnumber.to_string()))){
+		let timemachinexpriv = match fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_".to_string()+&(private_key.to_string())+&(hwnumber.to_string()))){
 			Ok(xpriv)=> xpriv,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
@@ -529,13 +534,15 @@ pub async fn generate_psbt(walletname: String, hwnumber:String, recipient: &str,
    }
    //declare the destination for the PSBT file
    let file_dest = "/mnt/ramdisk/psbt/psbt".to_string();
+
+   //TODO COMMENTING OUT THIS FOR TESTING INTERNAL CHANGE DESCRIPTORS
    //define change address type
-   let address_type = Some(AddressType::Bech32);
+//    let address_type = Some(AddressType::Bech32);
    //obtain a change address
-   let change_address = match client.get_new_address(None, address_type){
-	   Ok(addr) => addr,
-	   Err(err) => return Ok(format!("{}", err.to_string()))
-   };
+//    let change_address = match client.get_new_address(None, address_type){
+// 	   Ok(addr) => addr,
+// 	   Err(err) => return Ok(format!("{}", err.to_string()))
+//    };
 
    //below code block is for trying to use bitcoincore_rpc crate to generate psbt, method is currently bugged
    //alternatively going to do the below with Command::new() and will return to this method when it is fixed
@@ -583,7 +590,7 @@ let json_output = json!([{
 }]);
 //create and options JSON and give it the change address
 let mut options = json!({
-	"changeAddress": change_address
+	// "changeAddress": change_address
 });
 //if the user specifies a custom fee, append it to the options JSON
 if fee != 0{
