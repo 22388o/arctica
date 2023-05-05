@@ -187,7 +187,10 @@ pub fn get_descriptor_checksum(descriptor: String) -> String {
 		Err(err)=> return format!("{}", err.to_string())
 	};
     //retrieve descriptor info
-    let desc_info = client.get_descriptor_info(&descriptor).unwrap();
+    let desc_info = match client.get_descriptor_info(&descriptor){
+        Ok(info)=> info,
+		Err(err)=> return format!("{}", err.to_string())
+    };
     println!("Descriptor info: {:?}", desc_info);
     //parse the checksum
     let checksum = desc_info.checksum;

@@ -363,8 +363,12 @@ pub fn import_descriptor(wallet: String, hwnumber: &String, internal: bool) -> R
 		Ok(client)=> client,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
+	let mut descriptor_str = "_descriptor";
+	if internal == true {
+		descriptor_str = "_change_descriptor"
+	}
 	//read the descriptor to a string from file
-		let desc: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+"_descriptor" + &(hwnumber.to_string()))){
+		let desc: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/descriptors/".to_string()+&(wallet.to_string())+&(descriptor_str.to_string()) + &(hwnumber.to_string()))){
 			Ok(desc)=> desc,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
@@ -575,8 +579,8 @@ pub async fn generate_psbt(walletname: String, hwnumber:String, recipient: &str,
 //    //set the fee rate
 //    	// options.fee_rate = Some(Amount::from_sat(fee));
 //    //build the transaction
-//   let psbt_result = client.wallet_create_funded_psbt(
 // 	&inputs, //no inputs specified
+//   let psbt_result = client.wallet_create_funded_psbt(
 // 	&outputs, //outputs specified in the outputs struct
 // 	None, //no locktime specified
 // 	Some(options), //options specified in the options struct
