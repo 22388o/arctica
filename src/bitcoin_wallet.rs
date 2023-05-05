@@ -739,6 +739,11 @@ pub async fn start_bitcoind() -> String {
 //use this function when starting core daemon on any offline device
 #[tauri::command]
 pub fn start_bitcoind_network_off() -> String {
+	//open file permissions of .bitcoin for settings.tmp
+	let output = Command::new("sudo").args(["chmod", "777", &(get_home().to_string()+&"/.bitcoin".to_string())]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR opening .bitcoin permissions = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 	//disable networking
 	let output = Command::new("sudo").args(["nmcli", "networking", "off"]).output().unwrap();
 	if !output.status.success() {
