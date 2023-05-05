@@ -436,14 +436,14 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
 
    //build the delayed wallet descriptor
    println!("building high descriptor");
-   let high_descriptor = match build_high_descriptor(&key_array, &hwnumber) {
+   let high_descriptor = match build_high_descriptor(&key_array, &hwnumber, false) {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build High Descriptor ".to_string()+&err)
    };
    let high_file_dest = &("/mnt/ramdisk/sensitive/descriptors/delayed_descriptor".to_string()+&hwnumber.to_string()).to_string();
    //store the delayed wallet descriptor in the sensitive dir
    println!("storing high descriptor");
-   match store_string(high_descriptor.to_string(), high_file_dest, false) {
+   match store_string(high_descriptor.to_string(), high_file_dest) {
        Ok(_) => {},
        Err(err) => return Err("ERROR could not store High Descriptor: ".to_string()+&err)
    };

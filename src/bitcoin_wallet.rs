@@ -105,12 +105,12 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
     let month = 4383;
 	println!("reading xpriv");
 	//read xpriv from file to string
-	let mut private_key = "private_key"
+	let mut private_key = "private_key";
 	//internal change condition is true
 	if internal == true {
 		private_key = "private_change_key";
 	}
-	let xpriv = match fs::read_to_string(&("/mnt/ramdisk/sensitive/".to_string()+&(private_key.to_string())&(hwnumber.to_string()))){
+	let xpriv = match fs::read_to_string(&("/mnt/ramdisk/sensitive/".to_string()+&(private_key.to_string())+&(hwnumber.to_string()))){
 		Ok(xpriv)=> xpriv,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
@@ -180,7 +180,7 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 		Ok(format!("{}", output))	
 	}else if hwnumber == "timemachine3"{
 		println!("Found HW = timemachine3");
-		let timemachinexpriv = match fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_".to_string()+(private_key.to_string())+&(hwnumber.to_string()))){
+		let timemachinexpriv = match fs::read_to_string(&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_".to_string()+&(private_key.to_string())+&(hwnumber.to_string()))){
 			Ok(xpriv)=> xpriv,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
@@ -209,7 +209,7 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 }
 
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
-pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<String, String> {
+pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bool) -> Result<String, String> {
 	println!("calculating 4 year block time span");
     let start_time = retrieve_start_time_integer(); 
 	println!("start time: {}", start_time);
@@ -222,7 +222,12 @@ pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<Str
 	let four_years = start_time_block_height + four_years_block_height;
 	println!("four years: {}", four_years);
 	println!("reading xpriv");
-	let xpriv = match fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hwnumber.to_string()))){
+	let mut private_key = "private_key";
+	//internal change condition is true
+	if internal == true {
+		private_key = "private_change_key";
+	}
+	let xpriv = match fs::read_to_string(&("/mnt/ramdisk/sensitive/".to_string()+&(private_key.to_string())+&(hwnumber.to_string()))){
 		Ok(xpriv)=> xpriv,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
@@ -282,9 +287,14 @@ pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<Str
 //builds the low security descriptor, 1 of 7 thresh, used for tripwire
 //TODO this needs to use its own special keypair or it will be a privacy leak once implemented
 //TODO this may not need child key designators /* because it seems to use hardened keys but have not tested this descriptor yet
-	pub fn build_low_descriptor(keys: &Vec<String>, hwnumber: &String) -> Result<String, String> {
+	pub fn build_low_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bool) -> Result<String, String> {
 		println!("reading xpriv");
-		let xpriv = match fs::read_to_string(&("/mnt/ramdisk/sensitive/private_key".to_string()+&(hwnumber.to_string()))){
+		let mut private_key = "private_key";
+		//internal change condition is true
+		if internal == true {
+			private_key = "private_change_key";
+		}
+		let xpriv = match fs::read_to_string(&("/mnt/ramdisk/sensitive/".to_string()+&(private_key)+&(hwnumber.to_string()))){
 			Ok(xpriv)=> xpriv,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
