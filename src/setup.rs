@@ -466,12 +466,19 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not create Delayed Wallet: ".to_string()+&err)
    };
-   //import the delayed wallet descriptors
+   //import the delayed wallet descriptor
    println!("importing delayed descriptor");
-   match import_descriptor("delayed".to_string(), &hwnumber){
+   match import_descriptor("delayed".to_string(), &hwnumber, false){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not import Delayed Descriptor: ".to_string()+&err)
    };
+	//import delayed change descriptor
+	println!("importing delayed change descriptor");
+	match import_descriptor("delayed".to_string(), &hwnumber, true){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not import Delayed change Descriptor: ".to_string()+&err)
+	};
+
    //build the immediate wallet descriptor
    println!("building med descriptor");
    let med_descriptor = match build_med_descriptor(&key_array, &hwnumber, false) {
@@ -504,12 +511,18 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not create Immediate Wallet: ".to_string()+&err)
    };
-   //import the immediate wallet descriptors
+   //import the immediate wallet descriptor
    println!("importing immediate descriptor");
-   match import_descriptor("immediate".to_string(), &hwnumber){
+   match import_descriptor("immediate".to_string(), &hwnumber, false){
 	Ok(_) => {},
-	Err(err) => return Err("ERROR could not import Immediate Descriptor: ".to_string()+&err)
+	Err(err) => return Ok(format!("ERROR could not import Immediate Descriptor: {}", err))
    };
+	//import low change descriptor
+	println!("importing immediate change descriptor");
+	match import_descriptor("immediate".to_string(), &hwnumber, true){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not import Immediate change Descriptor: ".to_string()+&err)
+	};
 
    //build the low security descriptor
    println!("building low descriptor");
@@ -544,12 +557,19 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not create Low Wallet: ".to_string()+&err)
    };
-   //importing low descriptors
+   //importing low descriptor
    println!("importing low descriptor");
-   match import_descriptor("low".to_string(), &hwnumber){
+   match import_descriptor("low".to_string(), &hwnumber, false){
 	Ok(_) => {},
 	Err(err) => return Err("ERROR could not import Low Descriptor: ".to_string()+&err)
    };
+   //import low change descriptor
+   println!("importing low change descriptor");
+   match import_descriptor("low".to_string(), &hwnumber, true){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not import Low change Descriptor: ".to_string()+&err)
+   };
+
    println!("Success");
    Ok(format!("SUCCESS in creating descriptors"))
 }
