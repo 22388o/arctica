@@ -518,6 +518,15 @@ async fn convert_to_transfer_cd() -> String {
 //     format!("testing {} {}", desc, desc.sanity_check().unwrap() == ())
 // }
 
+#[tauri::command]
+async fn display_qr() -> String{
+	let output = Command::new("eog").arg("/mnt/ramdisk/qrcode.png").output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in displaying QR code with EOG = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	format!("successfully displayed QR code")
+}
+
 fn main() {
   	tauri::Builder::default()
 	//export all tauri functions to be handled by the front end
@@ -573,6 +582,7 @@ fn main() {
 		broadcast_tx,
 		decode_processed_psbt,
 		decode_funded_psbt,
+		display_qr,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
