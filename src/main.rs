@@ -520,7 +520,7 @@ async fn convert_to_transfer_cd() -> String {
 
 #[tauri::command]
 async fn display_qr() -> String{
-	let output = Command::new("eog").arg("/mnt/ramdisk/qrcode.png").output().unwrap();
+	let output = Command::new("eog").args(["--disable-gallery", "--new-instance", "/mnt/ramdisk/qrcode.png"]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in displaying QR code with EOG = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
