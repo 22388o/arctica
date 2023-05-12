@@ -217,17 +217,13 @@ pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: boo
 	println!("start time: {}", start_time);
 	let start_time_block_height = unix_to_block_height(start_time);
 	println!("start time block height: {}", start_time_block_height);
-	//add the 4 year time delay in seconds 12623400
-	let four_years_unix_time = 126230400 + start_time;
-	println!("four years unix time: {}", four_years_unix_time);
-	let four_years_block_height = unix_to_block_height(four_years_unix_time);
-	println!("four years block height: {}", four_years_block_height);
-	let ten_months_unix_time = 26383040 + start_time;
-	println!("ten months unix time: {}", ten_months_unix_time);
-	let ten_months_block_height = unix_to_block_height(ten_months_unix_time );
-	println!("ten months block height: {}", ten_months_block_height);
-	let four_years_ten_months = start_time_block_height + four_years_block_height + ten_months_block_height;
-	println!("four years & ten months block height: {}", four_years_ten_months);
+	//add the 4 year time & 10 month delay in seconds and convert to estimated block height
+	let four_years_ten_months_unix_time = 126230400 + 26383040 + start_time; //4 years in seconds + 10 months in seconds + start time
+	println!("four years & ten months unix time: {}", four_years_ten_months_unix_time);
+	let four_years_ten_months_block_height = unix_to_block_height(four_years_ten_months_unix_time);
+	println!("four years & ten months blocks: {}", four_years_ten_months_block_height);
+	let four_years_ten_months = start_time_block_height + four_years_ten_months_block_height;
+	println!("four years & ten months blockheight: {}", four_years_ten_months);
 	println!("reading xpriv");
 	let mut private_key = "private_key";
 	//internal change condition is true
