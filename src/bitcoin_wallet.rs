@@ -218,6 +218,7 @@ pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: boo
 	//start_time is a unix timestamp created when the user first begins arctica setup
     let start_time = retrieve_start_time_integer(); 
 	println!("start time: {}", start_time);
+	//this converts the unix start time to an estimated block_height...this might be unncessary if we can get unix time + 500,000,000 to work instead
 	let start_time_block_height = unix_to_block_height(start_time);
 	println!("start time block height: {}", start_time_block_height);
 	//add the 4 year time & 10 month delay in seconds and convert to estimated block height
