@@ -211,8 +211,11 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 }
 
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
+//NOTE Adding +500,000,000 to a unix time allows it to be used in place of block height
+//therefore: current unix timestamp + time window desired in unix + 500,000,000 = sun after timelock value
 pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bool) -> Result<String, String> {
 	println!("calculating 4 year block time span");
+	//start_time is a unix timestamp created when the user first begins arctica setup
     let start_time = retrieve_start_time_integer(); 
 	println!("start time: {}", start_time);
 	let start_time_block_height = unix_to_block_height(start_time);
