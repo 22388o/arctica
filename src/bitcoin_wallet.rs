@@ -817,6 +817,8 @@ pub async fn stop_bitcoind() -> String {
 		
 		return format!("ERROR in stopping bitcoin daemon = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+	//sleep for 5 seconds before resolving
+	std::thread::sleep(Duration::from_secs(5));
 
 	format!("SUCCESS in stopping the bitcoin daemon")
 }

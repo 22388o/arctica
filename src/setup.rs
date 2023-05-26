@@ -88,7 +88,7 @@ pub async fn init_iso() -> String {
 	Command::new("sudo").args(["rm", "persistent-ubuntu1.iso"]).output().unwrap();
 	println!("fallocate persistent iso");
 	//fallocate persistent iso, creates a 7GB image. Image size determines final storage space allocated to writable
-	let output = Command::new("fallocate").args(["-l", "15GiB", "persistent-ubuntu.iso"]).output().unwrap();
+	let output = Command::new("fallocate").args(["-l", "10GiB", "persistent-ubuntu.iso"]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in init iso with fallocate persistent iso = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
