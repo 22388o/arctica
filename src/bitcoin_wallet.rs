@@ -406,7 +406,7 @@ pub fn import_descriptor(wallet: String, hwnumber: &String, internal: bool) -> R
 #[tauri::command]
 //get a new address
 //accepts "low", "immediate", and "delayed" as a param
-//equivalent to... Command::new("/bitcoin-24.0.1/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "getnewaddress"])
+//equivalent to... Command::new("./bitcoin-25.0/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "getnewaddress"])
 //must be done with client url param URL=<hostname>/wallet/<wallet_name>
 pub async fn get_address(walletname: String, hwnumber:String) -> Result<String, String> {
 	//need to kill eog here if it's running as it will show a stale QR and/or crash otherwise
@@ -639,7 +639,7 @@ if fee != 0{
 }
 
 let locktime = "0";
-let psbt_output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli"))
+let psbt_output = Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoin-cli"))
 .args([&("-rpcwallet=".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), 
 "walletcreatefundedpsbt", 
 &json_input.to_string(), //empty array
@@ -720,7 +720,7 @@ pub async fn start_bitcoind() -> String {
 			let host = Command::new(&("ls")).args([&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home")]).output().unwrap();
 			let host_user = std::str::from_utf8(&host.stdout).unwrap().trim();
 			//spawn as a child process on a seperate thread, nullify the output
-			Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind"))
+			Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoind"))
 			.args(["-debuglogfile=/mnt/ramdisk/debug.log", &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets"])
 			.stdout(Stdio::null())
 			.stderr(Stdio::null())
@@ -786,7 +786,7 @@ pub fn start_bitcoind_network_off() -> String {
 		//start bitcoin daemon with networking inactive and proper walletdir path
 		//spawn as a child process on a seperate thread, nullify the output
 		std::thread::spawn( ||{
-			Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind"))
+			Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoind"))
 			.args(["-debuglogfile=/mnt/ramdisk/debug.log", &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets", "-networkactive=0"])
 			.stdout(Stdio::null())
 			.stderr(Stdio::null())
@@ -798,7 +798,7 @@ pub fn start_bitcoind_network_off() -> String {
 		//start bitcoin daemon with networking inactive and proper walletdir path
 		//spawn as a child process on a seperate thread, nullify the output
 		std::thread::spawn( ||{
-			Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoind"))
+			Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoind"))
 			.args(["-debuglogfile=/mnt/ramdisk/debug.log", &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets", "-networkactive=0"])
 			.stdout(Stdio::null())
 			.stderr(Stdio::null())
@@ -812,7 +812,7 @@ pub fn start_bitcoind_network_off() -> String {
 #[tauri::command]
 pub async fn stop_bitcoind() -> String {
 	//start bitcoin daemon with networking inactive
-	let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli")).args(["stop"]).output().unwrap();
+	let output = Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoin-cli")).args(["stop"]).output().unwrap();
 	if !output.status.success() {
 		
 		return format!("ERROR in stopping bitcoin daemon = {}", std::str::from_utf8(&output.stderr).unwrap());

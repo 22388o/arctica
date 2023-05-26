@@ -43,7 +43,7 @@ pub async fn init_iso() -> String {
 	//NOTE: this currently checks the arctica repo but this will change once refactor is finished and user can run binary on host machine 
 	println!("obtaining ubuntu iso and bitcoin core if needed");
 	let a = std::path::Path::new("./ubuntu-22.04.1-desktop-amd64.iso").exists();
-	let b = std::path::Path::new("./bitcoin-24.0.1-x86_64-linux-gnu.tar.gz").exists();
+	let b = std::path::Path::new("./bitcoin-25.0-x86_64-linux-gnu.tar.gz").exists();
 	if a == false{
 		let output = Command::new("wget").args(["-O", "ubuntu-22.04.1-desktop-amd64.iso", "http://releases.ubuntu.com/jammy/ubuntu-22.04.1-desktop-amd64.iso"]).output().unwrap();
 		if !output.status.success() {
@@ -51,7 +51,7 @@ pub async fn init_iso() -> String {
 		}
 	}
 	if b == false{
-		let output = Command::new("wget").args(["https://bitcoincore.org/bin/bitcoin-core-24.0.1/bitcoin-24.0.1-x86_64-linux-gnu.tar.gz"]).output().unwrap();
+		let output = Command::new("wget").args(["https://bitcoincore.org/bin/bitcoin-core-25.0/bitcoin-25.0-x86_64-linux-gnu.tar.gz"]).output().unwrap();
 		if !output.status.success() {
 			return format!("ERROR in init iso with downloading bitcoin core = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
@@ -191,7 +191,7 @@ pub async fn init_iso() -> String {
 	}
 	println!("extracting bitcoin core");
 	//extract bitcoin core
-	let output = Command::new("tar").args(["-xzf", &(get_home()+"/arctica/bitcoin-24.0.1-x86_64-linux-gnu.tar.gz"), "-C", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
+	let output = Command::new("tar").args(["-xzf", &(get_home()+"/arctica/bitcoin-25.0-x86_64-linux-gnu.tar.gz"), "-C", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in init iso with extracting bitcoin core = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}

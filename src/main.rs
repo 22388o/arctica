@@ -300,7 +300,7 @@ async fn mount_internal() -> String {
 		//mount internal drive if SATA
 		Command::new("udisksctl").args(["mount", "--block-device", "/dev/sda2"]).output().unwrap();
 		//Attempt to shut down bitcoin core
-		let output = Command::new(&(get_home()+"/bitcoin-24.0.1/bin/bitcoin-cli")).args(["stop"]).output().unwrap();
+		let output = Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoin-cli")).args(["stop"]).output().unwrap();
 		//bitcoin core shutdown fails (meaning it was not running)...
 		if output.status.success() {
 			//function succeeds, core is running for some reason, wait 15s for daemon to stop
