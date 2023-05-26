@@ -88,7 +88,7 @@ pub async fn init_iso() -> String {
 	Command::new("sudo").args(["rm", "persistent-ubuntu1.iso"]).output().unwrap();
 	println!("fallocate persistent iso");
 	//fallocate persistent iso, creates a 7GB image. Image size determines final storage space allocated to writable
-	let output = Command::new("fallocate").args(["-l", "8GiB", "persistent-ubuntu.iso"]).output().unwrap();
+	let output = Command::new("fallocate").args(["-l", "7GiB", "persistent-ubuntu.iso"]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in init iso with fallocate persistent iso = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
@@ -601,10 +601,10 @@ pub async fn create_setup_cd() -> String {
 		return format!("ERROR in installing wodim for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 	//install HW dependencies for qrencode
-	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/qrencode_4.1.1-1_amd64.deb")]).output().unwrap();
-	if !output.status.success() {
-		return format!("ERROR in installing qrencode for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
-	} 
+	// let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/qrencode_4.1.1-1_amd64.deb")]).output().unwrap();
+	// if !output.status.success() {
+	// 	return format!("ERROR in installing qrencode for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
+	// } 
 	//create setupCD config
 	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
 	Command::new("echo").args(["type=setupcd" ]).stdout(file).output().unwrap();
@@ -679,10 +679,10 @@ pub async fn install_hw_deps() -> String {
 		return format!("ERROR in installing wodim {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 	//install HW dependencies for qrencode
-	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/qrencode_4.1.1-1_amd64.deb")]).output().unwrap();
-	if !output.status.success() {
-		return format!("ERROR in installing qrencode {}", std::str::from_utf8(&output.stderr).unwrap());
-	} 
+	// let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/qrencode_4.1.1-1_amd64.deb")]).output().unwrap();
+	// if !output.status.success() {
+	// 	return format!("ERROR in installing qrencode {}", std::str::from_utf8(&output.stderr).unwrap());
+	// } 
 	format!("SUCCESS in installing HW dependencies")
 }
 
