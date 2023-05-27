@@ -225,31 +225,18 @@ pub async fn init_iso() -> String {
 //creates a bootable usb stick or SD card that will boot into an ubuntu live system when inserted into a computer
 #[tauri::command]
 pub async fn create_bootable_usb(number: String, setup: String) -> String {
+	//remove any stale config file
+	let a = std::path::Path::new(&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/config.txt")).exists();
 	//write device type to config, values provided by front end
-    write("type".to_string(), "hardwareWallet".to_string());
-	//write HW number to config, values provided by front end
-    write("hwNumber".to_string(), number.to_string());
-	//write current setup step to config, values provided by front end
-    write("setupStep".to_string(), setup.to_string());
+	let file = File::create(&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/config.txt")).unwrap();
+	Command::new("echo").args(["type=hardwareWallet\nhwNumber=".to_string()+&number.to_string()+&"\nsetupStep=".to_string()+&setup.to_string()]).stdout(file).output().unwrap();
 	println!("creating bootable ubuntu device writing config...HW {} Setupstep {}", number, setup);
 	// sleep for 4 seconds
 	Command::new("sleep").args(["4"]).output().unwrap();
-	//remove old config from iso
-	Command::new("sudo").args(["rm", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/config.txt")]).output().unwrap();
-	//copy new config
-	let output = Command::new("sudo").args(["cp", &(get_home()+"/config.txt"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu")]).output().unwrap();
-	if !output.status.success() {
-		return format!("ERROR in creating bootable with copying current config = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
 	//open file permissions for config
 	let output = Command::new("sudo").args(["chmod", "777", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/config.txt")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in creating bootable with opening file permissions = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-	//remove current working config from local
-	let output = Command::new("sudo").args(["rm", &(get_home()+"/config.txt")]).output().unwrap();
-	if !output.status.success() {
-		return format!("ERROR in creating bootable with removing current working config = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	//burn iso with mkusb
 	let mkusb_child = Command::new("printf").args(["%s\n", "n", "y", "g", "y"]).stdout(Stdio::piped()).spawn().unwrap();
