@@ -2,8 +2,7 @@
 # will have compiled files and executables
 /target/
 WixTools
-tails-amd64-5.4.img
-ubuntu-22.04.1-desktop-amd64.iso
+ubuntu-22.04.2-desktop-amd64.iso
 bitcoin-25.0-x86_64-linux-gnu.tar.gz
 persistent-ubuntu.iso
 scripts/persistent-ubuntu.iso
