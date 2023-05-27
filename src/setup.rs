@@ -227,6 +227,9 @@ pub async fn init_iso() -> String {
 pub async fn create_bootable_usb(number: String, setup: String) -> String {
 	//remove any stale config file
 	let a = std::path::Path::new(&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/config.txt")).exists();
+	if a == true{
+		Command::new("sudo").args(["rm", &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/config.txt")]).output().unwrap();
+	}
 	//write device type to config, values provided by front end
 	let file = File::create(&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/config.txt")).unwrap();
 	Command::new("echo").args(["type=hardwareWallet\nhwNumber=".to_string()+&number.to_string()+&"\nsetupStep=".to_string()+&setup.to_string()]).stdout(file).output().unwrap();
