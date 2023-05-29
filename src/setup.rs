@@ -115,7 +115,7 @@ pub async fn init_iso() -> String {
 		return format!("ERROR in init iso with killing pid = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	println!("mount persistent iso");
-	//mount persistent iso at /media/$USER/writable/upper/
+	//mount persistent iso at /media/$USER/
 	let output = Command::new("udisksctl").args(["loop-setup", "-f", &(get_home()+"/arctica/persistent-ubuntu.iso")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in init iso with mounting persistent iso = {}", std::str::from_utf8(&output.stderr).unwrap());
