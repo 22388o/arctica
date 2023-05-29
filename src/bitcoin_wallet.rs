@@ -409,11 +409,11 @@ pub fn import_descriptor(wallet: String, hwnumber: &String, internal: bool) -> R
 //equivalent to... Command::new("./bitcoin-25.0/bin/bitcoin-cli").args([&("-rpcwallet=".to_string()+&(wallet.to_string())+"_wallet"), "getnewaddress"])
 //must be done with client url param URL=<hostname>/wallet/<wallet_name>
 pub async fn get_address(walletname: String, hwnumber:String) -> Result<String, String> {
-	//need to kill eog here if it's running as it will show a stale QR and/or crash otherwise
-	let pidof = Command::new("pidof").arg("eog").output().unwrap();
-	let pid = std::str::from_utf8(&pidof.stdout).unwrap().trim();
-	//kill pid
-	Command::new("kill").args(["-9", &pid]).output().unwrap();
+	// //need to kill eog here if it's running as it will show a stale QR and/or crash otherwise
+	// let pidof = Command::new("pidof").arg("eog").output().unwrap();
+	// let pid = std::str::from_utf8(&pidof.stdout).unwrap().trim();
+	// //kill pid
+	// Command::new("kill").args(["-9", &pid]).output().unwrap();
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = match bitcoincore_rpc::Client::new(&("127.0.0.1:8332/wallet/".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), auth){
 		Ok(client)=> client,
@@ -425,20 +425,20 @@ pub async fn get_address(walletname: String, hwnumber:String) -> Result<String, 
 		Ok(addr) => addr,
 		Err(err) => return Ok(format!("{}", err.to_string()))
 	};
-	//create a QR code for the address
-	let address_str = address.to_string();
-	//delete stale QR file
-	Command::new("sudo").args(["rm", "/mnt/ramdisk/qrcode.png"]).output().unwrap();
-	//file destination for QR code
-	let mut file = match File::create("/mnt/ramdisk/qrcode.svg"){
-		Ok(file) => file,
-		Err(err) => return Ok(format!("{}", err.to_string()))
-	};
-	//create QR code
-	let output = Command::new("qrencode").args(["-s", "6", "-l", "H", "-o", "/mnt/ramdisk/qrcode.png", &address_str]).output().unwrap();
-	if !output.status.success() {
-	return Ok(format!("ERROR in generating QR code {}", std::str::from_utf8(&output.stderr).unwrap()));
-	}
+	// //create a QR code for the address
+	// let address_str = address.to_string();
+	// //delete stale QR file
+	// Command::new("sudo").args(["rm", "/mnt/ramdisk/qrcode.png"]).output().unwrap();
+	// //file destination for QR code
+	// let mut file = match File::create("/mnt/ramdisk/qrcode.svg"){
+	// 	Ok(file) => file,
+	// 	Err(err) => return Ok(format!("{}", err.to_string()))
+	// };
+	// //create QR code
+	// let output = Command::new("qrencode").args(["-s", "6", "-l", "H", "-o", "/mnt/ramdisk/qrcode.png", &address_str]).output().unwrap();
+	// if !output.status.success() {
+	// return Ok(format!("ERROR in generating QR code {}", std::str::from_utf8(&output.stderr).unwrap()));
+	// }
 	Ok(format!("{}", address))
 }
 
