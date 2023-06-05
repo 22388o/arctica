@@ -420,50 +420,50 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
    println!("Making descriptors dir");
    Command::new("mkdir").args(["/mnt/ramdisk/sensitive/descriptors"]).output().unwrap();
 
-//    //build the delayed wallet descriptor
-//    println!("building high descriptor");
-//    let high_descriptor = match build_high_descriptor(&key_array, &hwnumber, false) {
-// 	Ok(desc) => desc,
-// 	Err(err) => return Err("ERROR could not build High Descriptor ".to_string()+&err)
-//    };
-//    let high_file_dest = &("/mnt/ramdisk/sensitive/descriptors/delayed_descriptor".to_string()+&hwnumber.to_string()).to_string();
-//    //store the delayed wallet descriptor in the sensitive dir
-//    println!("storing high descriptor");
-//    match store_string(high_descriptor.to_string(), high_file_dest) {
-//        Ok(_) => {},
-//        Err(err) => return Err("ERROR could not store High Descriptor: ".to_string()+&err)
-//    };
-//    //build delayed wallet change descriptor
-//    println!("building high change descriptor");
-//    let high_change_descriptor = match build_high_descriptor(&change_key_array, &hwnumber, true) {
-// 	Ok(desc) => desc,
-// 	Err(err) => return Err("ERROR could not build High Change Descriptor ".to_string()+&err)
-//    };
-//    let high_change_file_dest = &("/mnt/ramdisk/sensitive/descriptors/delayed_change_descriptor".to_string()+&hwnumber.to_string()).to_string();
-//    //store the delayed wallet change descriptor in the sensitive dir
-//    println!("storing high change descriptor");
-//    match store_string(high_change_descriptor.to_string(), high_change_file_dest) {
-//        Ok(_) => {},
-//        Err(err) => return Err("ERROR could not store High Change Descriptor: ".to_string()+&err)
-//    };
-//    //create the delayed wallet
-//    println!("creating delayed wallet");
-//    match create_wallet("delayed".to_string(), &hwnumber){
-// 	Ok(_) => {},
-// 	Err(err) => return Err("ERROR could not create Delayed Wallet: ".to_string()+&err)
-//    };
-//    //import the delayed wallet descriptor
-//    println!("importing delayed descriptor");
-//    match import_descriptor("delayed".to_string(), &hwnumber, false){
-// 	Ok(_) => {},
-// 	Err(err) => return Err("ERROR could not import Delayed Descriptor: ".to_string()+&err)
-//    };
-// 	//import delayed change descriptor
-// 	println!("importing delayed change descriptor");
-// 	match import_descriptor("delayed".to_string(), &hwnumber, true){
-// 	Ok(_) => {},
-// 	Err(err) => return Err("ERROR could not import Delayed change Descriptor: ".to_string()+&err)
-// 	};
+   //build the delayed wallet descriptor
+   println!("building high descriptor");
+   let high_descriptor = match build_high_descriptor(&key_array, &hwnumber, false) {
+	Ok(desc) => desc,
+	Err(err) => return Err("ERROR could not build High Descriptor ".to_string()+&err)
+   };
+   let high_file_dest = &("/mnt/ramdisk/sensitive/descriptors/delayed_descriptor".to_string()+&hwnumber.to_string()).to_string();
+   //store the delayed wallet descriptor in the sensitive dir
+   println!("storing high descriptor");
+   match store_string(high_descriptor.to_string(), high_file_dest) {
+       Ok(_) => {},
+       Err(err) => return Err("ERROR could not store High Descriptor: ".to_string()+&err)
+   };
+   //build delayed wallet change descriptor
+   println!("building high change descriptor");
+   let high_change_descriptor = match build_high_descriptor(&change_key_array, &hwnumber, true) {
+	Ok(desc) => desc,
+	Err(err) => return Err("ERROR could not build High Change Descriptor ".to_string()+&err)
+   };
+   let high_change_file_dest = &("/mnt/ramdisk/sensitive/descriptors/delayed_change_descriptor".to_string()+&hwnumber.to_string()).to_string();
+   //store the delayed wallet change descriptor in the sensitive dir
+   println!("storing high change descriptor");
+   match store_string(high_change_descriptor.to_string(), high_change_file_dest) {
+       Ok(_) => {},
+       Err(err) => return Err("ERROR could not store High Change Descriptor: ".to_string()+&err)
+   };
+   //create the delayed wallet
+   println!("creating delayed wallet");
+   match create_wallet("delayed".to_string(), &hwnumber){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not create Delayed Wallet: ".to_string()+&err)
+   };
+   //import the delayed wallet descriptor
+   println!("importing delayed descriptor");
+   match import_descriptor("delayed".to_string(), &hwnumber, false){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not import Delayed Descriptor: ".to_string()+&err)
+   };
+	//import delayed change descriptor
+	println!("importing delayed change descriptor");
+	match import_descriptor("delayed".to_string(), &hwnumber, true){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not import Delayed change Descriptor: ".to_string()+&err)
+	};
 
    //build the immediate wallet descriptor
    println!("building med descriptor");
@@ -510,51 +510,51 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
 	Err(err) => return Err("ERROR could not import Immediate change Descriptor: ".to_string()+&err)
 	};
 
-//    //build the low security descriptor
-//    println!("building low descriptor");
-//    let low_descriptor = match build_low_descriptor(&key_array, &hwnumber, false) {
-// 	Ok(desc) => desc,
-// 	Err(err) => return Err("ERROR could not build Low Descriptor ".to_string()+&err)
-//    };
-//    let low_file_dest = &("/mnt/ramdisk/sensitive/descriptors/low_descriptor".to_string()+&hwnumber.to_string()).to_string();
-//    //store the low security descriptor in the sensitive dir
-//    println!("storing low descriptor");
-//    match store_string(low_descriptor.to_string(), low_file_dest) {
-//        Ok(_) => {},
-//        Err(err) => return Err("ERROR could not store Low Descriptor: ".to_string()+&err)
-//    };
+   //build the low security descriptor
+   println!("building low descriptor");
+   let low_descriptor = match build_low_descriptor(&key_array, &hwnumber, false) {
+	Ok(desc) => desc,
+	Err(err) => return Err("ERROR could not build Low Descriptor ".to_string()+&err)
+   };
+   let low_file_dest = &("/mnt/ramdisk/sensitive/descriptors/low_descriptor".to_string()+&hwnumber.to_string()).to_string();
+   //store the low security descriptor in the sensitive dir
+   println!("storing low descriptor");
+   match store_string(low_descriptor.to_string(), low_file_dest) {
+       Ok(_) => {},
+       Err(err) => return Err("ERROR could not store Low Descriptor: ".to_string()+&err)
+   };
 
-//    //build the low change descriptor
-//    println!("building low change descriptor");
-//    let low_change_descriptor = match build_low_descriptor(&change_key_array, &hwnumber, true) {
-// 	Ok(desc) => desc,
-// 	Err(err) => return Err("ERROR could not build Low Change Descriptor ".to_string()+&err)
-//    };
-//    let low_change_file_dest = &("/mnt/ramdisk/sensitive/descriptors/low_change_descriptor".to_string()+&hwnumber.to_string()).to_string();
-//    //TODO store the low change descriptor
-//    println!("storing low change descriptor");
-//    match store_string(low_change_descriptor.to_string(), low_change_file_dest) {
-//        Ok(_) => {},
-//        Err(err) => return Err("ERROR could not store Low Change Descriptor: ".to_string()+&err)
-//    };
-//    //creating low wallet
-//    println!("creating low wallet");
-//    match create_wallet("low".to_string(), &hwnumber){
-// 	Ok(_) => {},
-// 	Err(err) => return Err("ERROR could not create Low Wallet: ".to_string()+&err)
-//    };
-//    //importing low descriptor
-//    println!("importing low descriptor");
-//    match import_descriptor("low".to_string(), &hwnumber, false){
-// 	Ok(_) => {},
-// 	Err(err) => return Err("ERROR could not import Low Descriptor: ".to_string()+&err)
-//    };
-//    //import low change descriptor
-//    println!("importing low change descriptor");
-//    match import_descriptor("low".to_string(), &hwnumber, true){
-// 	Ok(_) => {},
-// 	Err(err) => return Err("ERROR could not import Low change Descriptor: ".to_string()+&err)
-//    };
+   //build the low change descriptor
+   println!("building low change descriptor");
+   let low_change_descriptor = match build_low_descriptor(&change_key_array, &hwnumber, true) {
+	Ok(desc) => desc,
+	Err(err) => return Err("ERROR could not build Low Change Descriptor ".to_string()+&err)
+   };
+   let low_change_file_dest = &("/mnt/ramdisk/sensitive/descriptors/low_change_descriptor".to_string()+&hwnumber.to_string()).to_string();
+   //TODO store the low change descriptor
+   println!("storing low change descriptor");
+   match store_string(low_change_descriptor.to_string(), low_change_file_dest) {
+       Ok(_) => {},
+       Err(err) => return Err("ERROR could not store Low Change Descriptor: ".to_string()+&err)
+   };
+   //creating low wallet
+   println!("creating low wallet");
+   match create_wallet("low".to_string(), &hwnumber){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not create Low Wallet: ".to_string()+&err)
+   };
+   //importing low descriptor
+   println!("importing low descriptor");
+   match import_descriptor("low".to_string(), &hwnumber, false){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not import Low Descriptor: ".to_string()+&err)
+   };
+   //import low change descriptor
+   println!("importing low change descriptor");
+   match import_descriptor("low".to_string(), &hwnumber, true){
+	Ok(_) => {},
+	Err(err) => return Err("ERROR could not import Low change Descriptor: ".to_string()+&err)
+   };
 
    println!("Success");
    Ok(format!("SUCCESS in creating descriptors"))

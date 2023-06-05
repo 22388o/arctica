@@ -21,8 +21,8 @@ use serde::{Serialize, Deserialize};
 
 //import functions from helper
 use crate::helper::{
-	get_user, get_home, is_dir_empty, get_uuid, store_psbt, get_descriptor_checksum, retrieve_start_time, 
-	retrieve_start_time_integer, unix_to_block_height, store_unsigned_psbt
+	get_user, get_home, is_dir_empty, get_uuid, store_psbt, get_descriptor_checksum, retrieve_decay_time, 
+	retrieve_decay_time_integer, unix_to_block_height, store_unsigned_psbt
 };
 
 //custom structs
@@ -93,7 +93,7 @@ pub fn create_wallet(wallet: String, hwnumber: &String) -> Result<String, String
 pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bool) -> Result<String, String> {
 	println!("calculating 4 year block time span");
 	//retrieve start time from file
-    let start_time = retrieve_start_time_integer(); 
+    let start_time = retrieve_decay_time_integer("start_time"); 
 	println!("start time: {}", start_time);
 	let start_time_block_height = unix_to_block_height(start_time);
 	println!("start time block height: {}", start_time_block_height);
@@ -215,32 +215,9 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 //therefore: current unix timestamp + time window desired in unix + 500,000,000 = sun after timelock value
 pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bool) -> Result<String, String> {
 	println!("calculating 4 year block time span");
-	//start_time is a unix timestamp created when the user first begins arctica setup
-    let start_time = retrieve_start_time_integer(); 
-	println!("start time: {}", start_time);
-	//this converts the unix start time to an estimated block_height...this might be unncessary if we can get unix time + 500,000,000 to work instead
-	// let start_time_block_height = unix_to_block_height(start_time);
-	// println!("start time block height: {}", start_time_block_height);
-	// //add the 4 year time & 10 month delay in seconds and convert to estimated block height
-	// let four_years_ten_months_unix_time = 126230400 + 26383040 + start_time; //4 years in seconds + 10 months in seconds + start time
-	// println!("four years & ten months unix time: {}", four_years_ten_months_unix_time);
-	// let four_years_ten_months_block_height = unix_to_block_height(four_years_ten_months_unix_time);
-	// println!("four years & ten months blocks: {}", four_years_ten_months_block_height);
-	// let four_years_ten_months = start_time_block_height + four_years_ten_months_block_height;
-	// println!("four years & ten months blockheight: {}", four_years_ten_months);
-
-
-
-	//attempt at using unix time here rather than block height
-	//add start_time + four years and ten months in seconds + 500,000,000 to convert to unix time
-	// let four_years_ten_months = start_time + 140227200 + 500000000;
-
-	//attempt to test very short duration time lock
-	// let four_years_ten_months = start_time + 100;
-
-	//attempt to test a previously elapsed block height
-	let four_years_ten_months = start_time + ;
-
+	//four_years_ten_months is a unix timestamp created with create_setup_cd
+    let four_years_ten_months = retrieve_decay_time_integer("immediate_decay"); 
+	println!("immediate wallet decay threshold: {}", four_years_ten_months);
 
 	println!("reading xpriv");
 	let mut private_key = "private_key";
@@ -395,7 +372,7 @@ pub fn import_descriptor(wallet: String, hwnumber: &String, internal: bool) -> R
 		};
 
 	//obtain the start time from file
-	let start_time = retrieve_start_time();
+	let start_time = retrieve_decay_time("start_time");
 	let mut change = Some(true);
 	if internal == false {
 		change = Some(false);

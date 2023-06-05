@@ -210,18 +210,18 @@ pub fn unix_to_block_height(unix_timestamp: i64) -> i64 {
     block_height
 }
 
-//retrieve start time from the start_time file and output as Timestamp type
-pub fn retrieve_start_time() -> Timestamp {
-	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
-	if start_time_complete == true{
-        //read the start_time file to a string
-		let start_time: String = match fs::read_to_string(&(get_home()+"/start_time")){
-			Ok(start_time)=> start_time,
+//retrieve decay time from the file and output as Timestamp type
+pub fn retrieve_decay_time(file: String) -> Timestamp {
+	let decay_time_exists = std::path::Path::new(&("/mnt/ramdisk/sensitive/decay/"+&file.to_string())).exists();
+	if decay_time_exists == true{
+        //read the decay time file to a string
+		let decay_time: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/decay/"+&file.to_string())){
+			Ok(decay_time)=> decay_time,
 			//return default timestamp
 			Err(..)=> return Timestamp::Time(1676511266)
 		};
-        //parse the start_time
-		match start_time.trim().parse() {
+        //parse the decay_time
+		match decay_time.trim().parse() {
 			Ok(result) => 
 			return Timestamp::Time(result),
 			Err(..) => 
@@ -234,18 +234,18 @@ pub fn retrieve_start_time() -> Timestamp {
 	}
 }
 
-//retrieve start time from the start_time file and output as integer
-pub fn retrieve_start_time_integer() -> i64 {
-	let start_time_complete = std::path::Path::new(&(get_home()+"/start_time")).exists();
-	if start_time_complete == true{
-        //read the start_time file to a string
-		let start_time: String = match fs::read_to_string(&(get_home()+"/start_time")){
-			Ok(start_time)=> start_time,
+//retrieve start time from the decay_time file and output as integer
+pub fn retrieve_decay_time_integer() -> i64 {
+	let decay_time_exists = std::path::Path::new(&("/mnt/ramdisk/sensitive/decay/"+&file.to_string())).exists();
+	if decay_time_exists == true{
+        //read the decay_time file to a string
+		let decay_time: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/decay/"+&file.to_string())){
+			Ok(decay_time)=> decay_time,
 			//return default time stamp
 			Err(..)=> return 0
 		};
-        //parse the start_time
-		match start_time.trim().parse() {
+        //parse the decay_time
+		match decay_time.trim().parse() {
 			Ok(result) => 
 			return result,
 			Err(..) => 
