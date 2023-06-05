@@ -705,6 +705,11 @@ pub async fn distribute_shards_hw2() -> String {
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 2 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+	//copy the time_decay directory
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/decay", "/mnt/ramdisk/sensitive"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in copying decay dir to sensitive = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 	format!("SUCCESS in distributing shards to HW 2")
 }
 
@@ -721,6 +726,11 @@ pub async fn distribute_shards_hw3() -> String {
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard9.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 3 = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//copy the time_decay directory
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/decay", "/mnt/ramdisk/sensitive"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in copying decay dir to sensitive = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	format!("SUCCESS in distributing shards to HW 3")
 }
@@ -739,6 +749,11 @@ pub async fn distribute_shards_hw4() -> String {
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 4 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+	//copy the time_decay directory
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/decay", "/mnt/ramdisk/sensitive"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in copying decay dir to sensitive = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 	format!("SUCCESS in distributing shards to HW 4")
 }
 
@@ -750,6 +765,11 @@ pub async fn distribute_shards_hw5() -> String {
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard5.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 5 = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//copy the time_decay directory
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/decay", "/mnt/ramdisk/sensitive"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in copying decay dir to sensitive = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	format!("SUCCESS in distributing shards to HW 5")
 }
@@ -763,6 +783,11 @@ pub async fn distribute_shards_hw6() -> String {
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 6 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+	//copy the time_decay directory
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/decay", "/mnt/ramdisk/sensitive"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in copying decay dir to sensitive = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 	format!("SUCCESS in distributing shards to HW 6")
 }
 
@@ -774,6 +799,11 @@ pub async fn distribute_shards_hw7() -> String {
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard7.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 7 = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//copy the time_decay directory
+	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/decay", "/mnt/ramdisk/sensitive"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in copying decay dir to sensitive = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	format!("SUCCESS in distributing shards to HW 7")
 }
