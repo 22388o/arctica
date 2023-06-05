@@ -354,6 +354,32 @@ async fn mount_internal() -> String {
 	}
 }
 
+//calculate time until next decay
+#[tauri::command]
+async fn calculate_decay_time() -> String {
+	//retrieve start time
+	let start_time = retrieve_decay_time_integer("start_time");
+	//retrieve immediate_decay
+	let decay_time = retrieve_decay_time_integer("immediate_decay");
+	//subtract start_time from immediate decay
+	let time = decay_time - start_time;
+	//convert to years, months, days, hours, minutes
+	let years = time / 31536000; //divide by number of seconds in a year
+	let mut remainder = time % 31536000;
+	let months = remainder / 2592000; //divide by number of seconds in a month
+	remainder = remainder % 2592000;
+	let weeks = remainder / 604800; //divide by number of seconds in a week
+	remainder = remainder % 604800;
+	let days = remainder / 86400; //divide by number of seconds in a day
+	remainder = remainder % 86400;
+	let hours = remainder / 3600; //divide by number of seconds in an hour
+	remainder = remainder % 3600;
+	let minutes = remainder / 60
+	remainder = remainder % 60;
+	//  day
+	format!("years={} months={} weeks={} days={} hours={} minutes={} seconds={}", years, months, weeks, days, hours, minutes, remainder)
+}
+
 //used to combine recovered shards into an encryption/decryption masterkey
 #[tauri::command]
 async fn combine_shards() -> String {
@@ -549,6 +575,7 @@ fn main() {
         unpack,
         install_hw_deps,
         refresh_cd,
+		calculate_decay_time,
         distribute_shards_hw2,
         distribute_shards_hw3,
         distribute_shards_hw4,
