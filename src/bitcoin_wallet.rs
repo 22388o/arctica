@@ -219,15 +219,29 @@ pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: boo
     let start_time = retrieve_start_time_integer(); 
 	println!("start time: {}", start_time);
 	//this converts the unix start time to an estimated block_height...this might be unncessary if we can get unix time + 500,000,000 to work instead
-	let start_time_block_height = unix_to_block_height(start_time);
-	println!("start time block height: {}", start_time_block_height);
-	//add the 4 year time & 10 month delay in seconds and convert to estimated block height
-	let four_years_ten_months_unix_time = 126230400 + 26383040 + start_time; //4 years in seconds + 10 months in seconds + start time
-	println!("four years & ten months unix time: {}", four_years_ten_months_unix_time);
-	let four_years_ten_months_block_height = unix_to_block_height(four_years_ten_months_unix_time);
-	println!("four years & ten months blocks: {}", four_years_ten_months_block_height);
-	let four_years_ten_months = start_time_block_height + four_years_ten_months_block_height;
-	println!("four years & ten months blockheight: {}", four_years_ten_months);
+	// let start_time_block_height = unix_to_block_height(start_time);
+	// println!("start time block height: {}", start_time_block_height);
+	// //add the 4 year time & 10 month delay in seconds and convert to estimated block height
+	// let four_years_ten_months_unix_time = 126230400 + 26383040 + start_time; //4 years in seconds + 10 months in seconds + start time
+	// println!("four years & ten months unix time: {}", four_years_ten_months_unix_time);
+	// let four_years_ten_months_block_height = unix_to_block_height(four_years_ten_months_unix_time);
+	// println!("four years & ten months blocks: {}", four_years_ten_months_block_height);
+	// let four_years_ten_months = start_time_block_height + four_years_ten_months_block_height;
+	// println!("four years & ten months blockheight: {}", four_years_ten_months);
+
+
+
+	//attempt at using unix time here rather than block height
+	//add start_time + four years and ten months in seconds + 500,000,000 to convert to unix time
+	// let four_years_ten_months = start_time + 140227200 + 500000000;
+
+	//attempt to test very short duration time lock
+	// let four_years_ten_months = start_time + 100;
+
+	//attempt to test a previously elapsed block height
+	let four_years_ten_months = start_time + ;
+
+
 	println!("reading xpriv");
 	let mut private_key = "private_key";
 	//internal change condition is true
@@ -575,15 +589,6 @@ pub async fn generate_psbt(walletname: String, hwnumber:String, recipient: &str,
    //declare the destination for the PSBT file
    let file_dest = "/mnt/ramdisk/psbt/psbt".to_string();
 
-//TODO this can be removed once change descriptors are working properly
-// //    define change address type
-//    let address_type = Some(AddressType::Bech32);
-// //    obtain a change address
-//    let change_address = match client.get_new_address(None, address_type){
-// 	   Ok(addr) => addr,
-// 	   Err(err) => return Ok(format!("{}", err.to_string()))
-//    };
-
    //below code block is for trying to use bitcoincore_rpc crate to generate psbt, method is currently bugged
    //alternatively going to do the below with Command::new() and will return to this method when it is fixed
 //    //define the inputs struct, leave empty for dynamic input selection
@@ -630,21 +635,20 @@ let json_output = json!([{
 }]);
 //empty options JSON
 let mut options = json!({
-	//TODO this can be removed once change descriptors are working properly
-	// "changeAddress": change_address
 });
 //if the user specifies a custom fee, append it to the options JSON
 if fee != 0{
 	options["fee_rate"] = json!(fee);
 }
 
-let locktime = "0";
+let locktime = client.get_block_count().unwrap();
+
 let psbt_output = Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoin-cli"))
 .args([&("-rpcwallet=".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), 
 "walletcreatefundedpsbt", 
 &json_input.to_string(), //empty array
 &json_output.to_string(), //receive address & output amount
-&locktime, //locktime should always be 0
+&locktime, 
 &options.to_string() //manually providing change address
 ]) 
 .output()
@@ -666,24 +670,6 @@ match store_unsigned_psbt(&psbt, file_dest) {
 	Err(err) => return Err("ERROR could not store PSBT: ".to_string()+&err)
 	};
 Ok(format!("PSBT: {:?}", psbt))
-
-//sign with HW 1
-//send user to immediate transfer
-//load psbt from file
-//burn to transfer CD
-
-// 	// sign the PSBT
-// 	let signed_result = client.wallet_process_psbt(
-// 		&psbt.psbt,
-// 		Some(true),
-// 		None,
-// 		None,
-// 	);
-// 	let signed = match signed_result{
-// 		Ok(psbt)=> psbt,
-// 		Err(err)=> return Ok(format!("{}", err.to_string()))	
-// 	};
-
 }
 
 //start bitcoin core daemon
