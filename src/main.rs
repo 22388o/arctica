@@ -377,7 +377,12 @@ async fn calculate_decay_time() -> String {
 	let minutes = remainder / 60
 	remainder = remainder % 60;
 	//  day
-	format!("years={} months={} weeks={} days={} hours={} minutes={} seconds={}", years, months, weeks, days, hours, minutes, remainder)
+	if years && months && weeks && days && hours && minutes && remainder == 0 {
+		format!("decay complete")
+	}
+	else{
+		format!("years={}, months={}, weeks={}, days={}, hours={}, minutes={}, seconds={}", years, months, weeks, days, hours, minutes, remainder)
+	}
 }
 
 //used to combine recovered shards into an encryption/decryption masterkey
