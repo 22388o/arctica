@@ -16,7 +16,7 @@ use home::home_dir;
 mod helper;
 use helper::{
 	get_user, get_home, is_dir_empty, get_uuid,
-	write, check_cd_mount,
+	write, check_cd_mount, retrieve_current_time_integer, retrieve_decay_time_integer
 };
 
 //import functions from setup.rs
@@ -358,9 +358,9 @@ async fn mount_internal() -> String {
 #[tauri::command]
 async fn calculate_decay_time() -> String {
 	//retrieve start time
-	let current_time = retrieve_current_time_integer("start_time");
+	let current_time = retrieve_current_time_integer();
 	//retrieve immediate_decay
-	let decay_time = retrieve_decay_time_integer("immediate_decay");
+	let decay_time = retrieve_decay_time_integer("immediate_decay".to_string());
 	//subtract start_time from immediate decay
 	let time = decay_time - current_time;
 	//convert to years, months, days, hours, minutes
@@ -374,10 +374,10 @@ async fn calculate_decay_time() -> String {
 	remainder = remainder % 86400;
 	let hours = remainder / 3600; //divide by number of seconds in an hour
 	remainder = remainder % 3600;
-	let minutes = remainder / 60
+	let minutes = remainder / 60;
 	remainder = remainder % 60;
 	//  day
-	if years && months && weeks && days && hours && minutes == 0 {
+	if years == 0 && months == 0 && weeks == 0 && days == 0 && hours == 0 && minutes == 0 {
 		format!("decay complete")
 	}
 	else{

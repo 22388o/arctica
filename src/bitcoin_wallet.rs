@@ -93,7 +93,7 @@ pub fn create_wallet(wallet: String, hwnumber: &String) -> Result<String, String
 pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bool) -> Result<String, String> {
 	println!("calculating 4 year block time span");
 	//retrieve start time from file
-    let start_time = retrieve_decay_time_integer("start_time"); 
+    let start_time = retrieve_decay_time_integer("start_time".to_string()); 
 	println!("start time: {}", start_time);
 	let start_time_block_height = unix_to_block_height(start_time);
 	println!("start time block height: {}", start_time_block_height);
@@ -216,7 +216,7 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bool) -> Result<String, String> {
 	println!("calculating 4 year block time span");
 	//four_years_ten_months is a unix timestamp created with create_setup_cd
-    let four_years_ten_months = retrieve_decay_time_integer("immediate_decay"); 
+    let four_years_ten_months = retrieve_decay_time_integer("immediate_decay".to_string()); 
 	println!("immediate wallet decay threshold: {}", four_years_ten_months);
 
 	println!("reading xpriv");
@@ -372,7 +372,7 @@ pub fn import_descriptor(wallet: String, hwnumber: &String, internal: bool) -> R
 		};
 
 	//obtain the start time from file
-	let start_time = retrieve_decay_time("start_time");
+	let start_time = retrieve_decay_time("start_time".to_string());
 	let mut change = Some(true);
 	if internal == false {
 		change = Some(false);
@@ -615,7 +615,7 @@ if fee != 0{
 	options["fee_rate"] = json!(fee);
 }
 
-let locktime = client.get_block_count().unwrap();
+let locktime = client.get_block_count().unwrap().to_string();
 
 let psbt_output = Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoin-cli"))
 .args([&("-rpcwallet=".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), 
@@ -1011,7 +1011,7 @@ pub async fn finalize_psbt(walletname: String, hwnumber: String) -> Result<Strin
 	let b = std::path::Path::new("/mnt/ramdisk/psbt/psbt").exists();
 	if a == true && b == false{
 		Command::new("mkdir").arg("/mnt/ramdisk/psbt").output().unwrap();
-		let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/psbt", "/mnt/ramdisk/psbt"]).output().unwrap()
+		let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/psbt", "/mnt/ramdisk/psbt"]).output().unwrap();
 			if !output.status.success() {
 			return Ok(format!("ERROR in psbt from CDROM dir to psbt dir{}", std::str::from_utf8(&output.stderr).unwrap()));
 			}
@@ -1050,7 +1050,7 @@ pub async fn broadcast_tx(walletname: String, hwnumber: String) -> Result<String
 	let b = std::path::Path::new("/mnt/ramdisk/psbt/psbt").exists();
 	if a == true && b == false{
 		Command::new("mkdir").arg("/mnt/ramdisk/psbt").output().unwrap();
-		let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/psbt", "/mnt/ramdisk/psbt"]).output().unwrap()
+		let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/psbt", "/mnt/ramdisk/psbt"]).output().unwrap();
 			if !output.status.success() {
 			return Ok(format!("ERROR in psbt from CDROM dir to psbt dir{}", std::str::from_utf8(&output.stderr).unwrap()));
 			}
@@ -1096,7 +1096,7 @@ pub async fn decode_processed_psbt(walletname: String, hwnumber: String) -> Resu
 	let b = std::path::Path::new("/mnt/ramdisk/psbt/psbt").exists();
 	if a == true && b == false{
 		Command::new("mkdir").arg("/mnt/ramdisk/psbt").output().unwrap();
-		let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/psbt", "/mnt/ramdisk/psbt"]).output().unwrap()
+		let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/psbt", "/mnt/ramdisk/psbt"]).output().unwrap();
 			if !output.status.success() {
 			return Ok(format!("ERROR in psbt from CDROM dir to psbt dir{}", std::str::from_utf8(&output.stderr).unwrap()));
 			}

@@ -212,10 +212,10 @@ pub fn unix_to_block_height(unix_timestamp: i64) -> i64 {
 
 //retrieve decay time from the file and output as Timestamp type
 pub fn retrieve_decay_time(file: String) -> Timestamp {
-	let decay_time_exists = std::path::Path::new(&("/mnt/ramdisk/sensitive/decay/"+&file.to_string())).exists();
+	let decay_time_exists = std::path::Path::new(&("/mnt/ramdisk/sensitive/decay/".to_string()+&file.to_string())).exists();
 	if decay_time_exists == true{
         //read the decay time file to a string
-		let decay_time: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/decay/"+&file.to_string())){
+		let decay_time: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/decay/".to_string()+&file.to_string())){
 			Ok(decay_time)=> decay_time,
 			//return default timestamp
 			Err(..)=> return Timestamp::Time(1676511266)
@@ -235,11 +235,11 @@ pub fn retrieve_decay_time(file: String) -> Timestamp {
 }
 
 //retrieve start time from the decay_time file and output as integer
-pub fn retrieve_decay_time_integer() -> i64 {
-	let decay_time_exists = std::path::Path::new(&("/mnt/ramdisk/sensitive/decay/"+&file.to_string())).exists();
+pub fn retrieve_decay_time_integer(file: String) -> i64 {
+	let decay_time_exists = std::path::Path::new(&("/mnt/ramdisk/sensitive/decay/".to_string()+&file.to_string())).exists();
 	if decay_time_exists == true{
         //read the decay_time file to a string
-		let decay_time: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/decay/"+&file.to_string())){
+		let decay_time: String = match fs::read_to_string(&("/mnt/ramdisk/sensitive/decay/".to_string()+&file.to_string())){
 			Ok(decay_time)=> decay_time,
 			//return default time stamp
 			Err(..)=> return 0

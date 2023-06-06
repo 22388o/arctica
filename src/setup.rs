@@ -620,7 +620,8 @@ pub async fn create_setup_cd() -> String {
 	//create start time file
 	let start_time = Command::new("date").args(["+%s"]).output().unwrap();
 	let start_time_output = std::str::from_utf8(&start_time.stdout).unwrap();
-	let four_years_ten_months = &start_time_output + 126230400 + 26383040 //start_time + 4 years in seconds + 10 months in seconds;
+	let start_time_int = &start_time_output.trim().parse().unwrap();
+	let four_years_ten_months: i32 = start_time_int + 126230400 + 26383040; //start_time + 4 years in seconds + 10 months in seconds;
 	//store start_time unix timestamp in the decay dir
 	let mut file_ref = match std::fs::File::create("/mnt/ramdisk/CDROM/decay/start_time") {
 		Ok(file) => file,
@@ -634,7 +635,7 @@ pub async fn create_setup_cd() -> String {
 	};
 	file_ref.write_all(&four_years_ten_months.to_string().as_bytes()).expect("could not write immediate_decay to file");
 	//copy decay dir to sensitive
-	let output = Command::new("cp")args(["-r", "/mnt/ramdisk/CDROM/decay", "/mnt/ramdisk/sensitive"]).output().unwrap();
+	let output = Command::new("cp").args(["-r", "/mnt/ramdisk/CDROM/decay", "/mnt/ramdisk/sensitive"]).output().unwrap();
 	if !output.status.success() {
     	return format!("ERROR in copying decay dir from CDROM dir to sensitive dir= {}", std::str::from_utf8(&output.stderr).unwrap());
     }
