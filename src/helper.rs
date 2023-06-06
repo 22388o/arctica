@@ -257,3 +257,16 @@ pub fn retrieve_decay_time_integer() -> i64 {
 		return 0
 	}
 }
+
+//retrieve the current unix time
+pub fn retrieve_current_time_integer() -> i64{
+    let current_time_res = Command::new("date").args(["+%s"]).output().unwrap();
+    let current_time_str = std::str::from_utf8(&current_time_res.stdout).unwrap();
+    match current_time_str.trim().parse() {
+        Ok(result) => 
+        return result,
+        Err(..) => 
+        //return default timestamp 
+        return 0
+}
+}

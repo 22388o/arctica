@@ -563,9 +563,6 @@ pub async fn generate_psbt(walletname: String, hwnumber:String, recipient: &str,
        return Ok(format!("ERROR in creating /mnt/ramdisk/psbt dir {}", std::str::from_utf8(&output.stderr).unwrap()));
        }
    }
-   //declare the destination for the PSBT file
-   let file_dest = "/mnt/ramdisk/psbt/psbt".to_string();
-
    //below code block is for trying to use bitcoincore_rpc crate to generate psbt, method is currently bugged
    //alternatively going to do the below with Command::new() and will return to this method when it is fixed
 //    //define the inputs struct, leave empty for dynamic input selection
@@ -640,7 +637,8 @@ let psbt: WalletCreateFundedPsbtResult = match serde_json::from_str(&psbt_str) {
 	Ok(psbt)=> psbt,
 	Err(err)=> return Ok(format!("{}", err.to_string()))
 };
-
+//declare the destination for the PSBT file
+let file_dest = "/mnt/ramdisk/psbt/psbt".to_string();
 //store the transaction as a file
 match store_unsigned_psbt(&psbt, file_dest) {
 	Ok(_) => {},

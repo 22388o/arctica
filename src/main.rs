@@ -358,11 +358,11 @@ async fn mount_internal() -> String {
 #[tauri::command]
 async fn calculate_decay_time() -> String {
 	//retrieve start time
-	let start_time = retrieve_decay_time_integer("start_time");
+	let current_time = retrieve_current_time_integer("start_time");
 	//retrieve immediate_decay
 	let decay_time = retrieve_decay_time_integer("immediate_decay");
 	//subtract start_time from immediate decay
-	let time = decay_time - start_time;
+	let time = decay_time - current_time;
 	//convert to years, months, days, hours, minutes
 	let years = time / 31536000; //divide by number of seconds in a year
 	let mut remainder = time % 31536000;
@@ -377,7 +377,7 @@ async fn calculate_decay_time() -> String {
 	let minutes = remainder / 60
 	remainder = remainder % 60;
 	//  day
-	if years && months && weeks && days && hours && minutes && remainder == 0 {
+	if years && months && weeks && days && hours && minutes == 0 {
 		format!("decay complete")
 	}
 	else{
