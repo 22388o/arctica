@@ -988,7 +988,7 @@ pub async fn sign_funded_psbt(walletname: String, hwnumber: String, progress: St
 	};
 	//declare file dest
 	let file_dest = "/mnt/ramdisk/psbt/psbt".to_string();
-	//remove stale psbt from /mnt/ramdisk/CDROM/psbt
+	//remove stale psbt from /mnt/ramdisk/psbt/psbt
 	Command::new("sudo").args(["rm", "/mnt/ramdisk/psbt/psbt"]).output().unwrap();
 	//store the signed transaction as a file
 	match store_psbt(&signed, file_dest) {
@@ -1006,8 +1006,18 @@ pub async fn finalize_psbt(walletname: String, hwnumber: String) -> Result<Strin
 		Ok(client)=> client,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
+	//copy the psbt from CDROM to /mnt/ramdisk/psbt/ if necessary
+	let a = std::path::Path::new("/mnt/ramdisk/CDROM/psbt").exists();
+	let b = std::path::Path::new("/mnt/ramdisk/psbt/psbt").exists();
+	if a == true && b == false{
+		Command::new("mkdir").arg("/mnt/ramdisk/psbt").output().unwrap();
+		let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/psbt", "/mnt/ramdisk/psbt"]).output().unwrap()
+			if !output.status.success() {
+			return Ok(format!("ERROR in psbt from CDROM dir to psbt dir{}", std::str::from_utf8(&output.stderr).unwrap()));
+			}
+	}
 	//read psbt to string from a file
-	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/CDROM/psbt"){
+	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/psbt/psbt"){
 		Ok(psbt_str)=> psbt_str,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
@@ -1035,8 +1045,18 @@ pub async fn broadcast_tx(walletname: String, hwnumber: String) -> Result<String
 		Ok(client)=> client,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
-	//read the psbt from the transfer CD
-	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/CDROM/psbt"){
+	//copy the psbt from CDROM to /mnt/ramdisk/psbt/ if necessary
+	let a = std::path::Path::new("/mnt/ramdisk/CDROM/psbt").exists();
+	let b = std::path::Path::new("/mnt/ramdisk/psbt/psbt").exists();
+	if a == true && b == false{
+		Command::new("mkdir").arg("/mnt/ramdisk/psbt").output().unwrap();
+		let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/psbt", "/mnt/ramdisk/psbt"]).output().unwrap()
+			if !output.status.success() {
+			return Ok(format!("ERROR in psbt from CDROM dir to psbt dir{}", std::str::from_utf8(&output.stderr).unwrap()));
+			}
+	}
+	//read the psbt from file
+	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/psbt/psbt"){
 		Ok(psbt_str)=> psbt_str,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
@@ -1071,8 +1091,18 @@ pub async fn decode_processed_psbt(walletname: String, hwnumber: String) -> Resu
 		Ok(client)=> client,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
-	//read the psbt from the transfer CD
-	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/CDROM/psbt"){
+	//copy the psbt from CDROM to /mnt/ramdisk/psbt/ if necessary
+	let a = std::path::Path::new("/mnt/ramdisk/CDROM/psbt").exists();
+	let b = std::path::Path::new("/mnt/ramdisk/psbt/psbt").exists();
+	if a == true && b == false{
+		Command::new("mkdir").arg("/mnt/ramdisk/psbt").output().unwrap();
+		let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/psbt", "/mnt/ramdisk/psbt"]).output().unwrap()
+			if !output.status.success() {
+			return Ok(format!("ERROR in psbt from CDROM dir to psbt dir{}", std::str::from_utf8(&output.stderr).unwrap()));
+			}
+	}
+	//read the psbt from file
+	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/psbt/psbt"){
 		Ok(psbt_str)=> psbt_str,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
