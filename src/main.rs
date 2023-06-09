@@ -16,7 +16,7 @@ use home::home_dir;
 mod helper;
 use helper::{
 	get_user, get_home, is_dir_empty, get_uuid,
-	write, check_cd_mount, retrieve_current_time_integer, retrieve_decay_time_integer
+	write, check_cd_mount, retrieve_decay_time_integer
 };
 
 //import functions from setup.rs
@@ -358,7 +358,8 @@ async fn mount_internal() -> String {
 #[tauri::command]
 async fn calculate_decay_time() -> String {
 	//retrieve start time
-	let current_time = retrieve_median_blocktime();
+	let current_time_str = retrieve_median_blocktime();
+	let current_time: i64 = current_time_str.parse().unwrap();
 	//retrieve immediate_decay
 	let decay_time = retrieve_decay_time_integer("immediate_decay".to_string());
 	//subtract start_time from immediate decay

@@ -621,14 +621,14 @@ if fee != 0{
 
 
 // let locktime_output = Command::new("date").args(["+%s"]).output().unwrap();
-let locktime = retrieve_median_blocktime().unwrap();
+let locktime = retrieve_median_blocktime();
 
 let psbt_output = Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoin-cli"))
 .args([&("-rpcwallet=".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), 
 "walletcreatefundedpsbt", 
 &json_input.to_string(), //empty array lets core pick the inputs
 &json_output.to_string(), //receive address & output amount
-&locktime.to_string(), //current unix time
+&locktime, //current unix time
 &options.to_string() //manually providing fee rate is applicable
 ]) 
 .output()
@@ -1290,12 +1290,12 @@ pub async fn decode_funded_psbt(walletname: String, hwnumber: String) -> Result<
 
 //retrieve current median block time
 #[tauri::command]
-pub async fn retrieve_median_blocktime() -> String{
+pub fn retrieve_median_blocktime() -> String{
     let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
     let client = match bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth){
 		Ok(client)=> client,
 		Err(err)=> return format!("{}", err.to_string())
 	};
     let time = client.get_blockchain_info().unwrap().median_time;
-    format!("{}", time.to_string())
+    format!("{}", time)
 }
