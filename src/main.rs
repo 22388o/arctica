@@ -33,7 +33,7 @@ mod bitcoin_wallet;
 use bitcoin_wallet::{
 	get_address, get_balance, get_transactions, generate_psbt, start_bitcoind, start_bitcoind_network_off,
 	stop_bitcoind, decode_processed_psbt, broadcast_tx, finalize_psbt, sign_processed_psbt, export_psbt, get_blockchain_info, 
-	load_wallet, get_descriptor_info, decode_funded_psbt, sign_funded_psbt,
+	load_wallet, get_descriptor_info, decode_funded_psbt, sign_funded_psbt, retrieve_median_blocktime
 };
 
 // std::env::set_var("RUST_LOG", "bitcoincore_rpc=debug");
@@ -358,7 +358,7 @@ async fn mount_internal() -> String {
 #[tauri::command]
 async fn calculate_decay_time() -> String {
 	//retrieve start time
-	let current_time = retrieve_current_time_integer();
+	let current_time = retrieve_median_blocktime();
 	//retrieve immediate_decay
 	let decay_time = retrieve_decay_time_integer("immediate_decay".to_string());
 	//subtract start_time from immediate decay
@@ -615,6 +615,7 @@ fn main() {
 		decode_processed_psbt,
 		decode_funded_psbt,
 		display_qr,
+		retrieve_median_blocktime,
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

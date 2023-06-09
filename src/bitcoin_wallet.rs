@@ -619,8 +619,9 @@ if fee != 0{
 	options["fee_rate"] = json!(fee);
 }
 
-let locktime_output = Command::new("date").args(["+%s"]).output().unwrap();
-let locktime = std::str::from_utf8(&locktime_output.stdout).unwrap();
+
+// let locktime_output = Command::new("date").args(["+%s"]).output().unwrap();
+let locktime = retrieve_median_blocktime().unwrap();
 
 let psbt_output = Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoin-cli"))
 .args([&("-rpcwallet=".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), 
@@ -1285,4 +1286,16 @@ pub async fn decode_funded_psbt(walletname: String, hwnumber: String) -> Result<
     };
 
 	Ok(format!("address={:?}, amount={:?}, fee={:?}", address, amount, fee))
+}
+
+//retrieve current median block time
+#[tauri::command]
+pub async fn retrieve_median_blocktime() -> String{
+    let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
+    let client = match bitcoincore_rpc::Client::new(&"127.0.0.1:8332".to_string(), auth){
+		Ok(client)=> client,
+		Err(err)=> return format!("{}", err.to_string())
+	};
+    let time = client.get_blockchain_info().unwrap().median_time;
+    format!("{}", time.to_string())
 }
