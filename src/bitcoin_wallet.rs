@@ -218,9 +218,9 @@ pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: boo
 	println!("calculating 4 year block time span");
 	//four_years_ten_months is a unix timestamp created with create_setup_cd
     let four_years_ten_months_int = retrieve_decay_time_integer("immediate_decay".to_string()); 
-	// let four_years_ten_months = four_years_ten_months_int.to_string();
+	let four_years_ten_months = four_years_ten_months_int.to_string();
 	//test value
-	let four_years_ten_months = 1686332834 + 64000;
+	// let four_years_ten_months = 1686332834 + 64000;
 	println!("immediate wallet decay threshold: {}", four_years_ten_months);
 
 	println!("reading xpriv");
