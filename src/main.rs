@@ -377,7 +377,7 @@ async fn calculate_decay_time() -> String {
 	let minutes = remainder / 60;
 	remainder = remainder % 60;
 	//  day
-	if years == 0 && months == 0 && weeks == 0 && days == 0 && hours == 0 && minutes == 0 {
+	if years <= 0 && months <= 0 && weeks <= 0 && days <= 0 && hours <= 0 && minutes <= 0 {
 		format!("decay complete")
 	}
 	else{

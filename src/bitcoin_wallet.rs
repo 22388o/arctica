@@ -17,6 +17,7 @@ use std::process::Stdio;
 use std::collections::{HashMap, HashSet};
 use serde_json::{json};
 use serde::{Serialize, Deserialize};
+extern crate hex;
 
 
 //import functions from helper
@@ -120,43 +121,43 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 	//determine how to format the descriptor based on which HW the user is currently using
 	if hwnumber == "1"{
 		println!("Found HW = 1");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", xpriv, keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", xpriv, keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output: String = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "2"{
 		println!("Found HW = 2");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], xpriv, keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], xpriv, keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "3"{
 		println!("Found HW = 3");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], xpriv, keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], xpriv, keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "4"{
 		println!("Found HW = 4");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], xpriv, keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], xpriv, keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "5"{
 		println!("Found HW = 5");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], xpriv, keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], xpriv, keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "6"{
 		println!("Found HW = 6");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], xpriv, keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], xpriv, keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "7"{
 		println!("Found HW = 7");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], xpriv, four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], xpriv, four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
@@ -166,7 +167,7 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 			Ok(xpriv)=> xpriv,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), timemachinexpriv, keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), timemachinexpriv, keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
@@ -176,7 +177,7 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 			Ok(xpriv)=> xpriv,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], timemachinexpriv, keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], timemachinexpriv, keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
@@ -186,7 +187,7 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 			Ok(xpriv)=> xpriv,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], timemachinexpriv, keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], timemachinexpriv, keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
@@ -196,13 +197,13 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 			Ok(xpriv)=> xpriv,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], timemachinexpriv, four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], timemachinexpriv, four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
 	}else{
 		println!("no valid hwnumber param found, creating read only desc");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}),sun:after({}),sun:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({}),sun:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("Read only DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
@@ -212,11 +213,14 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
 //NOTE Adding +500,000,000 to a unix time allows it to be used in place of block height
-//therefore: current unix timestamp + time window desired in unix + 500,000,000 = sun after timelock value
+//therefore: current unix timestamp + time window desired in unix + 500,000,000 = snu after timelock value
 pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bool) -> Result<String, String> {
 	println!("calculating 4 year block time span");
 	//four_years_ten_months is a unix timestamp created with create_setup_cd
-    let four_years_ten_months = retrieve_decay_time_integer("immediate_decay".to_string()); 
+    let four_years_ten_months_int = retrieve_decay_time_integer("immediate_decay".to_string()); 
+	// let four_years_ten_months = four_years_ten_months_int.to_string();
+	//test value
+	let four_years_ten_months = 700000;
 	println!("immediate wallet decay threshold: {}", four_years_ten_months);
 
 	println!("reading xpriv");
@@ -233,49 +237,49 @@ pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: boo
 	//determine how to format the descriptor based on which HW the user is currently using
 	if hwnumber == "1"{
 		println!("Found HW = 1");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", xpriv, keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", xpriv, keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years_ten_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "2"{
 		println!("Found HW = 2");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], xpriv, keys[2], keys[3], keys[4], keys[5], keys[6], four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], xpriv, keys[2], keys[3], keys[4], keys[5], keys[6], four_years_ten_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "3"{
 		println!("Found HW = 3");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], xpriv, keys[3], keys[4], keys[5], keys[6], four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], xpriv, keys[3], keys[4], keys[5], keys[6], four_years_ten_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "4"{
 		println!("Found HW = 4");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], xpriv, keys[4], keys[5], keys[6], four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], keys[2], xpriv, keys[4], keys[5], keys[6], four_years_ten_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "5"{
 		println!("Found HW = 5");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], xpriv, keys[5], keys[6], four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], keys[2], keys[3], xpriv, keys[5], keys[6], four_years_ten_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "6"{
 		println!("Found HW = 6");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], xpriv, keys[3], keys[4], xpriv, keys[6], four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], xpriv, keys[3], keys[4], xpriv, keys[6], four_years_ten_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "7"{
 		println!("Found HW = 7");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], xpriv, four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], xpriv, four_years_ten_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else{
 		println!("no valid hwnumber param found, creating read only desc");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),sun:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years_ten_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
@@ -615,15 +619,16 @@ if fee != 0{
 	options["fee_rate"] = json!(fee);
 }
 
-let locktime = client.get_block_count().unwrap().to_string();
+let locktime_output = Command::new("date").args(["+%s"]).output().unwrap();
+let locktime = std::str::from_utf8(&locktime_output.stdout).unwrap();
 
 let psbt_output = Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoin-cli"))
 .args([&("-rpcwallet=".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), 
 "walletcreatefundedpsbt", 
-&json_input.to_string(), //empty array
+&json_input.to_string(), //empty array lets core pick the inputs
 &json_output.to_string(), //receive address & output amount
-&locktime, 
-&options.to_string() //manually providing change address
+&locktime.to_string(), //current unix time
+&options.to_string() //manually providing fee rate is applicable
 ]) 
 .output()
 .unwrap();
@@ -936,7 +941,7 @@ pub async fn sign_processed_psbt(walletname: String, hwnumber: String, progress:
 	}
 	//declare file dest
 	let file_dest = "/mnt/ramdisk/psbt/psbt".to_string();
-	//remove stale psbt from /mnt/ramdisk/CDROM/psbt
+	//remove stale psbt from /mnt/ramdisk/psbt/psbt
 	Command::new("sudo").args(["rm", "/mnt/ramdisk/psbt/psbt"]).output().unwrap();
 	//store the signed transaction as a file
 	match store_psbt(&signed, file_dest) {
@@ -986,6 +991,8 @@ pub async fn sign_funded_psbt(walletname: String, hwnumber: String, progress: St
 		Ok(psbt)=> psbt,
 		Err(err)=> return Ok(format!("Error signing PSBT: {}", err.to_string()))
 	};
+	//remove the stale psbt
+	Command::new("sudo").args(["rm", "/mnt/ramdisk/psbt/psbt"]).output().unwrap();
 	//declare file dest
 	let file_dest = "/mnt/ramdisk/psbt/psbt".to_string();
 	//remove stale psbt from /mnt/ramdisk/psbt/psbt
@@ -999,6 +1006,7 @@ pub async fn sign_funded_psbt(walletname: String, hwnumber: String, progress: St
 	Ok(format!("Reading PSBT from file: {:?}", signed))
 }
 
+//what exactly is this accomplishing? It doesn't save the output anywhere or pass it to anything afaict
 #[tauri::command]
 pub async fn finalize_psbt(walletname: String, hwnumber: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
@@ -1035,6 +1043,9 @@ pub async fn finalize_psbt(walletname: String, hwnumber: String) -> Result<Strin
 		Ok(psbt)=> psbt,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
+	if finalized.complete == false{
+		return Ok(format!("ERROR PSBT not complete"))
+	}
 	Ok(format!("Reading PSBT from file: {:?}", finalized))
 }
 
@@ -1074,12 +1085,38 @@ pub async fn broadcast_tx(walletname: String, hwnumber: String) -> Result<String
 		Ok(tx)=> tx.hex.unwrap(),
 		Err(err)=> return Ok(format!("{}", err.to_string()))	
 	};
+	let finalized_str = hex::encode(finalized);
+
+
 	//broadcast the tx
-	let broadcast_result = client.send_raw_transaction(&finalized[..]);
-	let broadcast = match broadcast_result{
-		Ok(tx)=> tx,
-		Err(err)=> return Ok(format!("{}", err.to_string()))	
-	};
+	let broadcast_output = Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoin-cli"))
+		.args([&("-rpcwallet=".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), 
+		"sendrawtransaction", 
+		&finalized_str
+		]) 
+		.output()
+		.unwrap();
+		if !broadcast_output.status.success() {
+			return Ok(format!("ERROR in broadcasting PSBT = {}", std::str::from_utf8(&broadcast_output.stderr).unwrap()));
+		}
+		//convert psbt to string from hex
+		let broadcast = String::from_utf8(broadcast_output.stdout).unwrap();
+
+
+
+
+
+	//broadcast the tx
+	// let broadcast_result = client.send_raw_transaction(&finalized[..]);
+	// let broadcast = match broadcast_result{
+	// 	Ok(tx)=> tx,
+	// 	Err(err)=> return Ok(format!("{}", err.to_string()))
+	// };
+
+
+
+	//remove stale psbt from ramdisk
+	Command::new("sudo").args(["rm", "-r", "/mnt/ramdisk/psbt"]).output().unwrap();
 	Ok(format!("Broadcasting Fully Signed TX: {:?}", broadcast))
 }
 
@@ -1168,22 +1205,6 @@ pub async fn decode_processed_psbt(walletname: String, hwnumber: String) -> Resu
     };
 
 	Ok(format!("address={:?}, amount={:?}, fee={:?}", address, amount, fee))
-	// //extract the raw tx
-	// let unsigned_tx = psbtx.extract_tx();
-	// //serialize the raw tx
-	// let hex_tx = serialize(&unsigned_tx);
-	// //decode the raw tx
-	// let decoded_result = client.decode_raw_transaction(&hex_tx[..], None);
-	// let decoded = match decoded_result{
-	// 	Ok(result) => result,
-	// 	Err(err)=> return Ok(format!("{}", err.to_string()))
-	// };
-	// //clone the output 
-	// let clone = decoded.vout[0].clone();
-	// //TODO this is broken sometimes, unclear as to why
-	// let address: String = clone.script_pub_key.address.unwrap().to_string();
-	// //TODO this is broken sometimes, unclear as to why
-	// let amount = clone.value;
 }
 
 //used to decode a walletcreatefundedpsbt result
