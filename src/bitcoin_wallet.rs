@@ -212,15 +212,11 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 }
 
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
-//NOTE Adding +500,000,000 to a unix time allows it to be used in place of block height
-//therefore: current unix timestamp + time window desired in unix + 500,000,000 = snu after timelock value
 pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bool) -> Result<String, String> {
 	println!("calculating 4 year block time span");
 	//four_years_ten_months is a unix timestamp created with create_setup_cd
     let four_years_ten_months_int = retrieve_decay_time_integer("immediate_decay".to_string()); 
 	let four_years_ten_months = four_years_ten_months_int.to_string();
-	//test value
-	// let four_years_ten_months = 1686332834 + 64000;
 	println!("immediate wallet decay threshold: {}", four_years_ten_months);
 
 	println!("reading xpriv");
@@ -292,7 +288,7 @@ pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: boo
 	pub fn build_low_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bool) -> Result<String, String> {
 		println!("reading xpriv");
 		let mut private_key = "private_key";
-		//internal change condition is true
+		//internal change condition is true, use private_change_key instead
 		if internal == true {
 			private_key = "private_change_key";
 		}
@@ -622,22 +618,40 @@ if fee != 0{
 
 // let locktime_output = Command::new("date").args(["+%s"]).output().unwrap();
 let locktime = retrieve_median_blocktime();
-
-let psbt_output = Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoin-cli"))
+//1st attempt
+let psbt_output1 = Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoin-cli"))
 .args([&("-rpcwallet=".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), 
 "walletcreatefundedpsbt", 
 &json_input.to_string(), //empty array lets core pick the inputs
 &json_output.to_string(), //receive address & output amount
 &locktime, //current unix time
-&options.to_string() //manually providing fee rate is applicable
+&options.to_string() //manually providing fee rate if applicable
 ]) 
 .output()
 .unwrap();
-if !psbt_output.status.success() {
-	return Ok(format!("ERROR in generating PSBT = {}", std::str::from_utf8(&psbt_output.stderr).unwrap()));
+//if insufficient funds error, attempt to subtract fees from outputs
+let fee_check = std::str::from_utf8(&psbt_output1.stderr).unwrap();
+if fee_check.contains("Insufficient funds"){
+	options["subtractFeeFromOutputs"] = json!([]);
+};
+//2nd attempt
+let psbt_output2 = Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoin-cli"))
+.args([&("-rpcwallet=".to_string()+&(walletname.to_string())+"_wallet"+&hwnumber.to_string()), 
+"walletcreatefundedpsbt", 
+&json_input.to_string(), //unchanged
+&json_output.to_string(), //unchanged
+&locktime, //unchanged
+&options.to_string() //enable subtractFeeFromOutputs option
+]) 
+.output()
+.unwrap();
+//handle error if failed
+if !psbt_output2.status.success() {
+	return Ok(format!("ERROR in generating PSBT = {}", std::str::from_utf8(&psbt_output2.stderr).unwrap()));
 }
+
 //convert psbt to string from hex
-let psbt_str = String::from_utf8(psbt_output.stdout).unwrap();
+let psbt_str = String::from_utf8(psbt_output2.stdout).unwrap();
 //convert psbt string to an rpc crate struct
 let psbt: WalletCreateFundedPsbtResult = match serde_json::from_str(&psbt_str) {
 	Ok(psbt)=> psbt,
@@ -1007,7 +1021,7 @@ pub async fn sign_funded_psbt(walletname: String, hwnumber: String, progress: St
 	Ok(format!("Reading PSBT from file: {:?}", signed))
 }
 
-//what exactly is this accomplishing? It doesn't save the output anywhere or pass it to anything afaict
+//This function is redundant and can be removed
 #[tauri::command]
 pub async fn finalize_psbt(walletname: String, hwnumber: String) -> Result<String, String>{
 	let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
@@ -1035,18 +1049,42 @@ pub async fn finalize_psbt(walletname: String, hwnumber: String) -> Result<Strin
 		Ok(psbt)=> psbt,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
+
+
+
+
+	//TODO can remove this once the wrapped cli is implemented
 	//finalize the tx
-	let finalized_result = client.finalize_psbt(
-		&psbt.psbt,
-		None,
-	);
-	let finalized = match finalized_result{
-		Ok(psbt)=> psbt,
-		Err(err)=> return Ok(format!("{}", err.to_string()))
-	};
-	if finalized.complete == false{
-		return Ok(format!("ERROR PSBT not complete"))
+	// let finalized_result = client.finalize_psbt(
+	// 	&psbt.psbt,
+	// 	None,
+	// );
+
+
+
+	//TODO wrap cli command for finalizepsbt here instead of the above
+	let finalized_result = Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoin-cli"))
+	.args([ "finalizepsbt", 
+	&psbt.psbt.to_string()
+	]) 
+	.output()
+	.unwrap();
+	//TODO wrap cli command for sendrawtransaction in the broadcast function
+
+	if !finalized_result.status.success() {
+		return Ok(format!("ERROR in finalizing PSBT = {}", std::str::from_utf8(&finalized_result.stderr).unwrap()));
 	}
+	let finalized = String::from_utf8(finalized_result.stdout).unwrap();
+	// let finalized = match finalized_str{
+	// 	Ok(psbt)=> psbt,
+	// 	Err(err)=> return Ok(format!("{}", err.to_string()))
+	// };
+	// if finalized_result.stdout.complete == false{
+	// 	return Ok(format!("ERROR PSBT not complete"))
+	// }
+
+
+	
 	Ok(format!("Reading PSBT from file: {:?}", finalized))
 }
 
@@ -1087,7 +1125,6 @@ pub async fn broadcast_tx(walletname: String, hwnumber: String) -> Result<String
 		Err(err)=> return Ok(format!("{}", err.to_string()))	
 	};
 	let finalized_str = hex::encode(finalized);
-
 
 	//broadcast the tx
 	let broadcast_output = Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoin-cli"))
@@ -1296,6 +1333,8 @@ pub fn retrieve_median_blocktime() -> String{
 		Ok(client)=> client,
 		Err(err)=> return format!("{}", err.to_string())
 	};
-    let time = client.get_blockchain_info().unwrap().median_time;
-    format!("{}", time)
+    let time_med = client.get_blockchain_info().unwrap().median_time;
+	// let time_parsed: u64 = time_med.parse();
+	let time = time_med - 1000;
+    format!("{}", time.to_string())
 }

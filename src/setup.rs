@@ -208,7 +208,7 @@ pub async fn init_iso() -> String {
 	println!("create bitcoin.conf on target device");
 	//create bitcoin.conf on target device
 	let file = File::create(&("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/.bitcoin/bitcoin.conf")).unwrap();
-	let output = Command::new("echo").args(["-e", "rpcuser=rpcuser\nrpcpassword=477028"]).stdout(file).output().unwrap();
+	let output = Command::new("echo").args(["-e", "rpcuser=rpcuser\nrpcpassword=477028\nspendzeroconfchange=1"]).stdout(file).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in init iso, with creating bitcoin.conf = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
@@ -626,9 +626,9 @@ pub async fn create_setup_cd() -> String {
 	let start_time_output = std::str::from_utf8(&start_time.stdout).unwrap();
 	let start_time_int = &start_time_output.trim().parse().unwrap();
 	//temporarily commenting out value here for testing
-	let four_years_ten_months: i32 = start_time_int + 126230400 + 26383040; //start_time + 4 years in seconds + 10 months in seconds;
+	let four_years_ten_months: i32 = start_time_int + 126144000 + 25920000; //start_time + 4 years in seconds + 10 months in seconds;
 	//test line to enable decay after 20 hours
-	// let four_years_ten_months: i32 = start_time_int + 72000; //add 20 hours to the decay schedule
+	// let four_years_ten_months: i32 = start_time_int + 64000; //test value...add short time to decay schedule
 	//store start_time unix timestamp in the decay dir
 	let mut file_ref = match std::fs::File::create("/mnt/ramdisk/CDROM/decay/start_time") {
 		Ok(file) => file,
@@ -709,6 +709,7 @@ pub async fn distribute_shards_hw2() -> String {
 		return format!("ERROR in distributing shards to HW 2 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
     //copy the shards to the target destination
+	//this is a copy of a BPS shard
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard10.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 2 = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -731,6 +732,7 @@ pub async fn distribute_shards_hw3() -> String {
 		return format!("ERROR in distributing shards to HW 3 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
     //copy the shards to the target destination
+	//this is a copy of a BPS shard 
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard9.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 3 = {}", std::str::from_utf8(&output.stderr).unwrap());
@@ -752,7 +754,8 @@ pub async fn distribute_shards_hw4() -> String {
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 4 = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
-    //copy the shards to the target destination
+    //copy the shards to the target destination 
+	//this is a copy of a BPS shard
 	let output = Command::new("cp").args(["/mnt/ramdisk/CDROM/shards/shard8.txt", &(get_home()+"/shards")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in distributing shards to HW 4 = {}", std::str::from_utf8(&output.stderr).unwrap());
