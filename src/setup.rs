@@ -625,17 +625,55 @@ pub async fn create_setup_cd() -> String {
 	let start_time = Command::new("date").args(["+%s"]).output().unwrap();
 	let start_time_output = std::str::from_utf8(&start_time.stdout).unwrap();
 	let start_time_int = &start_time_output.trim().parse().unwrap();
-	//temporarily commenting out value here for testing
+	//delayed_decay1
+	let four_years: i32 = start_time_int + 126144000; //start_time + 4 years in seconds
+	//delayed_decay2
+	let four_years_two_months: i32 = start_time_int + 126144000 + 5184000; //start_time + 4 years in seconds + 2 months in seconds
+	//delayed_decay3
+	let four_years_four_months: i32 = start_time_int + 126144000 + 10368000; //start_time + 4 years in seconds + 4 months in seconds
+	//delayed_decay4
+	let four_years_six_months: i32 = start_time_int + 126144000 + 15552000; //start_time + 4 years in seconds + 6 months in seconds
+	//delayed_decay5
+	let four_years_eight_months: i32 = start_time_int + 126144000 + 20736000; //start_time + 4 years in seconds + 8 months in seconds
+	//immediate_decay == delayed_decay6
 	let four_years_ten_months: i32 = start_time_int + 126144000 + 25920000; //start_time + 4 years in seconds + 10 months in seconds;
-	//test line to enable decay after 20 hours
-	// let four_years_ten_months: i32 = start_time_int + 64000; //test value...add short time to decay schedule
 	//store start_time unix timestamp in the decay dir
 	let mut file_ref = match std::fs::File::create("/mnt/ramdisk/CDROM/decay/start_time") {
 		Ok(file) => file,
 		Err(_) => return format!("Could not create start time file"),
 	};
 	file_ref.write_all(&start_time_output.to_string().as_bytes()).expect("could not write start_time to file");
-	//store four_years_ten_months unix timestamp in the decay dir
+	//store delayed_decay1
+	let mut file_ref = match std::fs::File::create("/mnt/ramdisk/CDROM/decay/delayed_decay1") {
+		Ok(file) => file,
+		Err(_) => return format!("Could not create delayed_decay1 file"),
+	};
+	file_ref.write_all(&four_years.to_string().as_bytes()).expect("could not write delayed_decay1 to file");
+	//store delayed_decay2
+	let mut file_ref = match std::fs::File::create("/mnt/ramdisk/CDROM/decay/delayed_decay2") {
+		Ok(file) => file,
+		Err(_) => return format!("Could not create delayed_decay2 file"),
+	};
+	file_ref.write_all(&four_years_two_months.to_string().as_bytes()).expect("could not write delayed_decay2 to file");
+	//store delayed_decay3
+	let mut file_ref = match std::fs::File::create("/mnt/ramdisk/CDROM/decay/delayed_decay3") {
+		Ok(file) => file,
+		Err(_) => return format!("Could not create delayed_decay3 file"),
+	};
+	file_ref.write_all(&four_years_four_months.to_string().as_bytes()).expect("could not write delayed_decay3 to file");
+	//store delayed_decay4
+	let mut file_ref = match std::fs::File::create("/mnt/ramdisk/CDROM/decay/delayed_decay4") {
+		Ok(file) => file,
+		Err(_) => return format!("Could not create delayed_decay4 file"),
+	};
+	file_ref.write_all(&four_years_six_months.to_string().as_bytes()).expect("could not write delayed_decay4 to file");
+	//store delayed_decay5
+	let mut file_ref = match std::fs::File::create("/mnt/ramdisk/CDROM/decay/delayed_decay5") {
+		Ok(file) => file,
+		Err(_) => return format!("Could not create delayed_decay5 file"),
+	};
+	file_ref.write_all(&four_years_eight_months.to_string().as_bytes()).expect("could not write delayed_decay5 to file");
+	//store immediate_decay/delayed_decay6 unix timestamp in the decay dir
 	let mut file_ref = match std::fs::File::create("/mnt/ramdisk/CDROM/decay/immediate_decay") {
 		Ok(file) => file,
 		Err(_) => return format!("Could not create immediate_decay file"),
