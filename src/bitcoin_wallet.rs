@@ -93,19 +93,26 @@ pub fn create_wallet(wallet: String, hwnumber: &String) -> Result<String, String
 //builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
 pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bool) -> Result<String, String> {
 	println!("calculating 4 year block time span");
-	//retrieve start time from file
-    let start_time = retrieve_decay_time_integer("start_time".to_string()); 
-	println!("start time: {}", start_time);
-	let start_time_block_height = unix_to_block_height(start_time);
-	println!("start time block height: {}", start_time_block_height);
-	//add the 4 year time delay in seconds 12623400
-	let four_years_unix_time = 126230400 + start_time;
-	let four_years_block_height = unix_to_block_height(four_years_unix_time);
-	println!("for years block height: {}", four_years_block_height);
-	let four_years = start_time_block_height + four_years_block_height;
-	println!("four years: {}", four_years);
-	//establish 1 month in estimated block height change
-    let month = 4383;
+	//decay1
+	let four_years_int = retrieve_decay_time_integer("delayed_decay1".to_string()); 
+	let four_years = four_years_int.to_string();
+	println!("delayed wallet decay1 threshold: {}", four_years);
+	//decay2
+	let four_years_two_months_int = retrieve_decay_time_integer("delayed_decay2".to_string()); 
+	let four_years_two_months = four_years_two_months_int.to_string();
+	println!("delayed wallet decay2 threshold: {}", four_years_two_months);
+	//decay3
+	let four_years_four_months_int = retrieve_decay_time_integer("delayed_decay3".to_string()); 
+	let four_years_four_months = four_years_four_months_int.to_string();
+	println!("delayed wallet decay3 threshold: {}", four_years_four_months);
+	//decay4
+	let four_years_six_months_int = retrieve_decay_time_integer("delayed_decay4".to_string()); 
+	let four_years_six_months = four_years_six_months_int.to_string();
+	println!("delayed wallet decay4 threshold: {}", four_years_six_months);
+	//decay5
+	let four_years_eight_months_int = retrieve_decay_time_integer("delayed_decay5".to_string()); 
+	let four_years_eight_months = four_years_eight_months_int.to_string();
+	println!("delayed wallet decay5 threshold: {}", four_years_eight_months);
 	println!("reading xpriv");
 	//read xpriv from file to string
 	let mut private_key = "private_key";
@@ -121,43 +128,43 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 	//determine how to format the descriptor based on which HW the user is currently using
 	if hwnumber == "1"{
 		println!("Found HW = 1");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", xpriv, keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", xpriv, keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years_two_months, four_years_four_months, four_years_six_months, four_years_eight_months, keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output: String = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "2"{
 		println!("Found HW = 2");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], xpriv, keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], xpriv, keys[2], keys[3], keys[4], keys[5], keys[6], four_years_two_months, four_years_four_months, four_years_six_months, four_years_eight_months, keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "3"{
 		println!("Found HW = 3");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], xpriv, keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], xpriv, keys[3], keys[4], keys[5], keys[6], four_years_two_months, four_years_four_months, four_years_six_months, four_years_eight_months, keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "4"{
 		println!("Found HW = 4");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], xpriv, keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], xpriv, keys[4], keys[5], keys[6], four_years_two_months, four_years_four_months, four_years_six_months, four_years_eight_months, keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "5"{
 		println!("Found HW = 5");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], xpriv, keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], xpriv, keys[5], keys[6], four_years_two_months, four_years_four_months, four_years_six_months, four_years_eight_months, keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "6"{
 		println!("Found HW = 6");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], xpriv, keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], xpriv, keys[6], four_years_two_months, four_years_four_months, four_years_six_months, four_years_eight_months, keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "7"{
 		println!("Found HW = 7");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], xpriv, four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], xpriv, four_years_two_months, four_years_four_months, four_years_six_months, four_years_eight_months, keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
@@ -167,7 +174,7 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 			Ok(xpriv)=> xpriv,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), timemachinexpriv, keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years_two_months, four_years_four_months, four_years_six_months, four_years_eight_months, timemachinexpriv, keys[8], keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
@@ -177,7 +184,7 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 			Ok(xpriv)=> xpriv,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], timemachinexpriv, keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years_two_months, four_years_four_months, four_years_six_months, four_years_eight_months, keys[7], timemachinexpriv, keys[9], keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
@@ -187,7 +194,7 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 			Ok(xpriv)=> xpriv,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], timemachinexpriv, keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years_two_months, four_years_four_months, four_years_six_months, four_years_eight_months, keys[7], keys[8], timemachinexpriv, keys[10], four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
@@ -197,13 +204,13 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 			Ok(xpriv)=> xpriv,
 			Err(err)=> return Ok(format!("{}", err.to_string()))
 		};
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], timemachinexpriv, four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years_two_months, four_years_four_months, four_years_six_months, four_years_eight_months, keys[7], keys[8], keys[9], timemachinexpriv, four_years, four_years);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
 	}else{
 		println!("no valid hwnumber param found, creating read only desc");
-		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years, four_years+(month), four_years+(month*2), four_years+(month*3), keys[7], keys[8], keys[9], keys[10], four_years, four_years);
+		let descriptor = format!("wsh(and_v(v:thresh(5,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}),snu:after({}),snu:after({})),thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({}),snu:after({}))))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years_two_months, four_years_four_months, four_years_six_months, four_years_eight_months, keys[7], keys[8], keys[9], keys[10], four_years, four_years);
 		println!("Read only DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))	
@@ -214,10 +221,10 @@ pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bo
 //builds the medium security descriptor, 2 of 7 thresh with decay. 
 pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bool) -> Result<String, String> {
 	println!("calculating 4 year block time span");
-	//four_years_ten_months is a unix timestamp created with create_setup_cd
-    let four_years_ten_months_int = retrieve_decay_time_integer("immediate_decay".to_string()); 
-	let four_years_ten_months = four_years_ten_months_int.to_string();
-	println!("immediate wallet decay threshold: {}", four_years_ten_months);
+	//four_years_eight_months is a unix timestamp created with create_setup_cd
+    let four_years_eight_months_int = retrieve_decay_time_integer("immediate_decay".to_string()); 
+	let four_years_eight_months = four_years_eight_months_int.to_string();
+	println!("immediate wallet decay threshold: {}", four_years_eight_months);
 
 	println!("reading xpriv");
 	let mut private_key = "private_key";
@@ -233,49 +240,49 @@ pub fn build_med_descriptor(keys: &Vec<String>, hwnumber: &String, internal: boo
 	//determine how to format the descriptor based on which HW the user is currently using
 	if hwnumber == "1"{
 		println!("Found HW = 1");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", xpriv, keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", xpriv, keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years_eight_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "2"{
 		println!("Found HW = 2");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], xpriv, keys[2], keys[3], keys[4], keys[5], keys[6], four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], xpriv, keys[2], keys[3], keys[4], keys[5], keys[6], four_years_eight_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "3"{
 		println!("Found HW = 3");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], xpriv, keys[3], keys[4], keys[5], keys[6], four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], xpriv, keys[3], keys[4], keys[5], keys[6], four_years_eight_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "4"{
 		println!("Found HW = 4");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], keys[2], xpriv, keys[4], keys[5], keys[6], four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], keys[2], xpriv, keys[4], keys[5], keys[6], four_years_eight_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "5"{
 		println!("Found HW = 5");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], keys[2], keys[3], xpriv, keys[5], keys[6], four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], keys[2], keys[3], xpriv, keys[5], keys[6], four_years_eight_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "6"{
 		println!("Found HW = 6");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], xpriv, keys[3], keys[4], xpriv, keys[6], four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], xpriv, keys[3], keys[4], xpriv, keys[6], four_years_eight_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else if hwnumber == "7"{
 		println!("Found HW = 7");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], xpriv, four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], xpriv, four_years_eight_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))
 	}else{
 		println!("no valid hwnumber param found, creating read only desc");
-		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years_ten_months);
+		let descriptor = format!("wsh(thresh(2,pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),s:pk({}),snu:after({})))", keys[0], keys[1], keys[2], keys[3], keys[4], keys[5], keys[6], four_years_eight_months);
 		println!("DESC: {}", descriptor);
 		let output = get_descriptor_checksum(descriptor);
 		Ok(format!("{}", output))

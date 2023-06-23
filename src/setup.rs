@@ -633,10 +633,8 @@ pub async fn create_setup_cd() -> String {
 	let four_years_four_months: i32 = start_time_int + 126144000 + 10368000; //start_time + 4 years in seconds + 4 months in seconds
 	//delayed_decay4
 	let four_years_six_months: i32 = start_time_int + 126144000 + 15552000; //start_time + 4 years in seconds + 6 months in seconds
-	//delayed_decay5
+	//delayed_decay5 == immediate_decay
 	let four_years_eight_months: i32 = start_time_int + 126144000 + 20736000; //start_time + 4 years in seconds + 8 months in seconds
-	//immediate_decay == delayed_decay6
-	let four_years_ten_months: i32 = start_time_int + 126144000 + 25920000; //start_time + 4 years in seconds + 10 months in seconds;
 	//store start_time unix timestamp in the decay dir
 	let mut file_ref = match std::fs::File::create("/mnt/ramdisk/CDROM/decay/start_time") {
 		Ok(file) => file,
@@ -678,7 +676,7 @@ pub async fn create_setup_cd() -> String {
 		Ok(file) => file,
 		Err(_) => return format!("Could not create immediate_decay file"),
 	};
-	file_ref.write_all(&four_years_ten_months.to_string().as_bytes()).expect("could not write immediate_decay to file");
+	file_ref.write_all(&four_years_eight_months.to_string().as_bytes()).expect("could not write immediate_decay to file");
 	//copy decay dir to sensitive
 	let output = Command::new("cp").args(["-r", "/mnt/ramdisk/CDROM/decay", "/mnt/ramdisk/sensitive"]).output().unwrap();
 	if !output.status.success() {
