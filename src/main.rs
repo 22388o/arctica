@@ -356,12 +356,12 @@ async fn mount_internal() -> String {
 
 //calculate time until next decay
 #[tauri::command]
-async fn calculate_decay_time() -> String {
+async fn calculate_decay_time(file: String) -> String {
 	//retrieve start time
 	let current_time_str = retrieve_median_blocktime();
 	let current_time: i64 = current_time_str.parse().unwrap();
 	//retrieve immediate_decay
-	let decay_time = retrieve_decay_time_integer("immediate_decay".to_string());
+	let decay_time = retrieve_decay_time_integer(file.to_string());
 	//subtract start_time from immediate decay
 	let time = decay_time - current_time;
 	//convert to years, months, days, hours, minutes
