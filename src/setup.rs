@@ -318,11 +318,12 @@ pub async fn generate_store_simulated_time_machine_key_pair(number: String) -> S
 		return format!("ERROR in creating /mnt/ramdisk/CDROM/timemachinekeys dir {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
 	}
+	//TODO NOTE THAT THESE KEYS ARE STORED ALL OVER THE PLACE, fine for now but they will need to be properly stored once BPS is integrated
 	//number param is provided by the front end
 	let private_key_file = "/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&number;
 	let public_key_file = "/mnt/ramdisk/CDROM/timemachinekeys/time_machine_public_key".to_string()+&number;
-	let private_change_key_file = "/mnt/ramdisk/sensitive/time_machine_private_change_key".to_string()+&number;
-	let public_change_key_file = "/mnt/ramdisk/sensitive/time_machine_public_change_key".to_string()+&number;
+	let private_change_key_file = "/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_change_key".to_string()+&number;
+	let public_change_key_file = "/mnt/ramdisk/CDROM/timemachinekeys/time_machine_public_change_key".to_string()+&number;
 	let (xpriv, xpub) = match generate_keypair() {
 		Ok((xpriv, xpub)) => (xpriv, xpub),
 		Err(err) => return "ERROR could not generate keypair: ".to_string()+&err.to_string()
@@ -352,12 +353,22 @@ pub async fn generate_store_simulated_time_machine_key_pair(number: String) -> S
 	//copy public key to setupCD dir
 	let output = Command::new("cp").args([&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_public_key".to_string()+&number), "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
 	if !output.status.success() {
-    	return format!("ERROR in generate store key pair with copying pub key= {}", std::str::from_utf8(&output.stderr).unwrap());
+    	return format!("ERROR in generate store key pair with copying pub key to CDROM= {}", std::str::from_utf8(&output.stderr).unwrap());
     }
 	//copy public change key to setupCD dir
-	let output = Command::new("cp").args([&("/mnt/ramdisk/sensitive/time_machine_public_change_key".to_string()+&number), "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
+	let output = Command::new("cp").args([&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_public_change_key".to_string()+&number), "/mnt/ramdisk/CDROM/pubkeys"]).output().unwrap();
 	if !output.status.success() {
-		return format!("ERROR in generate store key pair with copying pub change key= {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR in generate store key pair with copying pub change key to CDROM= {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//copy public key to sensitive dir
+	let output = Command::new("cp").args([&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_public_key".to_string()+&number), "/mnt/ramdisk/sensitive"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in generate store key pair with copying pub key to sensitive = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//copy public change key to sensitive dir
+	let output = Command::new("cp").args([&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_public_change_key".to_string()+&number), "/mnt/ramdisk/sensitive"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in generate store key pair with copying pub change key to sensitive= {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	format!("SUCCESS generated and stored Private and Public Time Machine Key Pair")
 }
