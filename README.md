@@ -124,6 +124,8 @@ run the app
 
 `cargo run`
 
-Please Note, until the following issue is resolved, you will need to follow the instructions found here after completing initial setup, else your wallets will not work properly
+Please Note, developers can enable a test sandbox by setting the first line of the config.txt in their home directory to
+`type=test`
 
-https://github.com/wild-kard/arctica/issues/51
+This sandbox will require some custom file architecture that the app will not yet provide entirely for you. I have a series of bash scripts I use to create this architecture and I am happy to share if you would like some help. 
+
