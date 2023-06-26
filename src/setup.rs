@@ -370,6 +370,16 @@ pub async fn generate_store_simulated_time_machine_key_pair(number: String) -> S
 	if !output.status.success() {
 		return format!("ERROR in generate store key pair with copying pub change key to sensitive= {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+	//copy private key to sensitive dir
+	let output = Command::new("cp").args([&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_key".to_string()+&number), "/mnt/ramdisk/sensitive"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in generate store key pair with copying private key to sensitive = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//copy private change key to sensitive dir
+	let output = Command::new("cp").args([&("/mnt/ramdisk/CDROM/timemachinekeys/time_machine_private_change_key".to_string()+&number), "/mnt/ramdisk/sensitive"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in generate store key pair with copying private change key to sensitive = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 	format!("SUCCESS generated and stored Private and Public Time Machine Key Pair")
 }
 
