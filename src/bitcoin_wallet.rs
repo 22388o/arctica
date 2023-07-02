@@ -676,13 +676,26 @@ Ok(format!("PSBT: {:?}", psbt))
 
 //start bitcoin core daemon
 #[tauri::command]
-pub async fn start_bitcoind() -> String {
-	//enable networking 
+pub async fn start_bitcoind(reindex:bool, networkactive:bool) -> String {
+	//open file permissions of .bitcoin for settings.tmp
 	//the only time this  block should be required is immediately following initial setup
-	//networing is force disabled for key generation on all Hardware Wallets. 
-	let output = Command::new("sudo").args(["nmcli", "networking", "on"]).output().unwrap();
+	let output = Command::new("sudo").args(["chmod", "777", &(get_home().to_string()+&"/.bitcoin".to_string())]).output().unwrap();
 	if !output.status.success() {
-		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
+		return format!("ERROR opening .bitcoin permissions = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	if networkactive == true{
+		//enable networking 
+		let output = Command::new("sudo").args(["nmcli", "networking", "on"]).output().unwrap();
+		if !output.status.success() {
+			return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
+	} else if networkactive == false{
+		//disable networking
+		//networing is force disabled for key generation on all Hardware Wallets and should persist across restarts. 
+		let output = Command::new("sudo").args(["nmcli", "networking", "off"]).output().unwrap();
+		if !output.status.success() {
+			return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
+		}
 	}
 	let uuid = get_uuid();
 	//mount internal drive if nvme
@@ -701,7 +714,40 @@ pub async fn start_bitcoind() -> String {
 				return format!("ERROR in starting bitcoin daemon with creating ../sensitive/wallets dir = {}", std::str::from_utf8(&output.stderr).unwrap());
 			}
 		}
-		//start bitcoin daemon with proper datadir & walletdir path
+	//next we will start the bitcoin daemon with proper params
+	if networkactive == false{
+		//this is run when we desire to disable networking
+		//this will prevent block sync
+		//use this function when starting core daemon on any offline device
+		std::thread::spawn( ||{
+			Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoind"))
+			.args(["-debuglogfile=/mnt/ramdisk/debug.log", &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets", "-networkactive=0"])
+			.stdout(Stdio::null())
+			.stderr(Stdio::null())
+			.stdin(Stdio::null())
+			.spawn();
+			});
+		return format!("SUCCESS in starting bitcoin daemon with networking disabled");
+
+	}
+	else if reindex == true {
+		//this is run when we desire to reindex the blocksdb
+		std::thread::spawn( ||{
+			//redeclare dynamic vars within the new scope
+			let uuid = get_uuid();
+			let host = Command::new(&("ls")).args([&("/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home")]).output().unwrap();
+			let host_user = std::str::from_utf8(&host.stdout).unwrap().trim();
+			//spawn as a child process on a seperate thread, nullify the output
+			//note there is a -reindex flag here for this conditional
+			Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoind"))
+			.args(["-reindex", "-debuglogfile=/mnt/ramdisk/debug.log", &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), &("-datadir=/media/".to_string()+&get_user()+"/"+&(uuid.to_string())+"/home/"+&(host_user.to_string())+"/.bitcoin"), "-walletdir=/mnt/ramdisk/sensitive/wallets"])
+			.stdout(Stdio::null())
+			.stderr(Stdio::null())
+			.stdin(Stdio::null())
+			.spawn();
+			});
+	}	else {
+		//this should be the normal way to start bitcoind
 		std::thread::spawn( ||{
 			//redeclare dynamic vars within the new scope
 			let uuid = get_uuid();
@@ -715,6 +761,8 @@ pub async fn start_bitcoind() -> String {
 			.stdin(Stdio::null())
 			.spawn();
 			});
+	} 
+
 		loop{
 			//redeclare the client object within the new scope
 			let auth = bitcoincore_rpc::Auth::UserPass("rpcuser".to_string(), "477028".to_string());
@@ -748,54 +796,6 @@ pub async fn start_bitcoind() -> String {
 		format!("SUCCESS in starting bitcoin daemon")
 	}
 }
-
-//start bitcoin core daemon with networking disabled
-//this will prevent block sync
-//use this function when starting core daemon on any offline device
-#[tauri::command]
-pub fn start_bitcoind_network_off() -> String {
-	//open file permissions of .bitcoin for settings.tmp
-	let output = Command::new("sudo").args(["chmod", "777", &(get_home().to_string()+&"/.bitcoin".to_string())]).output().unwrap();
-	if !output.status.success() {
-		return format!("ERROR opening .bitcoin permissions = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-	//disable networking
-	let output = Command::new("sudo").args(["nmcli", "networking", "off"]).output().unwrap();
-	if !output.status.success() {
-		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-	if !output.status.success() {
-		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
-	}
-	//check if walletdir exists and if not create it
-	let a = std::path::Path::new("/mnt/ramdisk/sensitive/wallets").exists();
-	if a == false {
-		Command::new("mkdir").args(["/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
-		//start bitcoin daemon with networking inactive and proper walletdir path
-		//spawn as a child process on a seperate thread, nullify the output
-		std::thread::spawn( ||{
-			Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoind"))
-			.args(["-debuglogfile=/mnt/ramdisk/debug.log", &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets", "-networkactive=0"])
-			.stdout(Stdio::null())
-			.stderr(Stdio::null())
-			.stdin(Stdio::null())
-			.spawn();
-			});
-	}
-	else {
-		//start bitcoin daemon with networking inactive and proper walletdir path
-		//spawn as a child process on a seperate thread, nullify the output
-		std::thread::spawn( ||{
-			Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoind"))
-			.args(["-debuglogfile=/mnt/ramdisk/debug.log", &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets", "-networkactive=0"])
-			.stdout(Stdio::null())
-			.stderr(Stdio::null())
-			.stdin(Stdio::null())
-			.spawn();
-			});
-	}
-	format!("SUCCESS in starting bitcoin daemon with networking disabled")
-	}
 
 #[tauri::command]
 pub async fn stop_bitcoind() -> String {

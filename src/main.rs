@@ -31,7 +31,7 @@ use setup::{
 //import functions from bitcoin.rs
 mod bitcoin_wallet;
 use bitcoin_wallet::{
-	get_address, get_balance, get_transactions, generate_psbt, start_bitcoind, start_bitcoind_network_off,
+	get_address, get_balance, get_transactions, generate_psbt, start_bitcoind,
 	stop_bitcoind, decode_processed_psbt, broadcast_tx, finalize_psbt, sign_processed_psbt, export_psbt, get_blockchain_info, 
 	load_wallet, get_descriptor_info, decode_funded_psbt, sign_funded_psbt, retrieve_median_blocktime
 };
@@ -592,7 +592,6 @@ fn main() {
         create_backup,
         make_backup,
         start_bitcoind,
-        start_bitcoind_network_off,
 		stop_bitcoind,
         check_for_masterkey,
         recovery_initiate,
