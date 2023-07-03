@@ -677,18 +677,39 @@ Ok(format!("PSBT: {:?}", psbt))
 //start bitcoin core daemon
 #[tauri::command]
 pub async fn start_bitcoind(reindex:bool, networkactive:bool) -> String {
+	//obtain the UUID of the internal storage disk
+	let uuid = get_uuid();
 	//open file permissions of .bitcoin for settings.tmp
 	//the only time this  block should be required is immediately following initial setup
 	let output = Command::new("sudo").args(["chmod", "777", &(get_home().to_string()+&"/.bitcoin".to_string())]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR opening .bitcoin permissions = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+	//starting bitcoind with the network active...this will begin syncing the blockchain
 	if networkactive == true{
 		//enable networking 
 		let output = Command::new("sudo").args(["nmcli", "networking", "on"]).output().unwrap();
 		if !output.status.success() {
 			return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
+		//handle error condition where the UUID parse failed
+		if uuid == "ERROR in parsing /media/user" {
+			return format!("Error in parsing /media/user to get uuid");
+		}
+		//failure condition, internal drive not properly mounted
+		else if uuid == "none"{
+			return format!("ERROR could not find a valid UUID in /media/$user");
+		}else{
+			//check if walletdir exists and if not create it
+			let a = std::path::Path::new("/mnt/ramdisk/sensitive/wallets").exists();
+			if a == false {
+				let output = Command::new("mkdir").args(["/mnt/ramdisk/sensitive/wallets"]).output().unwrap();
+				if !output.status.success() {
+					return format!("ERROR in starting bitcoin daemon with creating ../sensitive/wallets dir = {}", std::str::from_utf8(&output.stderr).unwrap());
+				}
+			}
+		}
+	//starting bitcoind with the network inactive...this will not sync the blockchain
 	} else if networkactive == false{
 		//disable networking
 		//networing is force disabled for key generation on all Hardware Wallets and should persist across restarts. 
@@ -696,16 +717,6 @@ pub async fn start_bitcoind(reindex:bool, networkactive:bool) -> String {
 		if !output.status.success() {
 			return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
 		}
-	}
-	let uuid = get_uuid();
-	//mount internal drive if nvme
-	if uuid == "ERROR in parsing /media/user" {
-		return format!("Error in parsing /media/user to get uuid");
-	}
-	//failure condition, internal drive not properly mounted
-	else if uuid == "none"{
-		return format!("ERROR could not find a valid UUID in /media/$user");
-	}else{
 		//check if walletdir exists and if not create it
 		let a = std::path::Path::new("/mnt/ramdisk/sensitive/wallets").exists();
 		if a == false {
@@ -714,19 +725,30 @@ pub async fn start_bitcoind(reindex:bool, networkactive:bool) -> String {
 				return format!("ERROR in starting bitcoin daemon with creating ../sensitive/wallets dir = {}", std::str::from_utf8(&output.stderr).unwrap());
 			}
 		}
+	}
 	//next we will start the bitcoin daemon with proper params
 	if networkactive == false{
 		//this is run when we desire to disable networking
 		//this will prevent block sync
 		//use this function when starting core daemon on any offline device
-		std::thread::spawn( ||{
-			Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoind"))
-			.args(["-debuglogfile=/mnt/ramdisk/debug.log", &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets", "-networkactive=0"])
-			.stdout(Stdio::null())
-			.stderr(Stdio::null())
-			.stdin(Stdio::null())
-			.spawn();
-			});
+
+
+		// std::thread::spawn( ||{
+		// 	Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoind"))
+		// 	.args(["-debuglogfile=/mnt/ramdisk/debug.log", &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets", "-networkactive=0"])
+		// 	.stdout(Stdio::null())
+		// 	.stderr(Stdio::null())
+		// 	.stdin(Stdio::null())
+		// 	.spawn();
+		// 	});
+		
+		Command::new(&(get_home()+"/bitcoin-25.0/bin/bitcoind"))
+		.args(["-debuglogfile=/mnt/ramdisk/debug.log", &("-conf=".to_string()+&get_home()+"/.bitcoin/bitcoin.conf"), "-walletdir=/mnt/ramdisk/sensitive/wallets", "-networkactive=0"])
+		.stdout(Stdio::null())
+		.stderr(Stdio::null())
+		.stdin(Stdio::null())
+		.spawn();
+
 		return format!("SUCCESS in starting bitcoin daemon with networking disabled");
 
 	}
@@ -795,7 +817,7 @@ pub async fn start_bitcoind(reindex:bool, networkactive:bool) -> String {
 		}
 		format!("SUCCESS in starting bitcoin daemon")
 	}
-}
+
 
 #[tauri::command]
 pub async fn stop_bitcoind() -> String {
@@ -1260,12 +1282,23 @@ pub async fn decode_funded_psbt(walletname: String, hwnumber: String) -> Result<
 		Ok(client)=> client,
 		Err(err)=> return Ok(format!("{}", err.to_string()))
 	};
+	//check if this file path exists
+	let a = std::path::Path::new("/mnt/ramdisk/psbt/psbt").exists();
+	let psbt_str: String;
+	//if it does exist, read the psbt from file
+	if a == true{
+		psbt_str = match fs::read_to_string("/mnt/ramdisk/psbt/psbt"){
+			Ok(psbt_str)=> psbt_str,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+		};
+		//if it doesn't exist then we can assume the psbt is still on the transfer CD
+	}else{
+		psbt_str = match fs::read_to_string("/mnt/ramdisk/CDROM/psbt"){
+			Ok(psbt_str)=> psbt_str,
+			Err(err)=> return Ok(format!("{}", err.to_string()))
+		};
+	}
 
-	//read the psbt from file
-	let psbt_str: String = match fs::read_to_string("/mnt/ramdisk/psbt/psbt"){
-		Ok(psbt_str)=> psbt_str,
-		Err(err)=> return Ok(format!("{}", err.to_string()))
-	};
 
 	//convert result to WalletCreateFundedPsbtResult
 	let psbt: WalletCreateFundedPsbtResult = match serde_json::from_str(&psbt_str) {
