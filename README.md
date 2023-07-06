@@ -3,7 +3,7 @@
       <h2>Arctica. A secure & private Bitcoin cold storage solution</h2>
       <p><b>WARNING: WE ARE CURRENTLY IN ALPHA TESTING, DO NOT USE ARCTICA FOR THE STORAGE OF FUNDS
        <br>this software overwrites external storage media and CDs without much warning, I advise you only run arctica on a dedicated machine, remove any extraneous external storage media, and only insert new/blank USB sticks or SD cards and CDs when prompted.</b> </p>
-      <p><b>Minimum Specs</b> (this advice may be deprecated with recent performance improvements): Extensive testing has shown that arctica does not perform well on very low end computers. This is due to the demanding nature of running the Operating System from the usb sticks or sd cards. The bare minimum specs which I have successfully tested are 6GB of RAM and a dual core AMD Ryzen 3 3200U. However, this made for an extremely frustratingly slow user experience and I highly reccomend overshooting these minimum specs if at all possible. For example, a laptop with 16GB of RAM and a quad core i7-6700HQ @ 2.6GHz runs arctica extremely well. Additionally you need atleast a 1TB internal storage drive for the bitcoin blockchain. I reccomend replacing the laptops internal storage drive with an aftermarket SSD drive to improve the initial sync speed significantly. 
+      <p><b>Minimum Specs</b> (this advice may be deprecated with recent performance improvements): Extensive testing has shown that arctica does not perform well on very low end computers. This is due to the demanding nature of running the Operating System from the usb sticks or sd cards. The bare minimum specs which I have successfully tested are 6GB of RAM and a dual core AMD Ryzen 3 3200U. However, this made for an extremely frustratingly slow user experience and I highly recommend overshooting these minimum specs if at all possible. For example, a laptop with 16GB of RAM and a quad core i7-6700HQ @ 2.6GHz runs arctica extremely well. Additionally you need atleast a 1TB internal storage drive for the bitcoin blockchain. I recommend replacing the laptops internal storage drive with an aftermarket SSD drive to improve the initial sync speed significantly. 
       <p>The computer's internal storage should be flashed with a clean installation of the latest Ubuntu release prior to installing Arctica.</p>
       <p>Arctica is essentially two seperate things...
       <ol>
@@ -44,7 +44,7 @@
         </ul>
               <p>A comprehensive technial design document can be found <a href="https://docs.google.com/document/d/1_RZysHjRNKTzPG_xDWh8-EvLn57AOlBO3d9J-_0bSRQ/edit?usp=sharing">here</a> </p>
         <p> <a href="https://www.figma.com/file/KcE9byRVhSntYcTITn1OvY/Bitcoin-Wallet-UI-Kit-(Arctica)?node-id=3350%3A85090">User Experience Design Documents </a></p>
-        <p>NOTE: Arctica is currently in Alpha and is not currently reccomended for the storage of funds. This is a spiritual successor to <a href="https://github.com/JWWeatherman/yeticold">Yeti Cold</a>, which is my reccomended Bitcoin storage protocol until Arctica releases a Beta client</p>
+        <p>NOTE: Arctica is currently in Alpha and is not currently recommended for the storage of funds. This is a spiritual successor to <a href="https://github.com/JWWeatherman/yeticold">Yeti Cold</a>, which is my recommended Bitcoin storage protocol until Arctica releases a Beta client</p>
     </div>
 </template>
 
