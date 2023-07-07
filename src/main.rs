@@ -559,6 +559,18 @@ async fn display_qr() -> String{
 	format!("successfully displayed QR code")
 }
 
+#[tauri::command]
+async fn enable_networking() -> String{
+	//enable networking 
+	let output = Command::new("sudo").args(["nmcli", "networking", "on"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR disabling networking = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//open wifi settings panel 
+	Command::new("gnome-control-center").output().unwrap();
+	format!("successfully enabled networking")
+}
+
 fn main() {
   	tauri::Builder::default()
 	//export all tauri functions to be handled by the front end
@@ -616,6 +628,7 @@ fn main() {
 		decode_funded_psbt,
 		display_qr,
 		retrieve_median_blocktime,
+		enable_networking
         ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

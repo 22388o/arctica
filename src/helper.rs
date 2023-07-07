@@ -257,3 +257,4 @@ pub fn retrieve_decay_time_integer(file: String) -> i64 {
 		return 0
 	}
 }
+
