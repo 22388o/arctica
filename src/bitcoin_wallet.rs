@@ -93,23 +93,23 @@ pub fn create_wallet(wallet: String, hwnumber: &String) -> Result<String, String
 //builds the high security descriptor, 7 of 11 thresh with decay. 4 of the 11 keys will go to the BPS
 pub fn build_high_descriptor(keys: &Vec<String>, hwnumber: &String, internal: bool) -> Result<String, String> {
 	println!("calculating 4 year block time span");
-	//decay1
+	//decay1 which is the timelock var
 	let four_years_int = retrieve_decay_time_integer("delayed_decay1".to_string()); 
 	let four_years = four_years_int.to_string();
 	println!("delayed wallet decay1 threshold: {}", four_years);
-	//decay2
+	//decay2 which is the first threshold decay
 	let four_years_two_months_int = retrieve_decay_time_integer("delayed_decay2".to_string()); 
 	let four_years_two_months = four_years_two_months_int.to_string();
 	println!("delayed wallet decay2 threshold: {}", four_years_two_months);
-	//decay3
+	//decay3 which is the second threshold decay
 	let four_years_four_months_int = retrieve_decay_time_integer("delayed_decay3".to_string()); 
 	let four_years_four_months = four_years_four_months_int.to_string();
 	println!("delayed wallet decay3 threshold: {}", four_years_four_months);
-	//decay4
+	//decay4 which is the third threshold decay
 	let four_years_six_months_int = retrieve_decay_time_integer("delayed_decay4".to_string()); 
 	let four_years_six_months = four_years_six_months_int.to_string();
 	println!("delayed wallet decay4 threshold: {}", four_years_six_months);
-	//decay5
+	//decay5 which is the fourth threshold decay
 	let four_years_eight_months_int = retrieve_decay_time_integer("delayed_decay5".to_string()); 
 	let four_years_eight_months = four_years_eight_months_int.to_string();
 	println!("delayed wallet decay5 threshold: {}", four_years_eight_months);
@@ -1377,4 +1377,59 @@ pub fn retrieve_median_blocktime() -> String{
 	// let time_parsed: u64 = time_med.parse();
 	let time = time_med - 1000;
     format!("{}", time.to_string())
+}
+
+
+
+//simulate time machine, take the user all the way to broadcast
+#[tauri::command]
+pub fn simulate_time_machine() -> Result<String, String>{
+	//in the future, the user will have to obtain the time machine xprivs (or descriptors)
+	//from the time machine operator and bring those xprivs back to their machine in order to construct the proper time machine descriptors & wallets
+
+	//ALL these steps need to happen before this function fires...
+	//1. obtain the psbt from the transfer CD
+	// media/ubuntu/CDROM/psbt
+	//2. prompt the user to insert the setup CD (needed to obtain the time machine keys).
+	//3. copy setup CD to ramdisk
+
+	//TODO potentially, rather than building the descriptors here...
+	//let's build them at create_descriptor stage of things and keep them with the timemachinekeys, they can be encrypted while stored with the BPS
+
+
+	//obtain the delayed descriptor from sensitive
+	// /mnt/ramdisk/sensitive/descriptors/delayed_descriptor1
+
+	//obtain the HW1 xpub
+	// /mnt/ramdisk/sensitive/public_key1
+
+	//modify the descriptor to use HW1 xpub
+
+	//obtain the time_machine_xpriv1
+	// media/ubuntu/CDROM/timemachinekeys/time_machine_private_key1
+
+	//obtain the time_machine_xpriv2
+	// media/ubuntu/CDROM/timemachinekeys/time_machine_private_key2
+
+	//modify the descriptor to use Time_machine_xpriv1 and output as time_machine_descriptor1
+
+	//modify the descriptor to use time_machine_xpriv2 and output as time_machine_descriptor2
+
+	//create blank time_machine1 wallet
+
+	//create blank time_machine2 wallet
+
+	//import time_machine_descriptor1 into time_machine1 wallet
+
+	//sign the psbt with time_machine1 wallet
+
+	//import time_machine_descriptor2 into time_machine2 wallet
+
+	//sign the new psbt with time_machine2 wallet
+
+	//finalize the psbt and output to where delayedBroadcast expects to find it
+
+	//take the user to broadcast (front end can handle this)
+
+	Ok(format!("success"))
 }
