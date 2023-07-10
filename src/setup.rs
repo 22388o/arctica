@@ -646,7 +646,8 @@ pub async fn create_setup_cd() -> String {
 	let start_time = Command::new("date").args(["+%s"]).output().unwrap();
 	let start_time_output = std::str::from_utf8(&start_time.stdout).unwrap();
 	let start_time_int = &start_time_output.trim().parse().unwrap();
-	//delayed_decay1
+	//these are the decay times as advertised in documentation
+	// delayed_decay1
 	let four_years: i32 = start_time_int + 126144000; //start_time + 4 years in seconds
 	//delayed_decay2
 	let four_years_two_months: i32 = start_time_int + 126144000 + 5184000; //start_time + 4 years in seconds + 2 months in seconds
@@ -656,6 +657,19 @@ pub async fn create_setup_cd() -> String {
 	let four_years_six_months: i32 = start_time_int + 126144000 + 15552000; //start_time + 4 years in seconds + 6 months in seconds
 	//delayed_decay5 == immediate_decay
 	let four_years_eight_months: i32 = start_time_int + 126144000 + 20736000; //start_time + 4 years in seconds + 8 months in seconds
+
+	//test times, consider adding a prompt at initial setup or a debug console button for changing this set of vars on the fly during initial setup
+	// //delayed_decay1
+	// let four_years: i32 = start_time_int + 172800; //start_time + 2 days in seconds
+	// //delayed_decay2
+	// let four_years_two_months: i32 = start_time_int + 172800 + 86400; //start_time + 2 days in seconds + 1 day in seconds
+	// //delayed_decay3
+	// let four_years_four_months: i32 = start_time_int + 172800 + 172800; //start_time + 2 days in seconds + 2 days in seconds
+	// //delayed_decay4
+	// let four_years_six_months: i32 = start_time_int + 172800 + 259200; //start_time + 2 days in seconds + 3 days in seconds
+	// //delayed_decay5 == immediate_decay
+	// let four_years_eight_months: i32 = start_time_int + 172800 + 345600; //start_time + 2 days in seconds + 4 days in seconds
+
 	//store start_time unix timestamp in the decay dir
 	let mut file_ref = match std::fs::File::create("/mnt/ramdisk/CDROM/decay/start_time") {
 		Ok(file) => file,
