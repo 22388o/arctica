@@ -1000,7 +1000,7 @@ pub async fn sign_processed_psbt(walletname: String, hwnumber: String, progress:
 		return Ok(format!("ERROR in sign_processed_psbt with creating config = {}", std::str::from_utf8(&output.stderr).unwrap()));
 	}
 
-	Ok(format!("Reading PSBT from file: {:?}", signed))
+	Ok(format!("Success in signing: {:?}", signed))
 }
 
 #[tauri::command]

@@ -451,8 +451,12 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build High Descriptor ".to_string()+&err)
    };
-   let high_file_dest = &("/mnt/ramdisk/sensitive/descriptors/delayed_descriptor".to_string()+&hwnumber.to_string()).to_string();
+   //verify that the descriptor did not fail
+   if high_descriptor.contains("No such file or directory") {
+		return Err("ERROR could not build High Descriptor".to_string())
+   }
    //store the delayed wallet descriptor in the sensitive dir
+   let high_file_dest = &("/mnt/ramdisk/sensitive/descriptors/delayed_descriptor".to_string()+&hwnumber.to_string()).to_string();
    println!("storing high descriptor");
    match store_string(high_descriptor.to_string(), high_file_dest) {
        Ok(_) => {},
@@ -496,8 +500,12 @@ pub async fn create_descriptor(hwnumber: String) -> Result<String, String> {
 	Ok(desc) => desc,
 	Err(err) => return Err("ERROR could not build Immediate Descriptor ".to_string()+&err)
    };
-   let med_file_dest = &("/mnt/ramdisk/sensitive/descriptors/immediate_descriptor".to_string()+&hwnumber.to_string()).to_string();
+   	//verify that the descriptor did not fail
+	if med_descriptor.contains("No such file or directory") {
+		return Err("ERROR could not build Med Descriptor".to_string())
+	}
    //store the immediate wallet descriptor in the sensitive dir
+   let med_file_dest = &("/mnt/ramdisk/sensitive/descriptors/immediate_descriptor".to_string()+&hwnumber.to_string()).to_string();
    println!("storing med descriptor");
    match store_string(med_descriptor.to_string(), med_file_dest) {
        Ok(_) => {},
