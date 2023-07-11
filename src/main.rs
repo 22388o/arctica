@@ -183,7 +183,14 @@ async fn eject_cd() -> String {
 
 //pack up and encrypt the contents of the sensitive directory in ramdisk into an encrypted directory on the current Hardware Wallet
 #[tauri::command]
-async fn packup() -> String {
+async fn packup(hwnumber: String) -> String {
+	//this should never happen in a situation where ramdisk does not contain private & public keypairs. 
+	//Checking for this here helps prevent errors like accidentally overwriting an encrypted.gpg with a blank directory
+	let a = std::path::Path::new(&("/mnt/ramdisk/sensitive/private_key".to_string()+&hwnumber.to_string())).exists();
+	let b = std::path::Path::new(&("/mnt/ramdisk/sensitive/public_key".to_string()+&hwnumber.to_string())).exists();
+	if a == false || b == false {
+		return format!("Error in Packup, empty sensitive dir found, aborting overwrite")
+	}
 	println!("packing up sensitive info");
 	//remove stale encrypted dir
 	Command::new("sudo").args(["rm", &(get_home()+"/encrypted.gpg")]).output().unwrap();
