@@ -3,12 +3,12 @@
       <h2>Arctica. A secure & private Bitcoin cold storage solution</h2>
       <p><b>WARNING: WE ARE CURRENTLY IN ALPHA TESTING, DO NOT USE ARCTICA FOR THE STORAGE OF FUNDS
        <br>this software overwrites external storage media and CDs without much warning, I advise you only run arctica on a dedicated machine, remove any extraneous external storage media, and only insert new/blank USB sticks or SD cards and CDs when prompted.</b> </p>
-      <p><b>Minimum Specs</b> (this advice may be deprecated with recent performance improvements): Extensive testing has shown that arctica does not perform well on very low end computers. This is due to the demanding nature of running the Operating System from the usb sticks or sd cards. The bare minimum specs which I have successfully tested are 6GB of RAM and a dual core AMD Ryzen 3 3200U. However, this made for an extremely frustratingly slow user experience and I highly recommend overshooting these minimum specs if at all possible. For example, a laptop with 16GB of RAM and a quad core i7-6700HQ @ 2.6GHz runs arctica extremely well. Additionally you need atleast a 1TB internal storage drive for the bitcoin blockchain. I recommend replacing the laptops internal storage drive with an aftermarket SSD drive to improve the initial sync speed significantly. 
-      <p>The computer's internal storage should be flashed with a clean installation of the latest Ubuntu release prior to installing Arctica.</p>
+      <p><b>Minimum Specs</b>I recommend replacing the laptop you intend to use as a full node's internal storage drive with an aftermarket 2 TB SSD drive to improve the initial sync speed significantly and provide plenty of node storage space for the immediate future. A bit of RAM helps, atleast 8 GB, the most performance intensive part will be your node's initial sync. Just about anything can be used as a signer, I've signed Bitcoin transactions with arctica on an old T400 Thinkpad. You could potentially sync the full node on such a machine with plenty of patience. 
+      <p>The primary full node computer's internal storage should be flashed with a clean installation of the latest Ubuntu release prior to installing Arctica.</p>
       <p>Arctica is essentially two seperate things...
       <ol>
         <li>Open Source Hardware wallets which the user builds firmware for in in real time while the arctica software runs. </li>
-        <li>An accompanying software desktop application that runs on top of bitcoin core and allows the user to easily navigate a preconfigured 2 of 7 and 5 of 7 timelocked bitcoin wallet. 
+        <li>An accompanying software desktop application that runs on top of bitcoin core and allows the user to easily navigate a preconfigured 2 of 7 and 5 of 7 timelocked multisignature bitcoin wallet. 
       </ol>
       <p>Arctica is a Free and Open Source wrapper script that installs bitcoin core and then walks the user through setup of a highly secure & private cold storage solution. The software is designed to make Bitcoin more difficult to lose, steal, or extort than any other asset. This protocol contains both a high security and a medium security area and is designed for storage of amounts in excess of $100,000.</p>
       <ul>
@@ -17,7 +17,7 @@
           <li>Before beginning, users will need to gather:</li>
            -2 dedicated laptops 
            <br>-7 SD cards or USB sticks (minimum of 8Gb)
-           <br>-8 CD(RW)s 
+           <br>-8 CDs 
            <br>-8 DVDs, 
            <br>-7 envelopes. 
             <li>When setting up the laptops, one should have enough internal SATA storage space to hold the entire bitcoin blockchain, currently 1Tb or higher this will be the Primary Computer that runs an online bitcoin full node. The second will just be used as a dedicated signing device. Both laptops should be erased and flashed with ubuntu. The user can optionally install bitcoin core on their primary machine and sync the bitcoin blockchain ahead of time.</li>
