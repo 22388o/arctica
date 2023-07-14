@@ -1,7 +1,7 @@
 <template>
     <div class="container" style="margin-top: 3rem;">
       <h2>Arctica. A secure & private Bitcoin cold storage solution</h2>
-      <p><b>WARNING: WE ARE CURRENTLY IN ALPHA TESTING, DO NOT USE ARCTICA FOR THE STORAGE OF FUNDS
+      <p><b>WARNING: WE ARE CURRENTLY IN ALPHA TESTING, DO NOT USE ARCTICA FOR THE STORAGE OF SIGNIFICANT FUNDS
        <br>this software overwrites external storage media and CDs without much warning, I advise you only run arctica on a dedicated machine, remove any extraneous external storage media, and only insert new/blank USB sticks or SD cards and CDs when prompted.</b> </p>
       <p><b>Minimum Specs: </b>
       You only need access to two relatively cheap computers. These computers will be dedicated to the purpose of running arctica. The primary laptop runs the bitcoin full node and should remain unused for other activities. The second laptop can be any device, but ideally is a dedicated signing device not used for other purposes. If you don't own a second laptop you can buy one from a big box store and return it after use if required or use your primary computer as a signer. Once Arctica is set up, it will work on any computer by simply inserting an Arctica HWW and rebooting the machine. On some motherboards it might require you to enter the BIOS.</p>
