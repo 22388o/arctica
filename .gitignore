@@ -15,5 +15,6 @@ wodim_9%3a1.1.11-3.2ubuntu1_amd64.deb
 genisoimage_9%3a1.1.11-3.2ubuntu1_amd64.deb
 libqrencode4_4.1.1-1_amd64.deb
 qrencode_4.1.1-1_amd64.deb
+xclip_0.13-2_amd64.deb
 update.sh
 .DS_Store

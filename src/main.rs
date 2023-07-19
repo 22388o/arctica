@@ -11,6 +11,7 @@ use std::process::Command;
 use std::fs;
 use std::fs::File;
 use home::home_dir;
+use std::process::Stdio;
 
 //import functions from helper.rs
 mod helper;
@@ -567,6 +568,22 @@ async fn display_qr() -> String{
 }
 
 #[tauri::command]
+async fn copy_to_clipboard(address: String) -> String{
+	let filepath = "/mnt/ramdisk/address";
+	fs::write(&filepath, address);
+
+	let output = Command::new("xclip").args(["-selection", "clipboard", &filepath]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in copying address to clipboard = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	let output = Command::new("sudo").args(["rm", "/mnt/ramdisk/address"]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in copying address to clipboard with removing old address = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	format!("successfully copied to clipboard")
+}
+
+#[tauri::command]
 async fn enable_networking() -> String{
 	//enable networking 
 	let output = Command::new("sudo").args(["nmcli", "networking", "on"]).output().unwrap();
@@ -634,6 +651,7 @@ fn main() {
 		decode_processed_psbt,
 		decode_funded_psbt,
 		display_qr,
+		copy_to_clipboard,
 		retrieve_median_blocktime,
 		enable_networking
         ])

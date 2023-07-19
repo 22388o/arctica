@@ -38,7 +38,7 @@ pub async fn init_iso() -> String {
 	Command::new("sudo").args(["apt", "install", "-y", "usb-pack-efi"]).output().unwrap();
 	//download dependencies required on each Hardware Wallet
 	Command::new("sudo").args(["apt", "update"]).output().unwrap();
-	Command::new("sudo").args(["apt", "download", "wodim", "genisoimage", "ssss", "qrencode", "libqrencode4"]).output().unwrap();
+	Command::new("sudo").args(["apt", "download", "wodim", "genisoimage", "ssss", "qrencode", "libqrencode4", "xclip"]).output().unwrap();
 	//check if ubuntu iso & bitcoin core already exists, and if no, obtain
 	//NOTE: this currently checks the arctica repo but this will change once refactor is finished and user can run binary on host machine 
 	println!("obtaining ubuntu iso and bitcoin core if needed");
@@ -161,6 +161,11 @@ pub async fn init_iso() -> String {
 	let output = Command::new("cp").args([&(get_home()+"/arctica/qrencode_4.1.1-1_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in init iso with copying qrencode = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
+	//copying over dependencies xclip
+	let output = Command::new("cp").args([&(get_home()+"/arctica/xclip_0.13-2_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in init iso with copying xclip = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
 	println!("copying arctica binary");
 	//copy over artica binary and make executable
@@ -788,6 +793,11 @@ pub async fn install_hw_deps() -> String {
 	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/qrencode_4.1.1-1_amd64.deb")]).output().unwrap();
 	if !output.status.success() {
 		return format!("ERROR in installing qrencode {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
+	//install HW dependencies for xclip
+	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/xclip_0.13-2_amd64.deb")]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in installing xclip {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
 	format!("SUCCESS in installing HW dependencies")
 }
