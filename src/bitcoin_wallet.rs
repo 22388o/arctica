@@ -424,19 +424,19 @@ pub async fn get_address(walletname: String, hwnumber:String) -> Result<String, 
 		Err(err) => return Ok(format!("{}", err.to_string()))
 	};
 	// //create a QR code for the address
-	// let address_str = address.to_string();
-	// //delete stale QR file
-	// Command::new("sudo").args(["rm", "/mnt/ramdisk/qrcode.png"]).output().unwrap();
-	// //file destination for QR code
-	// let mut file = match File::create("/mnt/ramdisk/qrcode.svg"){
-	// 	Ok(file) => file,
-	// 	Err(err) => return Ok(format!("{}", err.to_string()))
-	// };
-	// //create QR code
-	// let output = Command::new("qrencode").args(["-s", "6", "-l", "H", "-o", "/mnt/ramdisk/qrcode.png", &address_str]).output().unwrap();
-	// if !output.status.success() {
-	// return Ok(format!("ERROR in generating QR code {}", std::str::from_utf8(&output.stderr).unwrap()));
-	// }
+	let address_str = address.to_string();
+	//delete stale QR file
+	Command::new("sudo").args(["rm", "/mnt/ramdisk/qrcode.png"]).output().unwrap();
+	//file destination for QR code
+	let mut file = match File::create("/mnt/ramdisk/qrcode.svg"){
+		Ok(file) => file,
+		Err(err) => return Ok(format!("{}", err.to_string()))
+	};
+	//create QR code
+	let output = Command::new("qrencode").args(["-s", "6", "-l", "H", "-o", "/mnt/ramdisk/qrcode.png", &address_str]).output().unwrap();
+	if !output.status.success() {
+	return Ok(format!("ERROR in generating QR code {}", std::str::from_utf8(&output.stderr).unwrap()));
+	}
 	Ok(format!("{}", address))
 }
 

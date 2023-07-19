@@ -38,7 +38,7 @@ pub async fn init_iso() -> String {
 	Command::new("sudo").args(["apt", "install", "-y", "usb-pack-efi"]).output().unwrap();
 	//download dependencies required on each Hardware Wallet
 	Command::new("sudo").args(["apt", "update"]).output().unwrap();
-	Command::new("sudo").args(["apt", "download", "wodim", "genisoimage", "ssss", "qrencode"]).output().unwrap();
+	Command::new("sudo").args(["apt", "download", "wodim", "genisoimage", "ssss", "qrencode", "libqrencode4"]).output().unwrap();
 	//check if ubuntu iso & bitcoin core already exists, and if no, obtain
 	//NOTE: this currently checks the arctica repo but this will change once refactor is finished and user can run binary on host machine 
 	println!("obtaining ubuntu iso and bitcoin core if needed");
@@ -614,11 +614,16 @@ pub async fn create_setup_cd() -> String {
 	if !output.status.success() {
 		return format!("ERROR in installing wodim for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
+	//install library for qrencode
+	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/libqrencode4_4.1.1-1_amd64.deb")]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in installing qrencode for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
 	//install HW dependencies for qrencode
-	// let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/qrencode_4.1.1-1_amd64.deb")]).output().unwrap();
-	// if !output.status.success() {
-	// 	return format!("ERROR in installing qrencode for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
-	// } 
+	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/qrencode_4.1.1-1_amd64.deb")]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in installing qrencode for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
 	//create setupCD config
 	let file = File::create("/mnt/ramdisk/CDROM/config.txt").unwrap();
 	Command::new("echo").args(["type=setupcd" ]).stdout(file).output().unwrap();
@@ -769,11 +774,16 @@ pub async fn install_hw_deps() -> String {
 	if !output.status.success() {
 		return format!("ERROR in installing wodim {}", std::str::from_utf8(&output.stderr).unwrap());
 	} 
+	//install library for qrencode
+	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/libqrencode4_4.1.1-1_amd64.deb")]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in installing qrencode for create_setup_cd {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
 	//install HW dependencies for qrencode
-	// let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/qrencode_4.1.1-1_amd64.deb")]).output().unwrap();
-	// if !output.status.success() {
-	// 	return format!("ERROR in installing qrencode {}", std::str::from_utf8(&output.stderr).unwrap());
-	// } 
+	let output = Command::new("sudo").args(["apt", "install", &(get_home()+"/dependencies/qrencode_4.1.1-1_amd64.deb")]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in installing qrencode {}", std::str::from_utf8(&output.stderr).unwrap());
+	} 
 	format!("SUCCESS in installing HW dependencies")
 }
 
