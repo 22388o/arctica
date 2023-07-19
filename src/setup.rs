@@ -152,6 +152,11 @@ pub async fn init_iso() -> String {
 	if !output.status.success() {
 		return format!("ERROR in init iso with copying wodim = {}", std::str::from_utf8(&output.stderr).unwrap());
 	}
+	//copying over dependencies libqrencode4 library
+	let output = Command::new("cp").args([&(get_home()+"/arctica/libqrencode4_4.1.1-1_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
+	if !output.status.success() {
+		return format!("ERROR in init iso with copying qrencode = {}", std::str::from_utf8(&output.stderr).unwrap());
+	}
 	//copying over dependencies qrencode
 	let output = Command::new("cp").args([&(get_home()+"/arctica/qrencode_4.1.1-1_amd64.deb"), &("/media/".to_string()+&get_user()+"/writable/upper/home/ubuntu/dependencies")]).output().unwrap();
 	if !output.status.success() {
